@@ -9,8 +9,26 @@ const DATA_DIR = path.resolve(__dirname, '../data');
 const DATA_FILE = path.join(DATA_DIR, 'wealthtrack.json');
 
 export type AccountType = 'bank' | 'cash' | 'ewallet';
-export type InvestmentCategory = 'USD' | 'Bitcoin' | 'Saham' | 'RDPU' | 'ETF USA';
+export type InvestmentCategory = string;
 export type Currency = 'IDR' | 'USD';
+
+export interface HoldingType {
+  id: string;
+  label: string;
+  defaultCurrency: 'IDR' | 'USD';
+  badgeColor?: string;
+  example?: string;
+  isSystem?: boolean;
+  createdAt?: string;
+}
+
+export const DEFAULT_HOLDING_TYPES: HoldingType[] = [
+  { id: 'Saham', label: 'Indonesian Stocks', defaultCurrency: 'IDR', badgeColor: '#10b981', example: 'e.g. BBCA, BBRI, ASII', isSystem: true },
+  { id: 'ETF USA', label: 'US Stocks & ETFs', defaultCurrency: 'USD', badgeColor: '#6366f1', example: 'e.g. VOO, QQQ, SCHD, SPY', isSystem: true },
+  { id: 'Bitcoin', label: 'Crypto (Bitcoin)', defaultCurrency: 'IDR', badgeColor: '#f59e0b', example: 'e.g. BTC, Cold storage', isSystem: true },
+  { id: 'RDPU', label: 'Money Market (RDPU)', defaultCurrency: 'IDR', badgeColor: '#06b6d4', example: 'e.g. Sucorinvest Stable Fund', isSystem: true },
+  { id: 'USD', label: 'USD Cash Buffer', defaultCurrency: 'USD', badgeColor: '#8b5cf6', example: 'e.g. Broker cash, Wise USD', isSystem: true },
+];
 
 export interface User {
   id: string;
@@ -57,6 +75,7 @@ export interface Investment {
   currency: Currency;
   amountInvested: number; // Cost basis in asset currency (IDR for Saham/RDPU, USD for USD/Bitcoin/ETF USA)
   currentValue: number; // Current value in asset currency
+  customExchangeRate?: number; // Custom broker exchange rate
   units?: number; // e.g. shares, lots, crypto amount
   platform?: string; // e.g. GoTrade, Bibit, Ajaib, Indodax, etc.
   notes?: string;
@@ -96,6 +115,7 @@ export interface DatabaseSchema {
   transactions: Transaction[];
   investments: Investment[];
   settings: UserSettings[];
+  holdingTypes?: HoldingType[];
   systemSettings?: SystemSettings;
 }
 
@@ -106,6 +126,7 @@ let dbData: DatabaseSchema = {
   transactions: [],
   investments: [],
   settings: [],
+  holdingTypes: [...DEFAULT_HOLDING_TYPES],
   systemSettings: {
     announcement: {
       id: 'ann_default',
@@ -152,6 +173,11 @@ export function initDB(): void {
           dbData.systemSettings.adminEmails.push('davinwijaya16@gmail.com');
           persistDB();
         }
+      }
+
+      if (!dbData.holdingTypes || dbData.holdingTypes.length === 0) {
+        dbData.holdingTypes = [...DEFAULT_HOLDING_TYPES];
+        persistDB();
       }
     } catch (e) {
       console.error('Error reading db file, re-initializing:', e);

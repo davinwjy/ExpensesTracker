@@ -1,7 +1,17 @@
 export type AccountType = 'bank' | 'cash' | 'ewallet';
-export type InvestmentCategory = 'USD' | 'Bitcoin' | 'Saham' | 'RDPU' | 'ETF USA';
+export type InvestmentCategory = string;
 export type Currency = 'IDR' | 'USD';
 export type TransactionType = 'expense' | 'income' | 'transfer' | 'bank_to_investment';
+
+export interface HoldingType {
+  id: string;
+  label: string;
+  defaultCurrency: 'IDR' | 'USD';
+  badgeColor?: string;
+  example?: string;
+  isSystem?: boolean;
+  createdAt?: string;
+}
 
 export interface User {
   id: string;
@@ -90,6 +100,7 @@ export interface Investment {
   currency: Currency;
   amountInvested: number; // Cost basis in asset currency
   currentValue: number; // Current value in asset currency
+  customExchangeRate?: number; // Custom broker exchange rate to avoid system USD mismatch
   units?: number; // e.g. shares, lots, crypto amount
   platform?: string; // e.g. GoTrade, Bibit, Ajaib, Indodax
   notes?: string;

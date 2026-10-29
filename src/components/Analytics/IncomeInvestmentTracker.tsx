@@ -561,63 +561,63 @@ export const IncomeInvestmentTracker: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* SECTION WRAPPER */}
-      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-7 space-y-6">
+      <div className="rounded bg-[#0d1017] border border-[#1b212e] p-3.5 sm:p-5 space-y-4 font-mono">
         {/* HEADER & CONTROLS */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-[#1b212e]">
           <div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500/20 via-rose-500/20 to-indigo-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                <LineChartIcon className="w-4 h-4" />
+              <div className="w-7 h-7 rounded bg-[#141824] border border-[#212838] text-emerald-400 flex items-center justify-center shrink-0">
+                <LineChartIcon className="w-3.5 h-3.5" />
               </div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-                Income, Expenses, Investment & Account Tracker
+              <h3 className="text-sm sm:text-base font-bold text-zinc-100 uppercase tracking-wider">
+                INCOME, EXPENSES, INVESTMENTS & CASH BALANCES
               </h3>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Visual line graphs tracking monthly income, daily expenses, capital invested, and account bank balances
+            <p className="text-[10px] text-zinc-500 mt-0.5">
+              Multi-axis trend lines tracking monthly income, daily outflows, investment funding, and bank runways
             </p>
           </div>
 
           {/* CONTROLS ROW */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             {/* View Mode: Both Graphs (Stacked) vs Month vs Year */}
-            <div className="flex p-0.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold">
+            <div className="flex p-0.5 bg-[#080a0f] rounded border border-[#1d2332] text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setViewMode('both_stacked')}
-                className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2 py-1 rounded transition-all cursor-pointer flex items-center gap-1 ${
                   viewMode === 'both_stacked'
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm font-bold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'bg-[#151a26] text-zinc-100 font-bold border border-[#232c40]'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 }`}
                 title="Display both monthly and annual views simultaneously"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Both Views</span>
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                <span>BOTH</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('month')}
-                className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2 py-1 rounded transition-all cursor-pointer flex items-center gap-1 ${
                   viewMode === 'month'
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm font-bold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'bg-[#151a26] text-zinc-100 font-bold border border-[#232c40]'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
-                <Calendar className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Month by Month</span>
+                <Calendar className="w-3 h-3 text-emerald-400" />
+                <span>MONTHLY</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('year')}
-                className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2 py-1 rounded transition-all cursor-pointer flex items-center gap-1 ${
                   viewMode === 'year'
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm font-bold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'bg-[#151a26] text-zinc-100 font-bold border border-[#232c40]'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5 text-indigo-500" />
-                <span>Year by Year</span>
+                <Layers className="w-3 h-3 text-indigo-400" />
+                <span>YEARLY</span>
               </button>
             </div>
 
@@ -627,7 +627,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="appearance-none bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white text-xs font-bold font-mono pl-2.5 pr-6 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500 cursor-pointer shadow-sm"
+                  className="appearance-none bg-[#080a0f] text-zinc-200 text-xs font-bold font-mono pl-2.5 pr-6 py-1 rounded border border-[#1d2332] focus:outline-none focus:border-emerald-500 cursor-pointer"
                 >
                   {availableYears.map((yr) => (
                     <option key={yr} value={yr}>
@@ -635,12 +635,12 @@ export const IncomeInvestmentTracker: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3 h-3 text-zinc-500 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             )}
 
             {/* Metric Filter */}
-            <div className="flex p-0.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold">
+            <div className="flex p-0.5 bg-[#080a0f] rounded border border-[#1d2332] text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setViewMetric('all')}

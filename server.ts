@@ -13,6 +13,8 @@ import {
   type Transaction,
   type Investment,
   type UserSettings,
+  type HoldingType,
+  DEFAULT_HOLDING_TYPES,
 } from './server/db.ts';
 
 dotenv.config();
@@ -645,6 +647,7 @@ app.post('/api/transfers', authenticateToken, (req: AuthenticatedRequest, res: R
       toAccountId,
       toInvestmentId,
       amountIdr,
+      amountUsd: rawAmountUsd,
       exchangeRate,
       date,
       notes,
@@ -666,14 +669,37 @@ app.post('/api/transfers', authenticateToken, (req: AuthenticatedRequest, res: R
 
     // Scenario 1: Bank to Investment
     if (type === 'bank_to_investment') {
-      if (!toInvestmentId) {
-        res.status(400).json({ error: 'Target investment is required' });
-        return;
+      let investment = toInvestmentId
+        ? db.data.investments.find(inv => inv.id === toInvestmentId && inv.userId === userId)
+        : null;
+
+      if (!investment && req.body.newInvestment) {
+        const { name, category, currency: reqCur, platform, units, notes: invNotes } = req.body.newInvestment;
+        if (!name || !category) {
+          res.status(400).json({ error: 'New investment name and category are required' });
+          return;
+        }
+        const createdInv: Investment = {
+          id: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+          userId,
+          name: String(name).trim(),
+          category: String(category).trim(),
+          currency: (reqCur === 'USD' || reqCur === 'IDR') ? reqCur : ((category === 'ETF USA' || category === 'USD') ? 'USD' : 'IDR'),
+          amountInvested: 0,
+          currentValue: 0,
+          customExchangeRate: exchangeRate ? Number(exchangeRate) : undefined,
+          units: units ? Number(units) : undefined,
+          platform: platform ? String(platform).trim() : undefined,
+          notes: invNotes ? String(invNotes).trim() : undefined,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        db.data.investments.push(createdInv);
+        investment = createdInv;
       }
 
-      const investment = db.data.investments.find(inv => inv.id === toInvestmentId && inv.userId === userId);
       if (!investment) {
-        res.status(404).json({ error: 'Target investment not found' });
+        res.status(404).json({ error: 'Target investment not found or missing new asset details' });
         return;
       }
 
@@ -681,14 +707,22 @@ app.post('/api/transfers', authenticateToken, (req: AuthenticatedRequest, res: R
       sourceAccount.balance -= amount;
       sourceAccount.updatedAt = new Date().toISOString();
 
-      const rate = Number(exchangeRate) || getUserRate(userId);
-      let addedInvestmentValue = amount;
+      let rate = Number(exchangeRate) || investment.customExchangeRate || getUserRate(userId);
       let amountUsd = undefined;
 
       if (investment.currency === 'USD') {
-        amountUsd = Number((amount / rate).toFixed(2));
+        const parsedUsd = Number(rawAmountUsd);
+        if (!isNaN(parsedUsd) && parsedUsd > 0) {
+          amountUsd = Number(parsedUsd.toFixed(2));
+          if (amount > 0) {
+            rate = Number(exchangeRate) || Number((amount / amountUsd).toFixed(2));
+          }
+        } else {
+          amountUsd = Number((amount / rate).toFixed(2));
+        }
         investment.amountInvested += amountUsd;
         investment.currentValue += amountUsd;
+        investment.customExchangeRate = rate;
       } else {
         investment.amountInvested += amount;
         investment.currentValue += amount;
@@ -701,9 +735,9 @@ app.post('/api/transfers', authenticateToken, (req: AuthenticatedRequest, res: R
         type: 'bank_to_investment',
         amount,
         accountId: fromAccountId,
-        toInvestmentId,
+        toInvestmentId: investment.id,
         amountUsd,
-        exchangeRate: rate,
+        exchangeRate: investment.currency === 'USD' ? rate : undefined,
         category: `Investment: ${investment.category}`,
         date: txDate,
         notes: notes ? String(notes).trim() : `Funded ${investment.name} from ${sourceAccount.name}`,
@@ -786,22 +820,23 @@ app.get('/api/investments', authenticateToken, (req: AuthenticatedRequest, res: 
 app.post('/api/investments', authenticateToken, (req: AuthenticatedRequest, res: Response): void => {
   try {
     const userId = req.user!.id;
-    const { name, category, amountInvested, currentValue, units, platform, notes } = req.body;
+    const { name, category, currency: reqCurrency, amountInvested, currentValue, customExchangeRate, units, platform, notes } = req.body;
 
     if (!name || !category) {
       res.status(400).json({ error: 'Investment name and category are required' });
       return;
     }
 
-    // Valid categories: 'USD' | 'Bitcoin' | 'Saham' | 'RDPU' | 'ETF USA'
-    const validCategories = ['USD', 'Bitcoin', 'Saham', 'RDPU', 'ETF USA'];
-    if (!validCategories.includes(category)) {
-      res.status(400).json({ error: `Invalid category. Must be one of: ${validCategories.join(', ')}` });
+    const trimmedCategory = String(category).trim();
+    if (!trimmedCategory) {
+      res.status(400).json({ error: 'Valid category is required' });
       return;
     }
 
-    // Saham, RDPU, and Bitcoin are IDR; USD and ETF USA are USD
-    const currency = (category === 'Saham' || category === 'RDPU' || category === 'Bitcoin') ? 'IDR' : 'USD';
+    const matchedHoldingType = (db.data.holdingTypes || []).find(h => h.id.toLowerCase() === trimmedCategory.toLowerCase());
+    const currency = (reqCurrency === 'USD' || reqCurrency === 'IDR')
+      ? reqCurrency
+      : (matchedHoldingType?.defaultCurrency || ((trimmedCategory === 'Saham' || trimmedCategory === 'RDPU' || trimmedCategory === 'Bitcoin') ? 'IDR' : 'USD'));
 
     const invested = Number(amountInvested) || 0;
     const current = currentValue !== undefined ? Number(currentValue) : invested;
@@ -814,6 +849,7 @@ app.post('/api/investments', authenticateToken, (req: AuthenticatedRequest, res:
       currency,
       amountInvested: invested,
       currentValue: current,
+      customExchangeRate: customExchangeRate ? Number(customExchangeRate) : undefined,
       units: units !== undefined && units !== '' ? Number(units) : undefined,
       platform: platform ? String(platform).trim() : undefined,
       notes: notes ? String(notes).trim() : undefined,
@@ -835,7 +871,7 @@ app.put('/api/investments/:id', authenticateToken, (req: AuthenticatedRequest, r
   try {
     const userId = req.user!.id;
     const { id } = req.params;
-    const { name, category, amountInvested, currentValue, units, platform, notes } = req.body;
+    const { name, category, currency, amountInvested, currentValue, customExchangeRate, units, platform, notes } = req.body;
 
     const inv = db.data.investments.find(i => i.id === id && i.userId === userId);
     if (!inv) {
@@ -844,12 +880,18 @@ app.put('/api/investments/:id', authenticateToken, (req: AuthenticatedRequest, r
     }
 
     if (name !== undefined) inv.name = String(name).trim();
-    if (category !== undefined) {
-      inv.category = category;
-      inv.currency = (category === 'Saham' || category === 'RDPU' || category === 'Bitcoin') ? 'IDR' : 'USD';
+    if (category !== undefined) inv.category = category;
+    if (currency !== undefined && (currency === 'IDR' || currency === 'USD')) {
+      inv.currency = currency;
+    } else if (category !== undefined && !currency) {
+      // only fallback if currency wasn't already set
+      if (!inv.currency) {
+        inv.currency = (category === 'Saham' || category === 'RDPU' || category === 'Bitcoin') ? 'IDR' : 'USD';
+      }
     }
     if (amountInvested !== undefined) inv.amountInvested = Number(amountInvested);
     if (currentValue !== undefined) inv.currentValue = Number(currentValue);
+    if (customExchangeRate !== undefined) inv.customExchangeRate = customExchangeRate ? Number(customExchangeRate) : undefined;
     if (units !== undefined) inv.units = units !== '' ? Number(units) : undefined;
     if (platform !== undefined) inv.platform = String(platform).trim();
     if (notes !== undefined) inv.notes = String(notes).trim();
@@ -878,6 +920,125 @@ app.delete('/api/investments/:id', authenticateToken, (req: AuthenticatedRequest
     res.json({ success: true, message: 'Investment deleted' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete investment' });
+  }
+});
+
+// -------------------------------------------------------------
+// MASTER JENIS HOLDINGS (Holding Types)
+// -------------------------------------------------------------
+
+app.get('/api/holding-types', (_req: Request, res: Response): void => {
+  if (!db.data.holdingTypes || db.data.holdingTypes.length === 0) {
+    db.data.holdingTypes = [...DEFAULT_HOLDING_TYPES];
+    db.save();
+  }
+  res.json({ holdingTypes: db.data.holdingTypes });
+});
+
+app.post('/api/holding-types', authenticateToken, (req: AuthenticatedRequest, res: Response): void => {
+  try {
+    const { label, defaultCurrency, badgeColor, example } = req.body;
+    if (!label || !String(label).trim()) {
+      res.status(400).json({ error: 'Label / Nama jenis holding wajib diisi' });
+      return;
+    }
+    const cleanLabel = String(label).trim();
+    const cleanCurrency: 'IDR' | 'USD' = defaultCurrency === 'USD' ? 'USD' : 'IDR';
+
+    if (!db.data.holdingTypes) {
+      db.data.holdingTypes = [...DEFAULT_HOLDING_TYPES];
+    }
+
+    const existing = db.data.holdingTypes.find(
+      (h) => h.label.toLowerCase() === cleanLabel.toLowerCase() || h.id.toLowerCase() === cleanLabel.toLowerCase()
+    );
+    if (existing) {
+      res.status(400).json({ error: `Jenis holding "${cleanLabel}" sudah ada.` });
+      return;
+    }
+
+    const newHoldingType: HoldingType = {
+      id: cleanLabel,
+      label: cleanLabel,
+      defaultCurrency: cleanCurrency,
+      badgeColor: badgeColor || (cleanCurrency === 'USD' ? '#6366f1' : '#10b981'),
+      example: example ? String(example).trim() : undefined,
+      isSystem: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    db.data.holdingTypes.push(newHoldingType);
+    db.save();
+
+    res.status(201).json({ holdingType: newHoldingType });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || 'Gagal menambahkan jenis holding' });
+  }
+});
+
+app.put('/api/holding-types/:id', authenticateToken, (req: AuthenticatedRequest, res: Response): void => {
+  try {
+    const { id } = req.params;
+    const { label, defaultCurrency, badgeColor, example } = req.body;
+
+    if (!db.data.holdingTypes) {
+      db.data.holdingTypes = [...DEFAULT_HOLDING_TYPES];
+    }
+
+    const index = db.data.holdingTypes.findIndex((h) => h.id === id);
+    if (index === -1) {
+      res.status(404).json({ error: 'Jenis holding tidak ditemukan' });
+      return;
+    }
+
+    const current = db.data.holdingTypes[index];
+    const updated: HoldingType = {
+      ...current,
+      label: label ? String(label).trim() : current.label,
+      defaultCurrency: defaultCurrency ? (defaultCurrency === 'USD' ? 'USD' : 'IDR') : current.defaultCurrency,
+      badgeColor: badgeColor || current.badgeColor,
+      example: example !== undefined ? String(example).trim() : current.example,
+    };
+
+    db.data.holdingTypes[index] = updated;
+    db.save();
+
+    res.json({ holdingType: updated });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || 'Gagal mengubah jenis holding' });
+  }
+});
+
+app.delete('/api/holding-types/:id', authenticateToken, (req: AuthenticatedRequest, res: Response): void => {
+  try {
+    const { id } = req.params;
+    if (!db.data.holdingTypes) {
+      db.data.holdingTypes = [...DEFAULT_HOLDING_TYPES];
+    }
+
+    const item = db.data.holdingTypes.find((h) => h.id === id);
+    if (!item) {
+      res.status(404).json({ error: 'Jenis holding tidak ditemukan' });
+      return;
+    }
+
+    if (item.isSystem) {
+      res.status(400).json({ error: 'Jenis holding default sistem tidak dapat dihapus' });
+      return;
+    }
+
+    const inUse = db.data.investments.some((inv) => inv.category === id);
+    if (inUse) {
+      res.status(400).json({ error: 'Tidak dapat menghapus jenis holding yang masih memiliki aset investasi aktif' });
+      return;
+    }
+
+    db.data.holdingTypes = db.data.holdingTypes.filter((h) => h.id !== id);
+    db.save();
+
+    res.json({ success: true, message: 'Jenis holding berhasil dihapus' });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || 'Gagal menghapus jenis holding' });
   }
 });
 

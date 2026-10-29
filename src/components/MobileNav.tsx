@@ -27,10 +27,8 @@ export const MobileNav: React.FC = () => {
     setTransactionInitialType,
     setIsTransferOpen,
     setTransferInitialMode,
-    setIsAddInvestmentOpen,
     setIsAddAccountOpen,
     setEditingTransaction,
-    setEditingInvestment,
     setEditingAccount,
     setIsFirebaseSetupOpen,
     setIsMobileAppModalOpen,
@@ -127,30 +125,20 @@ export const MobileNav: React.FC = () => {
                 <ArrowRightLeft className="w-4 h-4" />
               </div>
               <div className="text-left">
-                <p className="text-xs font-bold text-white">Move Bank to Cash</p>
-                <p className="text-[11px] text-slate-400">Inter-account fund transfer</p>
+                <p className="text-xs font-bold text-white">Account Transfer</p>
+                <p className="text-[11px] text-slate-400">Transfer between accounts</p>
               </div>
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
-            <button
-              onClick={() => {
-                setIsQuickMenuOpen(false);
-                setEditingInvestment(null);
-                setIsAddInvestmentOpen(true);
-              }}
-              className="py-2.5 px-3 rounded-xl bg-slate-950 text-slate-200 hover:text-white border border-slate-800 text-xs font-semibold text-center"
-            >
-              + Investment
-            </button>
+          <div className="pt-2 border-t border-slate-800">
             <button
               onClick={() => {
                 setIsQuickMenuOpen(false);
                 setEditingAccount(null);
                 setIsAddAccountOpen(true);
               }}
-              className="py-2.5 px-3 rounded-xl bg-slate-950 text-slate-200 hover:text-white border border-slate-800 text-xs font-semibold text-center"
+              className="w-full py-2.5 px-3 rounded-xl bg-slate-950 text-slate-200 hover:text-white border border-slate-800 text-xs font-semibold text-center"
             >
               + Bank / Cash
             </button>
@@ -195,59 +183,59 @@ export const MobileNav: React.FC = () => {
       )}
 
       {/* Sleek Bottom Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-slate-950/90 backdrop-blur-lg border-t border-slate-800/80 px-3 py-1.5">
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-[#080a0f]/95 backdrop-blur-lg border-t border-[#1a1f2c] px-3 py-1">
         <div className="flex items-center justify-around max-w-md mx-auto">
           {/* Home */}
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex flex-col items-center py-1 px-3 rounded-lg transition-colors cursor-pointer ${
-              activeTab === 'dashboard' ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200'
+            className={`flex flex-col items-center py-1 px-2.5 rounded transition-colors cursor-pointer ${
+              activeTab === 'dashboard' ? 'text-emerald-400 font-bold' : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
-            <LayoutDashboard className="w-4.5 h-4.5" />
-            <span className="text-[10px] font-medium mt-1">Home</span>
+            <LayoutDashboard className="w-4 h-4" />
+            <span className="text-[9px] font-mono uppercase mt-0.5">Desk</span>
           </button>
 
           {/* Expenses */}
           <button
             onClick={() => setActiveTab('expenses')}
-            className={`flex flex-col items-center py-1 px-3 rounded-lg transition-colors cursor-pointer ${
-              activeTab === 'expenses' ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200'
+            className={`flex flex-col items-center py-1 px-2.5 rounded transition-colors cursor-pointer ${
+              activeTab === 'expenses' ? 'text-emerald-400 font-bold' : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
-            <Receipt className="w-4.5 h-4.5" />
-            <span className="text-[10px] font-medium mt-1">Expenses</span>
+            <Receipt className="w-4 h-4" />
+            <span className="text-[9px] font-mono uppercase mt-0.5">Ledger</span>
           </button>
 
           {/* Clean Center Action Button */}
           <button
             onClick={() => setIsQuickMenuOpen(!isQuickMenuOpen)}
-            className="flex items-center justify-center w-10 h-10 -mt-3 rounded-full bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/25 active:scale-95 transition-all cursor-pointer"
+            className="flex items-center justify-center w-8 h-8 rounded bg-emerald-500 text-slate-950 shadow-none active:scale-95 transition-all cursor-pointer"
             aria-label="New Action"
           >
-            <Plus className={`w-5 h-5 stroke-[2.5] transition-transform duration-150 ${isQuickMenuOpen ? 'rotate-45' : ''}`} />
+            <Plus className={`w-4 h-4 stroke-[2.8] transition-transform duration-100 ${isQuickMenuOpen ? 'rotate-45' : ''}`} />
           </button>
 
           {/* Accounts */}
           <button
             onClick={() => setActiveTab('accounts')}
-            className={`flex flex-col items-center py-1 px-3 rounded-lg transition-colors cursor-pointer ${
-              activeTab === 'accounts' ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200'
+            className={`flex flex-col items-center py-1 px-2.5 rounded transition-colors cursor-pointer ${
+              activeTab === 'accounts' ? 'text-emerald-400 font-bold' : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
-            <WalletCards className="w-4.5 h-4.5" />
-            <span className="text-[10px] font-medium mt-1">Accounts</span>
+            <WalletCards className="w-4 h-4" />
+            <span className="text-[9px] font-mono uppercase mt-0.5">Banks</span>
           </button>
 
           {/* Portfolio */}
           <button
             onClick={() => setActiveTab('investments')}
-            className={`flex flex-col items-center py-1 px-3 rounded-lg transition-colors cursor-pointer ${
-              activeTab === 'investments' ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200'
+            className={`flex flex-col items-center py-1 px-2.5 rounded transition-colors cursor-pointer ${
+              activeTab === 'investments' ? 'text-emerald-400 font-bold' : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
-            <PieChart className="w-4.5 h-4.5" />
-            <span className="text-[10px] font-medium mt-1">Portfolio</span>
+            <PieChart className="w-4 h-4" />
+            <span className="text-[9px] font-mono uppercase mt-0.5">Assets</span>
           </button>
         </div>
       </div>

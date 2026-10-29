@@ -111,39 +111,39 @@ export const FirebaseSetupModal: React.FC<FirebaseSetupModalProps> = ({ isOpen, 
       <div onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" />
 
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-xl bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95">
+      <div className="relative w-full max-w-xl bg-[#0d1017] border-t sm:border border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono">
         {/* Mobile Drag Indicator */}
-        <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-slate-700/80" />
+        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-[#080a0f]">
+          <div className="w-8 h-1 rounded-full bg-zinc-700" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-800 bg-slate-950/70 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-              <Flame className="w-4 h-4 sm:w-5 sm:h-5 fill-amber-500/30 text-amber-400" />
+        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-[#1b212e] bg-[#080a0f] shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+              <Flame className="w-3.5 h-3.5 fill-amber-500/30 text-amber-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-white text-sm sm:text-base leading-tight">
-                  Real-Time Cloud Sync (Firebase)
+                <h3 className="font-bold text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
+                  CLOUD REPLICATION (FIREBASE)
                 </h3>
                 {currentConfig && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    Active
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    ONLINE
                   </span>
                 )}
               </div>
-              <p className="text-[11px] sm:text-xs text-slate-400">
-                Otomatis sinkron 2 arah antara HP & PC tanpa perlu kirim kode
+              <p className="text-[10px] text-zinc-500">
+                Bidirectional real-time replication between mobile & desktop
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 

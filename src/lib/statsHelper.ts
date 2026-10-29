@@ -24,16 +24,17 @@ export function computeStats(
     let costIdr = 0;
     let valIdr = 0;
     let valUsd = 0;
+    const effectiveRate = (inv.customExchangeRate && inv.customExchangeRate > 0) ? inv.customExchangeRate : rate;
 
     if (inv.currency === 'USD') {
-      costIdr = inv.amountInvested * rate;
-      valIdr = inv.currentValue * rate;
+      costIdr = inv.amountInvested * effectiveRate;
+      valIdr = inv.currentValue * effectiveRate;
       valUsd = inv.currentValue;
       totalInvestmentValueUsd += inv.currentValue;
     } else {
       costIdr = inv.amountInvested;
       valIdr = inv.currentValue;
-      valUsd = rate > 0 ? inv.currentValue / rate : 0;
+      valUsd = effectiveRate > 0 ? inv.currentValue / effectiveRate : 0;
       totalInvestmentValueUsd += valUsd;
     }
 

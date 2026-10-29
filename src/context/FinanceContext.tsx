@@ -6,8 +6,11 @@ import {
   DashboardStats,
   UserSettings,
   SystemAnnouncement,
+  HoldingType,
+  InvestmentCategory,
 } from '../types';
 import { api } from '../lib/api';
+import { localDb, DEFAULT_HOLDING_TYPES } from '../lib/localDb';
 import { useAuth } from './AuthContext';
 import { isFirebaseActive } from '../lib/firebase';
 import { firestoreService } from '../lib/firestoreService';
@@ -70,12 +73,14 @@ interface FinanceContextType {
     toInvestmentId?: string;
     newInvestment?: {
       name: string;
-      category: 'USD' | 'Bitcoin' | 'Saham' | 'RDPU' | 'ETF USA';
+      category: InvestmentCategory;
+      currency?: 'IDR' | 'USD';
       platform?: string;
       units?: number;
       notes?: string;
     };
     amountIdr: number;
+    amountUsd?: number;
     exchangeRate?: number;
     date?: string;
     notes?: string;
@@ -84,20 +89,35 @@ interface FinanceContextType {
   // Investment Operations
   addInvestment: (data: {
     name: string;
-    category: 'USD' | 'Bitcoin' | 'Saham' | 'RDPU' | 'ETF USA';
+    category: InvestmentCategory;
+    currency?: 'IDR' | 'USD';
     amountInvested: number;
     currentValue?: number;
+    customExchangeRate?: number;
     units?: number;
     platform?: string;
     notes?: string;
   }) => Promise<void>;
   updateInvestment: (id: string, data: Partial<Investment>) => Promise<void>;
   deleteInvestment: (id: string) => Promise<void>;
+  // Holding Types (Master Data)
+  holdingTypes: HoldingType[];
+  addHoldingType: (data: {
+    id?: string;
+    label: string;
+    defaultCurrency: 'IDR' | 'USD';
+    example?: string;
+    badgeColor?: string;
+  }) => Promise<void>;
+  updateHoldingType: (id: string, data: Partial<HoldingType>) => Promise<void>;
+  deleteHoldingType: (id: string) => Promise<void>;
 
   // Settings
   updateRate: (newRate: number, source?: string) => Promise<void>;
 
   // Modal states
+  isHoldingTypesModalOpen: boolean;
+  setIsHoldingTypesModalOpen: (v: boolean) => void;
   isAddExpenseOpen: boolean;
   setIsAddExpenseOpen: (v: boolean) => void;
   transactionInitialType: 'expense' | 'income';
@@ -216,6 +236,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return localStorage.getItem('wealthtrack_privacy_mode') === 'true';
   });
 
+  // Holding Types state
+  const [holdingTypes, setHoldingTypes] = useState<HoldingType[]>(DEFAULT_HOLDING_TYPES);
+  const [isHoldingTypesModalOpen, setIsHoldingTypesModalOpen] = useState(false);
+
   // Modal states
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [transactionInitialType, setTransactionInitialType] = useState<'expense' | 'income'>('expense');
@@ -279,12 +303,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setIsLoading(true);
     try {
-      const [accRes, txRes, invRes, statsRes, setRes] = await Promise.all([
+      const [accRes, txRes, invRes, statsRes, setRes, htRes] = await Promise.all([
         api.getAccounts(),
         api.getTransactions(),
         api.getInvestments(),
         api.getDashboardStats(),
         api.getSettings(),
+        api.getHoldingTypes(),
       ]);
 
       const normalizedInvestments = invRes.investments.map((inv) =>
@@ -296,6 +321,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setAccounts(accRes.accounts);
       setTransactions(txRes.transactions);
       setInvestments(normalizedInvestments);
+      if (htRes?.holdingTypes && htRes.holdingTypes.length > 0) {
+        setHoldingTypes(htRes.holdingTypes);
+      }
       setStats(statsRes);
       setSettings(setRes.settings);
       if (setRes.settings?.usdIdrRate) {
@@ -475,12 +503,14 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     toInvestmentId?: string;
     newInvestment?: {
       name: string;
-      category: 'USD' | 'Bitcoin' | 'Saham' | 'RDPU' | 'ETF USA';
+      category: InvestmentCategory;
+      currency?: 'IDR' | 'USD';
       platform?: string;
       units?: number;
       notes?: string;
     };
     amountIdr: number;
+    amountUsd?: number;
     exchangeRate?: number;
     date?: string;
     notes?: string;
@@ -526,18 +556,36 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         // Create new investment directly if newInvestment is specified
         if (!targetInv && data.newInvestment) {
-          const isUsd = data.newInvestment.category === 'USD' || data.newInvestment.category === 'ETF USA';
-          const rate = data.exchangeRate || usdIdrRate;
-          const initialCost = isUsd ? data.amountIdr / rate : data.amountIdr;
+          const targetCurrency = data.newInvestment.currency || ((data.newInvestment.category === 'USD' || data.newInvestment.category === 'ETF USA') ? 'USD' : 'IDR');
+          const isUsd = targetCurrency === 'USD';
+          let rate = data.exchangeRate || usdIdrRate;
+          let initialCost = data.amountIdr;
+          let amountUsd = undefined;
+
+          if (isUsd) {
+            const parsedUsd = Number(data.amountUsd);
+            if (!isNaN(parsedUsd) && parsedUsd > 0) {
+              initialCost = Number(parsedUsd.toFixed(2));
+              amountUsd = initialCost;
+              if (data.amountIdr > 0) {
+                rate = data.exchangeRate || Number((data.amountIdr / initialCost).toFixed(2));
+              }
+            } else {
+              initialCost = Number((data.amountIdr / rate).toFixed(2));
+              amountUsd = initialCost;
+            }
+          }
+
           targetInvId = 'inv_' + Date.now();
           targetInv = {
             id: targetInvId,
             userId: user.id,
             name: data.newInvestment.name.trim(),
             category: data.newInvestment.category,
-            currency: isUsd ? 'USD' : 'IDR',
+            currency: targetCurrency,
             amountInvested: initialCost,
             currentValue: initialCost,
+            customExchangeRate: isUsd ? rate : undefined,
             createdAt: now,
             updatedAt: now,
             ...(data.newInvestment.units !== undefined ? { units: data.newInvestment.units } : {}),
@@ -561,7 +609,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             amount: data.amountIdr,
             accountId: data.fromAccountId,
             toInvestmentId: targetInvId,
-            amountUsd: isUsd ? initialCost : undefined,
+            amountUsd: isUsd ? amountUsd : undefined,
             exchangeRate: isUsd ? rate : undefined,
             category: `Funded ${targetInv.name}`,
             date: data.date || now.split('T')[0],
@@ -578,18 +626,33 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             balance: fromAcc.balance - data.amountIdr,
             updatedAt: now,
           });
-          const rate = data.exchangeRate || usdIdrRate;
+          const isUsd = targetInv.currency === 'USD';
+          let rate = data.exchangeRate || targetInv.customExchangeRate || usdIdrRate;
           let addedCost = data.amountIdr;
           let addedVal = data.amountIdr;
-          if (targetInv.currency === 'USD') {
-            const addedUsd = data.amountIdr / rate;
-            addedCost = addedUsd;
-            addedVal = addedUsd;
+          let amountUsd = undefined;
+
+          if (isUsd) {
+            const parsedUsd = Number(data.amountUsd);
+            if (!isNaN(parsedUsd) && parsedUsd > 0) {
+              addedCost = Number(parsedUsd.toFixed(2));
+              addedVal = addedCost;
+              amountUsd = addedCost;
+              if (data.amountIdr > 0) {
+                rate = data.exchangeRate || Number((data.amountIdr / addedCost).toFixed(2));
+              }
+            } else {
+              addedCost = Number((data.amountIdr / rate).toFixed(2));
+              addedVal = addedCost;
+              amountUsd = addedCost;
+            }
           }
+
           await firestoreService.saveInvestment({
             ...targetInv,
             amountInvested: targetInv.amountInvested + addedCost,
             currentValue: targetInv.currentValue + addedVal,
+            customExchangeRate: isUsd ? rate : targetInv.customExchangeRate,
             updatedAt: now,
           });
           const tx: Transaction = {
@@ -599,8 +662,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             amount: data.amountIdr,
             accountId: data.fromAccountId,
             toInvestmentId: data.toInvestmentId,
-            amountUsd: targetInv.currency === 'USD' ? data.amountIdr / rate : undefined,
-            exchangeRate: targetInv.currency === 'USD' ? rate : undefined,
+            amountUsd: isUsd ? amountUsd : undefined,
+            exchangeRate: isUsd ? rate : undefined,
             category: `Funded ${targetInv.name}`,
             date: data.date || now.split('T')[0],
             notes: data.notes,
@@ -617,8 +680,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const created = await api.createInvestment({
         name: data.newInvestment.name.trim(),
         category: data.newInvestment.category,
+        currency: data.newInvestment.currency,
         amountInvested: 0,
         currentValue: 0,
+        customExchangeRate: data.exchangeRate,
         platform: data.newInvestment.platform,
         units: data.newInvestment.units,
         notes: data.newInvestment.notes,
@@ -629,6 +694,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         fromAccountId: data.fromAccountId,
         toInvestmentId: created.investment.id,
         amountIdr: data.amountIdr,
+        amountUsd: data.amountUsd,
         exchangeRate: data.exchangeRate,
         date: data.date,
         notes: data.notes || `Initial funding for ${created.investment.name}`,
@@ -644,26 +710,27 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Investments
   const addInvestment = async (data: {
     name: string;
-    category: 'USD' | 'Bitcoin' | 'Saham' | 'RDPU' | 'ETF USA';
+    category: InvestmentCategory;
+    currency?: 'IDR' | 'USD';
     amountInvested: number;
     currentValue?: number;
+    customExchangeRate?: number;
     units?: number;
     platform?: string;
     notes?: string;
   }) => {
     if (isFirebase && user) {
       const now = new Date().toISOString();
+      const chosenCurrency = data.currency || (data.category === 'USD' || data.category === 'ETF USA' ? 'USD' : 'IDR');
       const newInv: Investment = {
         id: 'inv_' + Date.now(),
         userId: user.id,
         name: data.name,
         category: data.category,
-        currency:
-          data.category === 'USD' || data.category === 'ETF USA'
-            ? 'USD'
-            : 'IDR',
+        currency: chosenCurrency,
         amountInvested: data.amountInvested,
         currentValue: data.currentValue ?? data.amountInvested,
+        customExchangeRate: data.customExchangeRate,
         createdAt: now,
         updatedAt: now,
         ...(data.units !== undefined ? { units: data.units } : {}),
@@ -685,6 +752,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const nextCategory = data.category || target.category;
         const nextCurrency =
           data.currency ??
+          target.currency ??
           (nextCategory === 'USD' || nextCategory === 'ETF USA' ? 'USD' : 'IDR');
 
         await firestoreService.saveInvestment({
@@ -708,6 +776,31 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     await api.deleteInvestment(id);
+    await refreshData();
+  };
+
+  // Holding Types Operations
+  const addHoldingType = async (data: {
+    id?: string;
+    label: string;
+    defaultCurrency: 'IDR' | 'USD';
+    example?: string;
+    badgeColor?: string;
+  }) => {
+    const res = await api.addHoldingType(data);
+    setHoldingTypes((prev) => [...prev.filter((h) => h.id !== res.holdingType.id), res.holdingType]);
+    await refreshData();
+  };
+
+  const updateHoldingType = async (id: string, data: Partial<HoldingType>) => {
+    const res = await api.updateHoldingType(id, data);
+    setHoldingTypes((prev) => prev.map((h) => (h.id === id ? res.holdingType : h)));
+    await refreshData();
+  };
+
+  const deleteHoldingType = async (id: string) => {
+    await api.deleteHoldingType(id);
+    setHoldingTypes((prev) => prev.filter((h) => h.id !== id));
     await refreshData();
   };
 
@@ -885,7 +978,15 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         deleteInvestment,
         updateRate,
 
+        // Holding Types (Master Data)
+        holdingTypes,
+        addHoldingType,
+        updateHoldingType,
+        deleteHoldingType,
+
         // Modal states
+        isHoldingTypesModalOpen,
+        setIsHoldingTypesModalOpen,
         isAddExpenseOpen,
         setIsAddExpenseOpen,
         transactionInitialType,

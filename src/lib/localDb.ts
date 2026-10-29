@@ -9,7 +9,17 @@ import {
   AdminUserListItem,
   SystemSettings,
   SystemAnnouncement,
+  HoldingType,
+  InvestmentCategory,
 } from '../types';
+
+export const DEFAULT_HOLDING_TYPES: HoldingType[] = [
+  { id: 'Saham', label: 'Saham (ID Stocks)', defaultCurrency: 'IDR', example: 'e.g. BBCA, BBRI, ASII', badgeColor: 'blue', isSystem: true },
+  { id: 'RDPU', label: 'Money Market (RDPU)', defaultCurrency: 'IDR', example: 'e.g. Sucorinvest Stable Fund', badgeColor: 'teal', isSystem: true },
+  { id: 'Bitcoin', label: 'Crypto (Bitcoin)', defaultCurrency: 'IDR', example: 'e.g. BTC, Indodax, Pintu', badgeColor: 'amber', isSystem: true },
+  { id: 'ETF USA', label: 'US Stocks & ETFs', defaultCurrency: 'USD', example: 'e.g. VOO, QQQ, SCHD, SPY', badgeColor: 'purple', isSystem: true },
+  { id: 'USD', label: 'USD Holdings & Cash', defaultCurrency: 'USD', example: 'e.g. Wise USD balance, Broker cash', badgeColor: 'emerald', isSystem: true },
+];
 
 interface LocalStorageSchema {
   users: Array<User & { password?: string }>;
@@ -17,6 +27,7 @@ interface LocalStorageSchema {
   transactions: Transaction[];
   investments: Investment[];
   settings: UserSettings[];
+  holdingTypes?: HoldingType[];
   currentUserId: string | null;
 }
 
@@ -39,6 +50,10 @@ function getStore(): LocalStorageSchema {
           modified = true;
         }
       });
+      if (!data.holdingTypes || data.holdingTypes.length === 0) {
+        data.holdingTypes = [...DEFAULT_HOLDING_TYPES];
+        modified = true;
+      }
       if (modified) {
         saveStore(data);
       }
@@ -214,6 +229,7 @@ function getStore(): LocalStorageSchema {
     transactions: initialTransactions,
     investments: initialInvestments,
     settings: [initialSettings],
+    holdingTypes: [...DEFAULT_HOLDING_TYPES],
     currentUserId: defaultUser.id,
   };
 
@@ -532,6 +548,7 @@ export const localDb = {
     toAccountId?: string;
     toInvestmentId?: string;
     amountIdr: number;
+    amountUsd?: number;
     exchangeRate?: number;
     date?: string;
     notes?: string;
@@ -549,13 +566,22 @@ export const localDb = {
       if (!inv) throw new Error('Target investment not found');
 
       fromAcc.balance -= amount;
-      const rate = data.exchangeRate || 15850;
+      let rate = data.exchangeRate || inv.customExchangeRate || 15850;
       let amountUsd = undefined;
 
       if (inv.currency === 'USD') {
-        amountUsd = Number((amount / rate).toFixed(2));
+        const parsedUsd = Number(data.amountUsd);
+        if (!isNaN(parsedUsd) && parsedUsd > 0) {
+          amountUsd = Number(parsedUsd.toFixed(2));
+          if (amount > 0) {
+            rate = data.exchangeRate || Number((amount / amountUsd).toFixed(2));
+          }
+        } else {
+          amountUsd = Number((amount / rate).toFixed(2));
+        }
         inv.amountInvested += amountUsd;
         inv.currentValue += amountUsd;
+        inv.customExchangeRate = rate;
       } else {
         inv.amountInvested += amount;
         inv.currentValue += amount;
@@ -570,7 +596,7 @@ export const localDb = {
         accountId: data.fromAccountId,
         toInvestmentId: data.toInvestmentId,
         amountUsd,
-        exchangeRate: rate,
+        exchangeRate: inv.currency === 'USD' ? rate : undefined,
         category: `Investment: ${inv.category}`,
         date: txDate,
         notes: data.notes || `Funded ${inv.name} from ${fromAcc.name}`,
@@ -617,16 +643,18 @@ export const localDb = {
 
   createInvestment(data: {
     name: string;
-    category: 'USD' | 'Bitcoin' | 'Saham' | 'RDPU' | 'ETF USA';
+    category: InvestmentCategory;
+    currency?: 'IDR' | 'USD';
     amountInvested: number;
     currentValue?: number;
+    customExchangeRate?: number;
     units?: number;
     platform?: string;
     notes?: string;
   }): { investment: Investment } {
     const store = getStore();
     const userId = this.getUserId();
-    const currency = (data.category === 'Saham' || data.category === 'RDPU' || data.category === 'Bitcoin') ? 'IDR' : 'USD';
+    const currency = data.currency || ((data.category === 'Saham' || data.category === 'RDPU' || data.category === 'Bitcoin') ? 'IDR' : 'USD');
     const invested = Number(data.amountInvested) || 0;
     const current = data.currentValue !== undefined ? Number(data.currentValue) : invested;
 
@@ -638,6 +666,7 @@ export const localDb = {
       currency,
       amountInvested: invested,
       currentValue: current,
+      customExchangeRate: data.customExchangeRate ? Number(data.customExchangeRate) : undefined,
       units: data.units !== undefined && data.units !== ('' as any) ? Number(data.units) : undefined,
       platform: data.platform?.trim() || undefined,
       notes: data.notes?.trim() || undefined,
@@ -657,15 +686,15 @@ export const localDb = {
     if (!inv) throw new Error('Investment not found');
 
     if (data.name !== undefined) inv.name = data.name.trim();
-    if (data.category !== undefined) {
-      inv.category = data.category;
-      inv.currency = (data.category === 'Saham' || data.category === 'RDPU' || data.category === 'Bitcoin') ? 'IDR' : 'USD';
-    }
+    if (data.category !== undefined) inv.category = data.category;
     if (data.currency !== undefined) {
       inv.currency = data.currency;
+    } else if (data.category !== undefined && !inv.currency) {
+      inv.currency = (data.category === 'Saham' || data.category === 'RDPU' || data.category === 'Bitcoin') ? 'IDR' : 'USD';
     }
     if (data.amountInvested !== undefined) inv.amountInvested = Number(data.amountInvested);
     if (data.currentValue !== undefined) inv.currentValue = Number(data.currentValue);
+    if (data.customExchangeRate !== undefined) inv.customExchangeRate = data.customExchangeRate ? Number(data.customExchangeRate) : undefined;
     if (data.units !== undefined) inv.units = data.units !== ('' as any) ? Number(data.units) : undefined;
     if (data.platform !== undefined) inv.platform = data.platform.trim();
     if (data.notes !== undefined) inv.notes = data.notes.trim();
@@ -682,6 +711,94 @@ export const localDb = {
     if (idx === -1) throw new Error('Investment not found');
 
     store.investments.splice(idx, 1);
+    saveStore(store);
+    return { success: true };
+  },
+
+  // Holding Types (Master Data)
+  getHoldingTypes(): { holdingTypes: HoldingType[] } {
+    const store = getStore();
+    if (!store.holdingTypes || store.holdingTypes.length === 0) {
+      store.holdingTypes = [...DEFAULT_HOLDING_TYPES];
+      saveStore(store);
+    }
+    return { holdingTypes: store.holdingTypes };
+  },
+
+  addHoldingType(data: {
+    id?: string;
+    label: string;
+    defaultCurrency: 'IDR' | 'USD';
+    example?: string;
+    badgeColor?: string;
+  }): { holdingType: HoldingType } {
+    const store = getStore();
+    if (!store.holdingTypes) store.holdingTypes = [...DEFAULT_HOLDING_TYPES];
+
+    const cleanLabel = data.label.trim();
+    if (!cleanLabel) throw new Error('Holding type name is required');
+
+    // Create a clean slug ID
+    const rawId = data.id?.trim() || cleanLabel;
+    const cleanId = rawId.replace(/[^a-zA-Z0-9_\-\s]/g, '').trim().replace(/\s+/g, '_');
+
+    // Check duplication
+    const existing = store.holdingTypes.find(
+      h => h.id.toLowerCase() === cleanId.toLowerCase() || h.label.toLowerCase() === cleanLabel.toLowerCase()
+    );
+    if (existing) {
+      throw new Error(`A holding type with name "${cleanLabel}" already exists`);
+    }
+
+    const newType: HoldingType = {
+      id: cleanId,
+      label: cleanLabel,
+      defaultCurrency: data.defaultCurrency || 'IDR',
+      example: data.example?.trim() || undefined,
+      badgeColor: data.badgeColor || (data.defaultCurrency === 'USD' ? 'purple' : 'blue'),
+      isSystem: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    store.holdingTypes.push(newType);
+    saveStore(store);
+    return { holdingType: newType };
+  },
+
+  updateHoldingType(id: string, data: Partial<HoldingType>): { holdingType: HoldingType } {
+    const store = getStore();
+    if (!store.holdingTypes) store.holdingTypes = [...DEFAULT_HOLDING_TYPES];
+
+    const item = store.holdingTypes.find(h => h.id === id);
+    if (!item) throw new Error('Holding type not found');
+
+    if (data.label !== undefined) item.label = data.label.trim();
+    if (data.defaultCurrency !== undefined) item.defaultCurrency = data.defaultCurrency;
+    if (data.example !== undefined) item.example = data.example.trim();
+    if (data.badgeColor !== undefined) item.badgeColor = data.badgeColor;
+
+    saveStore(store);
+    return { holdingType: item };
+  },
+
+  deleteHoldingType(id: string): { success: boolean } {
+    const store = getStore();
+    if (!store.holdingTypes) store.holdingTypes = [...DEFAULT_HOLDING_TYPES];
+
+    const idx = store.holdingTypes.findIndex(h => h.id === id);
+    if (idx === -1) throw new Error('Holding type not found');
+
+    if (store.holdingTypes[idx].isSystem) {
+      throw new Error('Default system holding types cannot be deleted');
+    }
+
+    // Check if any existing investment uses this category
+    const inUse = store.investments.some(inv => inv.category === id);
+    if (inUse) {
+      throw new Error('Cannot delete a holding type that currently has active positions');
+    }
+
+    store.holdingTypes.splice(idx, 1);
     saveStore(store);
     return { success: true };
   },

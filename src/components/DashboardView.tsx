@@ -7,14 +7,12 @@ import {
   Eye,
   EyeOff,
   Plus,
-  ArrowUpRight,
   ArrowDownRight,
   Coins,
   Building,
   Landmark,
   Globe,
-  Clock,
-  Sparkles,
+  DollarSign,
 } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
 import { formatIdr, formatUsd, formatMasked, formatDate } from '../lib/formatters';
@@ -33,7 +31,6 @@ export const DashboardView: React.FC = () => {
     setTransactionInitialType,
     setIsTransferOpen,
     setTransferInitialMode,
-    setIsAddInvestmentOpen,
     setIsAddAccountOpen,
     setEditingTransaction,
   } = useFinance();
@@ -49,106 +46,110 @@ export const DashboardView: React.FC = () => {
   const monthlyIncomes = stats?.monthlyIncomes || 0;
   const monthlyTransfersToInv = stats?.monthlyTransfersToInv || 0;
 
-  const recentTransactions = transactions.slice(0, 6);
+  const recentTransactions = transactions.slice(0, 7);
 
   // Group investments by category for quick overview
   const categoryAllocations = stats?.categoryAllocations || {};
 
   return (
-    <div className="space-y-6 animate-in fade-in pb-12">
+    <div className="space-y-4 animate-in fade-in pb-10">
       {/* Privacy banner notice if active */}
       {isPrivacyMode && (
-        <div className="flex items-center justify-between px-4 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-300">
+        <div className="flex items-center justify-between px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded text-xs text-amber-300 font-mono">
           <div className="flex items-center gap-2">
-            <EyeOff className="w-4 h-4 text-amber-400 shrink-0" />
+            <EyeOff className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>
-              <strong>Privacy Mode Active:</strong> Net worth and account balances are masked for public safety.
+              <strong>PRIVACY SHIELD ACTIVE:</strong> All currency figures are masked for screen-sharing.
             </span>
           </div>
           <button
             onClick={togglePrivacyMode}
             className="text-amber-400 hover:text-white underline font-semibold text-xs cursor-pointer ml-3 shrink-0"
           >
-            Reveal Balances
+            Reveal Values
           </button>
         </div>
       )}
 
-      {/* HERO NET WORTH CARD */}
-      <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950 border border-slate-200 dark:border-slate-800/80 p-6 sm:p-7 shadow-md dark:shadow-xl">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Total Net Worth
-              </span>
+      {/* BLOOMBERG TERMINAL HERO DESK */}
+      <div className="relative bg-[#0d1017] border border-[#1b212e] rounded p-4 sm:p-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500">
+              <span>PORTFOLIO VALUATION // NET WORTH</span>
               <button
                 onClick={togglePrivacyMode}
-                className="p-1 rounded-md text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
-                title={isPrivacyMode ? 'Unmask nominal' : 'Hide nominal for public view'}
+                className="p-0.5 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                title={isPrivacyMode ? 'Unmask figures' : 'Mask figures'}
               >
                 {isPrivacyMode ? (
-                  <EyeOff className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+                  <EyeOff className="w-3 h-3 text-amber-400" />
                 ) : (
-                  <Eye className="w-3.5 h-3.5" />
+                  <Eye className="w-3 h-3" />
                 )}
               </button>
             </div>
 
             {/* Big Net Worth Nominal */}
             <div className="flex flex-wrap items-baseline gap-3">
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white font-mono">
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-100 font-mono tabular-nums">
                 {formatMasked(netWorthIdr, 'IDR', isPrivacyMode)}
               </h2>
               {!isPrivacyMode && (
-                <span className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 font-mono">
-                  &asymp; {formatUsd(netWorthUsd)}
+                <span className="text-xs sm:text-sm font-semibold text-zinc-400 font-mono tabular-nums">
+                  ≈ {formatUsd(netWorthUsd)}
                 </span>
               )}
             </div>
 
-            {/* Clean Secondary Stat Summary */}
-            <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
-              <span className="text-slate-600 dark:text-slate-400">
-                Liquid: <strong className="text-slate-900 dark:text-slate-200 font-mono">{formatMasked(liquidCashIdr, 'IDR', isPrivacyMode)}</strong>
+            {/* Tabular Metric Ledger Line */}
+            <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-zinc-400 font-mono">
+              <span>
+                LIQUID CASH:{' '}
+                <strong className="text-zinc-200 tabular-nums">
+                  {formatMasked(liquidCashIdr, 'IDR', isPrivacyMode)}
+                </strong>
               </span>
-              <span className="text-slate-300 dark:text-slate-600">•</span>
-              <span className="text-slate-600 dark:text-slate-400">
-                Invested: <strong className="text-slate-900 dark:text-slate-200 font-mono">{formatMasked(investmentValueIdr, 'IDR', isPrivacyMode)}</strong>
+              <span className="text-zinc-600">|</span>
+              <span>
+                INVESTED ASSETS:{' '}
+                <strong className="text-zinc-200 tabular-nums">
+                  {formatMasked(investmentValueIdr, 'IDR', isPrivacyMode)}
+                </strong>
               </span>
-              <span className="text-slate-300 dark:text-slate-600">•</span>
-              <span className={`font-bold font-mono ${unrealizedPnlIdr >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                {unrealizedPnlIdr >= 0 ? '+' : ''}{pnlPercent.toFixed(1)}% ROI
+              <span className="text-zinc-600">|</span>
+              <span
+                className={`font-bold tabular-nums ${
+                  unrealizedPnlIdr >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                }`}
+              >
+                {unrealizedPnlIdr >= 0 ? '+' : ''}
+                {pnlPercent.toFixed(1)}% ROI
               </span>
             </div>
 
-            {/* Visual Asset Allocation Balance Scale */}
+            {/* Visual Allocation Weight Bar */}
             {netWorthIdr > 0 && (
-              <div className="pt-2 space-y-1.5 max-w-lg">
+              <div className="pt-2 space-y-1 max-w-lg">
                 {(() => {
                   const totalAssetsNominal = liquidCashIdr + investmentValueIdr;
-                  const liquidRatio = totalAssetsNominal > 0 ? Math.round((liquidCashIdr / totalAssetsNominal) * 100) : 50;
+                  const liquidRatio =
+                    totalAssetsNominal > 0 ? Math.round((liquidCashIdr / totalAssetsNominal) * 100) : 50;
                   const investedRatio = 100 - liquidRatio;
                   return (
                     <>
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 shrink-0" />
-                          <span>Liquid Cash ({liquidRatio}%)</span>
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400 shrink-0" />
-                          <span>Investasi ({investedRatio}%)</span>
-                        </span>
+                      <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
+                        <span>CASH {liquidRatio}%</span>
+                        <span>INVESTMENT {investedRatio}%</span>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800/80 overflow-hidden flex gap-0.5 p-0.5 border border-slate-200 dark:border-slate-700/50">
+                      <div className="w-full h-1.5 rounded-sm bg-[#151a26] overflow-hidden flex">
                         <div
                           style={{ width: `${liquidRatio}%` }}
-                          className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500"
+                          className="h-full bg-emerald-500 transition-all duration-300"
                         />
                         <div
                           style={{ width: `${investedRatio}%` }}
-                          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-500"
+                          className="h-full bg-indigo-500 transition-all duration-300"
                         />
                       </div>
                     </>
@@ -158,18 +159,18 @@ export const DashboardView: React.FC = () => {
             )}
           </div>
 
-          {/* Clean Unified Action Pills */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0">
+          {/* Quick Terminal Action Suite */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1 lg:pt-0">
             <button
               onClick={() => {
                 setEditingTransaction(null);
                 setTransactionInitialType('expense');
                 setIsAddExpenseOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold text-xs border border-slate-300 dark:border-slate-700/80 shadow-sm transition-all cursor-pointer"
+              className="flex items-center gap-1 px-3 py-1.5 rounded bg-[#131722] hover:bg-[#1a2030] text-zinc-200 font-semibold text-xs border border-[#21293a] transition-all cursor-pointer font-mono"
             >
-              <Receipt className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
-              <span>+ Expense</span>
+              <Receipt className="w-3.5 h-3.5 text-rose-400" />
+              <span>+ EXPENSE</span>
             </button>
 
             <button
@@ -178,10 +179,10 @@ export const DashboardView: React.FC = () => {
                 setTransactionInitialType('income');
                 setIsAddExpenseOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold text-xs border border-slate-300 dark:border-slate-700/80 shadow-sm transition-all cursor-pointer"
+              className="flex items-center gap-1 px-3 py-1.5 rounded bg-[#131722] hover:bg-[#1a2030] text-zinc-200 font-semibold text-xs border border-[#21293a] transition-all cursor-pointer font-mono"
             >
-              <ArrowDownRight className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>+ Income</span>
+              <ArrowDownRight className="w-3.5 h-3.5 text-emerald-400" />
+              <span>+ INCOME</span>
             </button>
 
             <button
@@ -189,10 +190,10 @@ export const DashboardView: React.FC = () => {
                 setTransferInitialMode('bank_to_investment');
                 setIsTransferOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold text-xs border border-slate-300 dark:border-slate-700/80 shadow-sm transition-all cursor-pointer"
+              className="flex items-center gap-1 px-3 py-1.5 rounded bg-[#131722] hover:bg-[#1a2030] text-zinc-200 font-semibold text-xs border border-[#21293a] transition-all cursor-pointer font-mono"
             >
-              <TrendingUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              <span>Fund Invest</span>
+              <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
+              <span>FUND INVEST</span>
             </button>
 
             <button
@@ -200,233 +201,219 @@ export const DashboardView: React.FC = () => {
                 setTransferInitialMode('account_to_account');
                 setIsTransferOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold text-xs border border-slate-300 dark:border-slate-700/80 shadow-sm transition-all cursor-pointer"
+              className="flex items-center gap-1 px-3 py-1.5 rounded bg-[#131722] hover:bg-[#1a2030] text-zinc-200 font-semibold text-xs border border-[#21293a] transition-all cursor-pointer font-mono"
             >
-              <ArrowRightLeft className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-              <span>Transfer</span>
+              <ArrowRightLeft className="w-3.5 h-3.5 text-blue-400" />
+              <span>TRANSFER</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* MONTHLY SUMMARY METRICS (3 CARDS) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* MONTHLY TELEMETRY LEDGER (3 COMPACT CARDS) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Expenses this month */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
-            <span className="font-semibold uppercase tracking-wider">This Month Expenses</span>
-            <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center">
-              <Receipt className="w-4 h-4" />
-            </div>
+        <div className="p-3.5 rounded bg-[#0d1017] border border-[#1b212e]">
+          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-zinc-500 mb-1">
+            <span>MONTHLY EXPENSES</span>
+            <Receipt className="w-3.5 h-3.5 text-rose-400" />
           </div>
-          <p className="text-xl sm:text-2xl font-black text-rose-400 font-mono">
+          <p className="text-xl sm:text-2xl font-bold text-rose-400 font-mono tabular-nums">
             {formatMasked(monthlyExpenses, 'IDR', isPrivacyMode)}
           </p>
-          <p className="text-[11px] text-slate-500 mt-1">Deducted from bank & cash wallets</p>
+          <p className="text-[10px] font-mono text-zinc-500 mt-0.5">Deducted from bank & cash wallets</p>
         </div>
 
         {/* Incomes this month */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
-            <span className="font-semibold uppercase tracking-wider">This Month Inflows</span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <ArrowDownRight className="w-4 h-4" />
-            </div>
+        <div className="p-3.5 rounded bg-[#0d1017] border border-[#1b212e]">
+          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-zinc-500 mb-1">
+            <span>MONTHLY INFLOWS</span>
+            <ArrowDownRight className="w-3.5 h-3.5 text-emerald-400" />
           </div>
-          <p className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">
+          <p className="text-xl sm:text-2xl font-bold text-emerald-400 font-mono tabular-nums">
             {formatMasked(monthlyIncomes, 'IDR', isPrivacyMode)}
           </p>
-          <p className="text-[11px] text-slate-500 mt-1">Salary, dividends & deposits</p>
+          <p className="text-[10px] font-mono text-zinc-500 mt-0.5">Salary, dividends & deposits</p>
         </div>
 
         {/* Invested this month */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
-            <span className="font-semibold uppercase tracking-wider">Invested This Month</span>
-            <div className="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
-            </div>
+        <div className="p-3.5 rounded bg-[#0d1017] border border-[#1b212e]">
+          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-zinc-500 mb-1">
+            <span>DEPLOYED TO INVESTMENTS</span>
+            <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
           </div>
-          <p className="text-xl sm:text-2xl font-black text-indigo-400 font-mono">
+          <p className="text-xl sm:text-2xl font-bold text-indigo-400 font-mono tabular-nums">
             {formatMasked(monthlyTransfersToInv, 'IDR', isPrivacyMode)}
           </p>
-          <p className="text-[11px] text-slate-500 mt-1">Transferred directly from banks</p>
+          <p className="text-[10px] font-mono text-zinc-500 mt-0.5">Funded directly from bank accounts</p>
         </div>
       </div>
 
-      {/* PORTFOLIO ASSET BREAKDOWN (THE 5 REQUESTED CATEGORIES) */}
-      <div className="space-y-3">
+      {/* PORTFOLIO ASSET ALLOCATION MATRIX (THE 5 ASSET CATEGORIES) */}
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-              <span>Investment Portfolio Breakdown</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-normal">
-                {investments.length} Assets
-              </span>
-            </h3>
-            <p className="text-xs text-slate-400">
-              USD, Bitcoin, Saham, RDPU & ETF USA
-            </p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-300">
+              HOLDINGS MATRIX
+            </span>
+            <span className="text-[10px] font-mono text-zinc-500">
+              ({investments.length} Assets tracked)
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsAddInvestmentOpen(true)}
-              className="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 font-semibold cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Asset</span>
-            </button>
-            <button
               onClick={() => setActiveTab('investments')}
-              className="text-xs text-slate-400 hover:text-white underline cursor-pointer"
+              className="text-[11px] font-mono text-zinc-400 hover:text-zinc-200 underline cursor-pointer"
             >
-              View All
+              VIEW ALL
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
           {/* Saham */}
-          <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500/40 transition-colors">
-            <div className="flex items-center justify-between text-xs mb-2">
-              <div className="flex items-center gap-1.5 font-bold text-blue-400">
-                <Building className="w-4 h-4" />
-                <span>Saham</span>
-              </div>
-              <span className="text-[10px] text-slate-500 font-mono">IDR</span>
+          <div className="p-3 rounded bg-[#0d1017] border border-[#1b212e] hover:border-blue-500/40 transition-colors">
+            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
+              <span className="font-bold text-blue-400 flex items-center gap-1">
+                <Building className="w-3 h-3" />
+                SAHAM
+              </span>
+              <span>IDR</span>
             </div>
-            <p className="text-sm sm:text-base font-extrabold text-white font-mono">
+            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
               {formatMasked(categoryAllocations['Saham']?.idrValue || 0, 'IDR', isPrivacyMode)}
             </p>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
               {categoryAllocations['Saham']?.count || 0} holding(s)
             </p>
           </div>
 
           {/* RDPU */}
-          <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-teal-500/40 transition-colors">
-            <div className="flex items-center justify-between text-xs mb-2">
-              <div className="flex items-center gap-1.5 font-bold text-teal-400">
-                <Landmark className="w-4 h-4" />
-                <span>RDPU</span>
-              </div>
-              <span className="text-[10px] text-slate-500 font-mono">IDR</span>
+          <div className="p-3 rounded bg-[#0d1017] border border-[#1b212e] hover:border-teal-500/40 transition-colors">
+            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
+              <span className="font-bold text-teal-400 flex items-center gap-1">
+                <Landmark className="w-3 h-3" />
+                RDPU
+              </span>
+              <span>IDR</span>
             </div>
-            <p className="text-sm sm:text-base font-extrabold text-white font-mono">
+            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
               {formatMasked(categoryAllocations['RDPU']?.idrValue || 0, 'IDR', isPrivacyMode)}
             </p>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
               {categoryAllocations['RDPU']?.count || 0} holding(s)
             </p>
           </div>
 
           {/* Bitcoin */}
-          <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/40 transition-colors">
-            <div className="flex items-center justify-between text-xs mb-2">
-              <div className="flex items-center gap-1.5 font-bold text-amber-400">
-                <Coins className="w-4 h-4" />
-                <span>Bitcoin</span>
-              </div>
-              <span className="text-[10px] text-slate-500 font-mono">IDR</span>
+          <div className="p-3 rounded bg-[#0d1017] border border-[#1b212e] hover:border-amber-500/40 transition-colors">
+            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
+              <span className="font-bold text-amber-400 flex items-center gap-1">
+                <Coins className="w-3 h-3" />
+                BITCOIN
+              </span>
+              <span>IDR</span>
             </div>
-            <p className="text-sm sm:text-base font-extrabold text-white font-mono">
+            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
               {formatMasked(categoryAllocations['Bitcoin']?.idrValue || 0, 'IDR', isPrivacyMode)}
             </p>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
               {categoryAllocations['Bitcoin']?.count || 0} holding(s)
             </p>
           </div>
 
           {/* ETF USA */}
-          <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-purple-500/40 transition-colors">
-            <div className="flex items-center justify-between text-xs mb-2">
-              <div className="flex items-center gap-1.5 font-bold text-purple-400">
-                <Globe className="w-4 h-4" />
-                <span>ETF USA</span>
-              </div>
-              <span className="text-[10px] text-slate-500 font-mono">USD</span>
+          <div className="p-3 rounded bg-[#0d1017] border border-[#1b212e] hover:border-purple-500/40 transition-colors">
+            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
+              <span className="font-bold text-purple-400 flex items-center gap-1">
+                <Globe className="w-3 h-3" />
+                ETF USA
+              </span>
+              <span>USD</span>
             </div>
-            <p className="text-sm sm:text-base font-extrabold text-white font-mono">
+            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
               {formatMasked(categoryAllocations['ETF USA']?.usdValue || 0, 'USD', isPrivacyMode)}
             </p>
-            <p className="text-[11px] text-slate-400 mt-1">
-              &asymp; {formatMasked(categoryAllocations['ETF USA']?.idrValue || 0, 'IDR', isPrivacyMode)}
+            <p className="text-[10px] font-mono tabular-nums text-zinc-500 mt-0.5">
+              ≈ {formatMasked(categoryAllocations['ETF USA']?.idrValue || 0, 'IDR', isPrivacyMode)}
             </p>
           </div>
 
           {/* USD */}
-          <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/40 transition-colors">
-            <div className="flex items-center justify-between text-xs mb-2">
-              <div className="flex items-center gap-1.5 font-bold text-emerald-400">
-                <Wallet className="w-4 h-4" />
-                <span>USD Cash</span>
-              </div>
-              <span className="text-[10px] text-slate-500 font-mono">USD</span>
+          <div className="p-3 rounded bg-[#0d1017] border border-[#1b212e] hover:border-emerald-500/40 transition-colors">
+            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
+              <span className="font-bold text-emerald-400 flex items-center gap-1">
+                <DollarSign className="w-3 h-3" />
+                USD CASH
+              </span>
+              <span>USD</span>
             </div>
-            <p className="text-sm sm:text-base font-extrabold text-white font-mono">
+            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
               {formatMasked(categoryAllocations['USD']?.usdValue || 0, 'USD', isPrivacyMode)}
             </p>
-            <p className="text-[11px] text-slate-400 mt-1">
-              &asymp; {formatMasked(categoryAllocations['USD']?.idrValue || 0, 'IDR', isPrivacyMode)}
+            <p className="text-[10px] font-mono tabular-nums text-zinc-500 mt-0.5">
+              ≈ {formatMasked(categoryAllocations['USD']?.idrValue || 0, 'IDR', isPrivacyMode)}
             </p>
           </div>
         </div>
       </div>
 
-      {/* TWO COLUMNS: BANK/CASH ACCOUNTS & RECENT TRANSACTIONS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* DUAL WORKSPACE: LIQUIDITY ACCOUNTS & RECENT LEDGER ENTRIES */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
         {/* BANK & CASH ACCOUNTS */}
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="p-4 rounded bg-[#0d1017] border border-[#1b212e] space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#1b212e]">
             <div>
-              <h3 className="font-bold text-white text-base">Banks & Cash Wallets</h3>
-              <p className="text-xs text-slate-400">
-                Source of funds for daily expenses & investments
+              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-200">
+                LIQUIDITY & BANK ACCOUNTS
+              </h3>
+              <p className="text-[10px] font-mono text-zinc-500">
+                Cash balance runway across funding accounts
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setIsAddAccountOpen(true)}
-                className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 border border-blue-500/30 font-semibold cursor-pointer"
+                className="text-[10px] font-mono flex items-center gap-1 px-2 py-1 rounded bg-[#131722] hover:bg-[#1a2030] text-sky-400 border border-[#21293a] cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Bank</span>
+                <Plus className="w-3 h-3" />
+                <span>+ BANK</span>
               </button>
               <button
                 onClick={() => setActiveTab('accounts')}
-                className="text-xs text-slate-400 hover:text-white underline cursor-pointer"
+                className="text-[10px] font-mono text-zinc-400 hover:text-zinc-200 underline cursor-pointer"
               >
-                Manage
+                MANAGE
               </button>
             </div>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-1.5">
             {accounts.map((acc) => (
               <div
                 key={acc.id}
-                className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-sm"
+                className="flex items-center justify-between p-2.5 rounded bg-[#10141e] border border-[#1d2332] hover:border-[#2b354a] transition-all"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
                   <div
-                    className="w-3.5 h-10 rounded-full"
+                    className="w-1.5 h-8 rounded-none"
                     style={{ backgroundColor: acc.color || '#3b82f6' }}
                   />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 dark:text-white text-sm">{acc.name}</span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400">
+                      <span className="font-semibold text-zinc-100 text-xs">{acc.name}</span>
+                      <span className="text-[9px] font-mono uppercase tracking-wider text-zinc-500">
                         {acc.type}
                       </span>
                     </div>
                     {acc.accountNumber && (
-                      <p className="text-xs text-slate-500 font-mono">{acc.accountNumber}</p>
+                      <p className="text-[10px] text-zinc-500 font-mono">{acc.accountNumber}</p>
                     )}
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <span className="text-sm sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                  <span className="text-xs sm:text-sm font-bold text-emerald-400 font-mono tabular-nums">
                     {formatMasked(acc.balance, 'IDR', isPrivacyMode)}
                   </span>
                 </div>
@@ -434,35 +421,37 @@ export const DashboardView: React.FC = () => {
             ))}
           </div>
 
-          <div className="pt-2 flex items-center justify-between text-xs text-slate-400 border-t border-slate-800">
-            <span>Total Liquid IDR:</span>
-            <span className="font-bold text-white font-mono text-sm">
+          <div className="pt-2 flex items-center justify-between text-xs font-mono text-zinc-400 border-t border-[#1b212e]">
+            <span>TOTAL LIQUID IDR:</span>
+            <span className="font-bold text-zinc-100 font-mono tabular-nums">
               {formatMasked(liquidCashIdr, 'IDR', isPrivacyMode)}
             </span>
           </div>
         </div>
 
         {/* RECENT TRANSACTIONS */}
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="p-4 rounded bg-[#0d1017] border border-[#1b212e] space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#1b212e]">
             <div>
-              <h3 className="font-bold text-white text-base">Recent Activity</h3>
-              <p className="text-xs text-slate-400">Expenses, transfers & investment deposits</p>
+              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-200">
+                RECENT TRANSACTION STREAM
+              </h3>
+              <p className="text-[10px] font-mono text-zinc-500">Expenses, inflows, and investment fundings</p>
             </div>
             <button
               onClick={() => setActiveTab('expenses')}
-              className="text-xs text-slate-400 hover:text-white underline cursor-pointer"
+              className="text-[10px] font-mono text-zinc-400 hover:text-zinc-200 underline cursor-pointer"
             >
-              View Full History
+              FULL LEDGER
             </button>
           </div>
 
           {recentTransactions.length === 0 ? (
-            <div className="py-8 text-center text-xs text-slate-500">
-              No recent transactions recorded yet.
+            <div className="py-8 text-center text-xs font-mono text-zinc-500">
+              No recent entries recorded yet.
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {recentTransactions.map((tx) => {
                 const sourceAcc = accounts.find((a) => a.id === tx.accountId);
                 const destAcc = accounts.find((a) => a.id === tx.toAccountId);
@@ -477,51 +466,53 @@ export const DashboardView: React.FC = () => {
                         setIsAddExpenseOpen(true);
                       }
                     }}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 transition-all cursor-pointer"
+                    className="flex items-center justify-between p-2 rounded bg-[#10141e] border border-[#1d2332] hover:border-[#2b354a] transition-all cursor-pointer"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                        className={`w-7 h-7 rounded flex items-center justify-center shrink-0 ${
                           tx.type === 'expense'
-                            ? 'bg-rose-500/15 text-rose-400'
+                            ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                             : tx.type === 'income'
-                            ? 'bg-emerald-500/15 text-emerald-400'
+                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                             : tx.type === 'bank_to_investment'
-                            ? 'bg-indigo-500/15 text-indigo-400'
-                            : 'bg-blue-500/15 text-blue-400'
+                            ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30'
+                            : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
                         }`}
                       >
-                        {tx.type === 'expense' && <Receipt className="w-4 h-4" />}
-                        {tx.type === 'income' && <ArrowDownRight className="w-4 h-4" />}
-                        {tx.type === 'bank_to_investment' && <TrendingUp className="w-4 h-4" />}
-                        {tx.type === 'transfer' && <ArrowRightLeft className="w-4 h-4" />}
+                        {tx.type === 'expense' && <Receipt className="w-3.5 h-3.5" />}
+                        {tx.type === 'income' && <ArrowDownRight className="w-3.5 h-3.5" />}
+                        {tx.type === 'bank_to_investment' && <TrendingUp className="w-3.5 h-3.5" />}
+                        {tx.type === 'transfer' && <ArrowRightLeft className="w-3.5 h-3.5" />}
                       </div>
 
-                      <div>
-                        <p className="text-xs sm:text-sm font-semibold text-white">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-zinc-200 truncate">
                           {tx.type === 'bank_to_investment'
                             ? `Funded ${targetInv?.name || 'Investment'}`
                             : tx.type === 'transfer'
                             ? `Transfer to ${destAcc?.name || 'Cash'}`
                             : tx.category || 'General'}
                         </p>
-                        <p className="text-[11px] text-slate-400 flex items-center gap-1.5 flex-wrap">
+                        <p className="text-[10px] font-mono text-zinc-500 flex items-center gap-1.5 flex-wrap truncate">
                           <span>{sourceAcc?.name || 'Bank'}</span>
-                          <span>•</span>
+                          <span>·</span>
                           <span>{formatDate(tx.date)}</span>
                           {tx.notes && (
                             <>
-                              <span>•</span>
-                              <span className="italic text-slate-300 truncate max-w-[200px]">"{tx.notes}"</span>
+                              <span>·</span>
+                              <span className="italic text-zinc-400 truncate max-w-[150px]">
+                                "{tx.notes}"
+                              </span>
                             </>
                           )}
                         </p>
                       </div>
                     </div>
 
-                    <div className="text-right">
+                    <div className="text-right shrink-0 pl-2">
                       <span
-                        className={`text-xs sm:text-sm font-bold font-mono ${
+                        className={`text-xs font-mono tabular-nums font-bold ${
                           tx.type === 'expense'
                             ? 'text-rose-400'
                             : tx.type === 'income'
@@ -535,7 +526,7 @@ export const DashboardView: React.FC = () => {
                         {formatMasked(tx.amount, 'IDR', isPrivacyMode)}
                       </span>
                       {tx.type === 'bank_to_investment' && tx.amountUsd && (
-                        <p className="text-[10px] text-slate-500 font-mono">
+                        <p className="text-[9px] text-zinc-500 font-mono tabular-nums">
                           +{formatUsd(tx.amountUsd)}
                         </p>
                       )}

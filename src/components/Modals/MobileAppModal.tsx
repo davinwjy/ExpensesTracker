@@ -42,60 +42,60 @@ export const MobileAppModal: React.FC<MobileAppModalProps> = ({ isOpen, onClose 
       <div onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" />
 
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-xl bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95">
+      <div className="relative w-full max-w-xl bg-[#0d1017] border-t sm:border border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono">
         {/* Mobile Drag Indicator */}
-        <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-slate-700/80" />
+        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-[#080a0f]">
+          <div className="w-8 h-1 rounded-full bg-zinc-700" />
         </div>
 
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-800/80 bg-slate-950/60 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
-              <Smartphone className="w-5 h-5 text-slate-950 stroke-[2.5]" />
+        <div className="p-3.5 sm:p-4 border-b border-[#1b212e] bg-[#080a0f] flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <Smartphone className="w-4 h-4 text-emerald-400 stroke-[2.5]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">WealthTrack Pro Mobile</h3>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                  Android & iOS
+                <h3 className="text-xs sm:text-sm font-bold text-zinc-100 uppercase tracking-wider">WEALTHTRACK CLIENT TELEMETRY</h3>
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                  ANDROID & iOS
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Pasang di HP & Sinkronisasi Otomatis</p>
+              <p className="text-[10px] text-zinc-500">Local Device Installation & Real-Time Replication</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
             aria-label="Tutup modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Sync Status Banner */}
-        <div className="px-4 sm:px-5 py-2.5 bg-emerald-500/10 border-b border-emerald-500/20 flex items-center gap-2 text-xs text-emerald-300 shrink-0">
-          <Flame className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="px-3.5 sm:px-4 py-2 bg-[#080a0f] border-b border-[#1b212e] flex items-center gap-2 text-[11px] text-emerald-400 shrink-0">
+          <Flame className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
           <div className="truncate">
-            <strong>Sinkronisasi Real-Time:</strong> Terhubung ke{' '}
-            <span className="font-mono text-emerald-200">{defaultFirebaseConfig?.projectId || 'expenses-tracker-davin'}</span>
+            <strong>REPLICATION STATUS:</strong> CONNECTED TO{' '}
+            <span className="font-mono text-zinc-200">{defaultFirebaseConfig?.projectId || 'expenses-tracker-davin'}</span>
           </div>
         </div>
 
         {/* Scrollable Content Body */}
-        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+        <div className="p-4 space-y-3.5 overflow-y-auto flex-1 min-h-0">
           {/* Tabs: PWA 1-Click vs Direct APK */}
-          <div className="grid grid-cols-2 p-1 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold">
+          <div className="grid grid-cols-2 p-0.5 bg-[#080a0f] border border-[#1d2332] rounded text-xs font-semibold">
             <button
               onClick={() => setActiveTab('pwa')}
-              className={`py-2 px-3 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`py-1.5 px-3 rounded transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === 'pwa'
-                  ? 'bg-emerald-500 text-slate-950 shadow-md font-bold'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-[#1b212e] text-emerald-400 border border-[#2a3449] font-bold'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Instal Cepat (PWA)</span>
+              <Sparkles className="w-3 h-3" />
+              <span>PWA DEPLOYMENT</span>
             </button>
             <button
               onClick={() => setActiveTab('apk')}

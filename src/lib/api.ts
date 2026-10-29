@@ -9,6 +9,8 @@ import {
   AdminUserListItem,
   SystemSettings,
   SystemAnnouncement,
+  HoldingType,
+  InvestmentCategory,
 } from '../types';
 import { localDb } from './localDb';
 
@@ -296,6 +298,7 @@ export const api = {
     toAccountId?: string;
     toInvestmentId?: string;
     amountIdr: number;
+    amountUsd?: number;
     exchangeRate?: number;
     date?: string;
     notes?: string;
@@ -329,9 +332,11 @@ export const api = {
 
   async createInvestment(data: {
     name: string;
-    category: 'USD' | 'Bitcoin' | 'Saham' | 'RDPU' | 'ETF USA';
+    category: InvestmentCategory;
+    currency?: 'IDR' | 'USD';
     amountInvested: number;
     currentValue?: number;
+    customExchangeRate?: number;
     units?: number;
     platform?: string;
     notes?: string;
@@ -377,6 +382,69 @@ export const api = {
       }
     }
     return localDb.deleteInvestment(id);
+  },
+
+  // Holding Types (Master Data)
+  async getHoldingTypes(): Promise<{ holdingTypes: HoldingType[] }> {
+    const hasServer = await checkServer();
+    if (hasServer) {
+      try {
+        return await request<{ holdingTypes: HoldingType[] }>('/api/holding-types');
+      } catch (err) {
+        isServerAvailable = false;
+      }
+    }
+    return localDb.getHoldingTypes();
+  },
+
+  async addHoldingType(data: {
+    id?: string;
+    label: string;
+    defaultCurrency: 'IDR' | 'USD';
+    example?: string;
+    badgeColor?: string;
+  }): Promise<{ holdingType: HoldingType }> {
+    const hasServer = await checkServer();
+    if (hasServer) {
+      try {
+        return await request<{ holdingType: HoldingType }>('/api/holding-types', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+      } catch (err) {
+        isServerAvailable = false;
+      }
+    }
+    return localDb.addHoldingType(data);
+  },
+
+  async updateHoldingType(id: string, data: Partial<HoldingType>): Promise<{ holdingType: HoldingType }> {
+    const hasServer = await checkServer();
+    if (hasServer) {
+      try {
+        return await request<{ holdingType: HoldingType }>(`/api/holding-types/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        });
+      } catch (err) {
+        isServerAvailable = false;
+      }
+    }
+    return localDb.updateHoldingType(id, data);
+  },
+
+  async deleteHoldingType(id: string): Promise<{ success: boolean }> {
+    const hasServer = await checkServer();
+    if (hasServer) {
+      try {
+        return await request<{ success: boolean }>(`/api/holding-types/${id}`, {
+          method: 'DELETE',
+        });
+      } catch (err) {
+        isServerAvailable = false;
+      }
+    }
+    return localDb.deleteHoldingType(id);
   },
 
   // Settings

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, TrendingUp, RotateCcw, AlertCircle, Trash2 } from 'lucide-react';
+import { X, Check, TrendingUp, RotateCcw, AlertCircle, Trash2, Layers } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
 import { InvestmentCategory } from '../../types';
 import { formatIdr, formatUsd } from '../../lib/formatters';
 
-const INVESTMENT_CATEGORIES: { id: InvestmentCategory; label: string; currency: 'IDR' | 'USD'; example: string }[] = [
-  { id: 'Saham', label: 'Saham (ID Stocks)', currency: 'IDR', example: 'e.g. BBCA, BBRI, ASII' },
-  { id: 'RDPU', label: 'RDPU (Money Market)', currency: 'IDR', example: 'e.g. Sucorinvest Stable Fund' },
-  { id: 'Bitcoin', label: 'Bitcoin (BTC)', currency: 'IDR', example: 'e.g. Cold storage, Indodax, Pintu' },
-  { id: 'ETF USA', label: 'ETF USA (S&P 500)', currency: 'USD', example: 'e.g. VOO, QQQ, SCHD, SPY' },
-  { id: 'USD', label: 'USD Holdings', currency: 'USD', example: 'e.g. Wise USD balance, Deposit' },
+const DEFAULT_INVESTMENT_CATEGORIES: { id: InvestmentCategory; label: string; defaultCurrency: 'IDR' | 'USD'; example: string }[] = [
+  { id: 'Saham', label: 'Indonesian Stocks (Saham)', defaultCurrency: 'IDR', example: 'e.g. BBCA, BBRI, ASII' },
+  { id: 'RDPU', label: 'Money Market (RDPU)', defaultCurrency: 'IDR', example: 'e.g. Sucorinvest Stable Fund' },
+  { id: 'Bitcoin', label: 'Crypto (Bitcoin)', defaultCurrency: 'IDR', example: 'e.g. Cold storage, Indodax, Pintu' },
+  { id: 'ETF USA', label: 'US Stocks & ETFs', defaultCurrency: 'USD', example: 'e.g. VOO, QQQ, SCHD, SPY' },
+  { id: 'USD', label: 'USD Holdings & Cash', defaultCurrency: 'USD', example: 'e.g. Wise USD balance, Broker cash' },
 ];
 
 export const InvestmentModal: React.FC = () => {
@@ -18,6 +18,8 @@ export const InvestmentModal: React.FC = () => {
     setIsAddInvestmentOpen,
     editingInvestment,
     setEditingInvestment,
+    holdingTypes,
+    setIsHoldingTypesModalOpen,
     addInvestment,
     updateInvestment,
     deleteInvestment,
@@ -25,6 +27,8 @@ export const InvestmentModal: React.FC = () => {
   } = useFinance();
 
   const [category, setCategory] = useState<InvestmentCategory>('Saham');
+  const [currency, setCurrency] = useState<'IDR' | 'USD'>('IDR');
+  const [customExchangeRate, setCustomExchangeRate] = useState<string>('');
   const [name, setName] = useState('');
   const [amountInvested, setAmountInvested] = useState('');
   const [currentValue, setCurrentValue] = useState('');
@@ -35,13 +39,34 @@ export const InvestmentModal: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const selectedCategoryMeta = INVESTMENT_CATEGORIES.find((c) => c.id === category)!;
-  const isUsd = selectedCategoryMeta.currency === 'USD';
+  const categoriesList = holdingTypes && holdingTypes.length > 0
+    ? holdingTypes.map((h) => ({
+        id: h.id,
+        label: h.label,
+        defaultCurrency: h.defaultCurrency,
+        example: h.example || `e.g. ${h.label}`,
+      }))
+    : DEFAULT_INVESTMENT_CATEGORIES;
+
+  const selectedCategoryMeta = categoriesList.find((c) => c.id === category) || {
+    id: category,
+    label: category,
+    defaultCurrency: currency,
+    example: '',
+  };
+  const isUsd = currency === 'USD';
+  const effectiveRate = isUsd
+    ? (Number(customExchangeRate) > 0 ? Number(customExchangeRate) : usdIdrRate)
+    : usdIdrRate;
 
   useEffect(() => {
     if (isAddInvestmentOpen) {
       if (editingInvestment) {
         setCategory(editingInvestment.category);
+        const matched = categoriesList.find((c) => c.id === editingInvestment.category);
+        const resolvedCurrency = matched ? matched.defaultCurrency : ((editingInvestment.category === 'ETF USA' || editingInvestment.category === 'USD') ? 'USD' : 'IDR');
+        setCurrency(resolvedCurrency);
+        setCustomExchangeRate(editingInvestment.customExchangeRate ? editingInvestment.customExchangeRate.toString() : '');
         setName(editingInvestment.name);
         setAmountInvested(editingInvestment.amountInvested.toString());
         setCurrentValue(editingInvestment.currentValue.toString());
@@ -58,6 +83,8 @@ export const InvestmentModal: React.FC = () => {
 
   const resetFields = () => {
     setCategory('Saham');
+    setCurrency('IDR');
+    setCustomExchangeRate('');
     setName('');
     setAmountInvested('');
     setCurrentValue('');
@@ -71,6 +98,13 @@ export const InvestmentModal: React.FC = () => {
     resetFields();
     setEditingInvestment(null);
     setIsAddInvestmentOpen(false);
+  };
+
+  const handleCategoryChange = (newCat: InvestmentCategory) => {
+    setCategory(newCat);
+    const matched = categoriesList.find((c) => c.id === newCat);
+    const resolvedCurrency = matched ? matched.defaultCurrency : ((newCat === 'ETF USA' || newCat === 'USD') ? 'USD' : 'IDR');
+    setCurrency(resolvedCurrency);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,15 +128,23 @@ export const InvestmentModal: React.FC = () => {
       return;
     }
 
+    const parsedCustomRate = isUsd && customExchangeRate && !isNaN(Number(customExchangeRate)) && Number(customExchangeRate) > 0
+      ? Number(customExchangeRate)
+      : undefined;
+
+    const matched = categoriesList.find((c) => c.id === category);
+    const resolvedCurrency: 'IDR' | 'USD' = matched ? matched.defaultCurrency : ((category === 'ETF USA' || category === 'USD') ? 'USD' : 'IDR');
+
     setIsSubmitting(true);
     try {
       if (editingInvestment) {
         await updateInvestment(editingInvestment.id, {
           name: name.trim(),
           category,
-          currency: selectedCategoryMeta.currency,
+          currency: resolvedCurrency,
           amountInvested: parsedInvested,
           currentValue: parsedCurrent,
+          customExchangeRate: parsedCustomRate,
           units: units ? Number(units) : undefined,
           platform: platform.trim() || undefined,
           notes: notes.trim() || undefined,
@@ -111,8 +153,10 @@ export const InvestmentModal: React.FC = () => {
         await addInvestment({
           name: name.trim(),
           category,
+          currency: resolvedCurrency,
           amountInvested: parsedInvested,
           currentValue: parsedCurrent,
+          customExchangeRate: parsedCustomRate,
           units: units ? Number(units) : undefined,
           platform: platform.trim() || undefined,
           notes: notes.trim() || undefined,
@@ -144,7 +188,7 @@ export const InvestmentModal: React.FC = () => {
   const pnl = curNumber - invNumber;
   const pnlPercent = invNumber > 0 ? (pnl / invNumber) * 100 : 0;
 
-  if (!isAddInvestmentOpen) return null;
+  if (!isAddInvestmentOpen || !editingInvestment) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
@@ -155,24 +199,24 @@ export const InvestmentModal: React.FC = () => {
       />
 
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-lg bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95">
+      <div className="relative w-full max-w-lg bg-[#0d1017] border-t sm:border border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono">
         {/* Mobile Drag Indicator */}
-        <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-slate-700/80" />
+        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-[#080a0f]">
+          <div className="w-8 h-1 rounded-full bg-zinc-700" />
         </div>
 
-        {/* Sticky Header */}
-        <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-800 bg-slate-950/70 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
+        {/* Command Strip Header */}
+        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-[#1b212e] bg-[#080a0f] shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm sm:text-base leading-tight">
-                {editingInvestment ? 'Edit Investment' : 'Add Investment Asset'}
+              <h3 className="font-bold text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
+                MODIFY ASSET POSITION
               </h3>
-              <p className="text-[11px] sm:text-xs text-slate-400">
-                Track USD, Bitcoin, Saham, RDPU, and US ETFs
+              <p className="text-[10px] text-zinc-500">
+                Update holding valuation, broker notes, and position details
               </p>
             </div>
           </div>
@@ -181,80 +225,127 @@ export const InvestmentModal: React.FC = () => {
               type="button"
               onClick={resetFields}
               title="Reset fields"
-              className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={handleClose}
-              className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* Scrollable Form Body */}
-        <form id="investment-modal-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 overscroll-contain">
+        <form id="investment-modal-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 space-y-3.5 overscroll-contain">
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
+            <div className="flex items-center gap-2 p-2.5 rounded bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
               <span>{error}</span>
             </div>
           )}
 
-          {/* Category Selector (Scrollable horizontally on mobile, clean grid on desktop) */}
+          {/* Category Selector */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-              Investment Category <span className="text-rose-400">*</span>
-            </label>
-            <div className="flex overflow-x-auto pb-1 sm:pb-0 sm:grid sm:grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs no-scrollbar">
-              {INVESTMENT_CATEGORIES.map((cat) => (
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                ASSET CLASSIFICATION <span className="text-rose-400">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsHoldingTypesModalOpen(true)}
+                className="text-[9px] font-mono text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer transition-colors"
+                title="Manage or add custom holding types"
+              >
+                <Layers className="w-2.5 h-2.5" />
+                <span>Master Jenis</span>
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1 p-1 bg-[#080a0f] rounded border border-[#1d2332] text-xs">
+              {categoriesList.map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => setCategory(cat.id)}
-                  className={`py-2 px-3 rounded-lg font-semibold text-center whitespace-nowrap transition-all cursor-pointer shrink-0 sm:shrink ${
+                  onClick={() => handleCategoryChange(cat.id)}
+                  className={`py-1 px-2 rounded text-center whitespace-nowrap transition-all cursor-pointer flex-1 min-w-[75px] ${
                     category === cat.id
-                      ? 'bg-emerald-500 text-slate-950 shadow'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                      ? 'bg-[#1b212e] text-emerald-400 border border-[#2a3449] font-bold'
+                      : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
                   }`}
                 >
-                  <span>{cat.id}</span>
-                  <span className="block text-[10px] opacity-75 font-mono">({cat.currency})</span>
+                  <span className="block text-[11px] font-mono">{cat.id}</span>
+                  <span className="block text-[9px] opacity-75 font-mono">({cat.defaultCurrency})</span>
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-slate-400 mt-1.5">
-              Denomination: <strong className="text-emerald-400">{selectedCategoryMeta.currency}</strong> • {selectedCategoryMeta.example}
-            </p>
+            <div className="flex items-center justify-between mt-1 text-[10px] font-mono">
+              <span className="text-zinc-500">
+                CATEGORY: <strong className="text-emerald-400">{selectedCategoryMeta.id}</strong> • {selectedCategoryMeta.example}
+              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-zinc-500 uppercase tracking-wider text-[9px]">DENOMINATION:</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${isUsd ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'}`}>
+                  {isUsd ? 'USD ($)' : 'IDR (Rp)'}
+                </span>
+              </div>
+            </div>
           </div>
+
+          {/* Custom Broker Exchange Rate (Only shown when currency is USD) */}
+          {isUsd && (
+            <div className="p-2.5 rounded bg-[#0d1017] border border-indigo-500/30 space-y-1.5 animate-in fade-in">
+              <div className="flex items-center justify-between">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-indigo-300">
+                  BROKER / APP EXCHANGE RATE (IDR per USD)
+                </label>
+                <span className="text-[9px] font-mono text-zinc-500">CUSTOM RATE</span>
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-500">
+                  Rp
+                </span>
+                <input
+                  type="number"
+                  step="any"
+                  value={customExchangeRate}
+                  onChange={(e) => setCustomExchangeRate(e.target.value)}
+                  placeholder={usdIdrRate.toString()}
+                  className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-indigo-500 rounded pl-8 pr-3 py-2 text-xs font-bold text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
+                />
+              </div>
+              <p className="text-[10px] text-zinc-500">
+                Current system spot rate: <strong className="text-zinc-300 font-mono tabular-nums">{formatIdr(usdIdrRate)}</strong>. Fill this in if your broker uses a specific deposit/buying exchange rate (e.g. Rp 16,250).
+              </p>
+            </div>
+          )}
 
           {/* Asset Name / Ticker */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-              Asset Name or Ticker <span className="text-rose-400">*</span>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+              ASSET TICKER / IDENTIFIER <span className="text-rose-400">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={selectedCategoryMeta.example}
-              className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-600 focus:outline-none"
+              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none"
               required
               autoFocus
             />
           </div>
 
           {/* Amount Invested & Current Value */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                Invested Principal ({isUsd ? 'USD' : 'IDR'}) <span className="text-rose-400">*</span>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                PRINCIPAL COST ({isUsd ? 'USD' : 'IDR'}) <span className="text-rose-400">*</span>
               </label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-500">
                   {isUsd ? '$' : 'Rp'}
                 </span>
                 <input
@@ -263,18 +354,18 @@ export const InvestmentModal: React.FC = () => {
                   value={amountInvested}
                   onChange={(e) => setAmountInvested(e.target.value)}
                   placeholder={isUsd ? '100.00' : '1,000,000'}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2.5 text-base sm:text-sm font-bold text-white placeholder-slate-600 focus:outline-none font-mono"
+                  className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded pl-8 pr-3 py-2 text-xs font-bold text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                Current Market Value ({isUsd ? 'USD' : 'IDR'})
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                MARKET VALUATION ({isUsd ? 'USD' : 'IDR'})
               </label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-500">
                   {isUsd ? '$' : 'Rp'}
                 </span>
                 <input
@@ -283,7 +374,7 @@ export const InvestmentModal: React.FC = () => {
                   value={currentValue}
                   onChange={(e) => setCurrentValue(e.target.value)}
                   placeholder={amountInvested || (isUsd ? '100.00' : '1,000,000')}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2.5 text-base sm:text-sm font-bold text-white placeholder-slate-600 focus:outline-none font-mono"
+                  className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded pl-8 pr-3 py-2 text-xs font-bold text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
                 />
               </div>
             </div>
@@ -291,68 +382,69 @@ export const InvestmentModal: React.FC = () => {
 
           {/* Live PnL Preview */}
           {invNumber > 0 && (
-            <div className="p-3 bg-slate-950/70 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between text-xs gap-2">
+            <div className="p-2.5 bg-[#080a0f] rounded border border-[#1d2332] flex flex-wrap items-center justify-between text-xs gap-2">
               <div>
-                <span className="text-slate-400">Unrealized PnL: </span>
-                <span className={`font-bold font-mono ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                <span className="text-zinc-500">UNREALIZED PnL: </span>
+                <span className={`font-bold font-mono tabular-nums ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                   {pnl >= 0 ? '+' : ''}
                   {isUsd ? formatUsd(pnl) : formatIdr(pnl)} ({pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}%)
                 </span>
               </div>
               {isUsd && (
-                <div className="text-slate-400 text-[11px]">
-                  IDR Value: <strong className="text-white font-mono">{formatIdr(curNumber * usdIdrRate)}</strong>
+                <div className="text-zinc-500 text-[10px]">
+                  IDR VALUATION: <strong className="text-zinc-200 font-mono tabular-nums">{formatIdr(curNumber * effectiveRate)}</strong>
+                  {customExchangeRate ? <span className="text-indigo-400 ml-1">(Broker Rate: Rp {Number(customExchangeRate).toLocaleString('en-US')})</span> : null}
                 </div>
               )}
             </div>
           )}
 
           {/* Units & Platform */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                Quantity / Units (Optional)
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                QUANTITY / UNITS (OPTIONAL)
               </label>
               <input
                 type="number"
                 step="any"
                 value={units}
                 onChange={(e) => setUnits(e.target.value)}
-                placeholder={category === 'Bitcoin' ? 'e.g. 0.015 BTC' : 'e.g. 10 shares / lots'}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-600 focus:outline-none font-mono"
+                placeholder={category === 'Bitcoin' ? 'e.g. 0.015 BTC' : 'e.g. 10 shares'}
+                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                Platform / App (Optional)
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                PLATFORM / BROKER (OPTIONAL)
               </label>
               <input
                 type="text"
                 value={platform}
                 onChange={(e) => setPlatform(e.target.value)}
-                placeholder="e.g. GoTrade, Bibit, Ajaib, Indodax"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-600 focus:outline-none"
+                placeholder="e.g. GoTrade, Bibit, Ajaib..."
+                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none"
               />
             </div>
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-              Notes (Optional)
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+              POSITION NOTES (OPTIONAL)
             </label>
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. DCA monthly, long term hold..."
-              className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-600 focus:outline-none"
+              placeholder="e.g. DCA recurring, thesis..."
+              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none"
             />
           </div>
         </form>
 
-        {/* Sticky Docked Footer */}
-        <div className="shrink-0 p-3 sm:p-4 bg-slate-950/90 backdrop-blur-md border-t border-slate-800 flex items-center justify-between gap-2">
+        {/* Command Strip Footer */}
+        <div className="shrink-0 p-3 bg-[#080a0f] border-t border-[#1b212e] flex items-center justify-between gap-2">
           {editingInvestment ? (
             confirmDelete ? (
               <div className="flex items-center gap-1.5">
@@ -360,26 +452,26 @@ export const InvestmentModal: React.FC = () => {
                   type="button"
                   onClick={handleDelete}
                   disabled={isSubmitting}
-                  className="px-3 py-2 rounded-xl bg-rose-600 text-xs font-bold text-white hover:bg-rose-700"
+                  className="px-2.5 py-1.5 rounded bg-rose-600 text-xs font-bold text-white hover:bg-rose-500"
                 >
-                  Confirm
+                  CONFIRM PURGE
                 </button>
                 <button
                   type="button"
                   onClick={() => setConfirmDelete(false)}
-                  className="px-2 py-2 text-xs text-slate-400 hover:text-white"
+                  className="px-2 py-1.5 text-xs text-zinc-400 hover:text-white"
                 >
-                  Cancel
+                  CANCEL
                 </button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 rounded-xl cursor-pointer transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
               >
-                <Trash2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Delete</span>
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>DELETE</span>
               </button>
             )
           ) : <div />}
@@ -388,18 +480,18 @@ export const InvestmentModal: React.FC = () => {
             <button
               type="button"
               onClick={handleClose}
-              className="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded text-xs font-semibold text-zinc-400 hover:text-white hover:bg-[#161a25] transition-colors cursor-pointer"
             >
-              Cancel
+              DISCARD
             </button>
             <button
               type="submit"
               form="investment-modal-form"
               disabled={isSubmitting}
-              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/30 cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1 px-3.5 py-1.5 rounded text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer disabled:opacity-50"
             >
-              <Check className="w-4 h-4 stroke-[2.5]" />
-              <span>{isSubmitting ? 'Saving...' : editingInvestment ? 'Update' : 'Add Investment'}</span>
+              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>{isSubmitting ? 'SAVING...' : 'UPDATE POSITION'}</span>
             </button>
           </div>
         </div>

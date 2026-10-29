@@ -223,6 +223,8 @@ export const ExpensesView: React.FC = () => {
     .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
 
+  const netCashFlow = totalFilteredIncome - totalFilteredExpense;
+
   const handleDelete = async (id: string) => {
     try {
       await deleteTransaction(id);
@@ -233,18 +235,20 @@ export const ExpensesView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in pb-12">
+    <div className="space-y-4 animate-in fade-in pb-12">
       {/* Header & Main CTAs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>Expenses & Transactions</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700">
-              {filteredTransactions.length}
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-100 font-mono">
+              TRANSACTIONS & CASH FLOW LEDGER
+            </h2>
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#161a25] border border-[#232b3d] text-zinc-400">
+              {filteredTransactions.length} LOGS
             </span>
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Track daily living expenses with Bank and Cash funding sources
+          </div>
+          <p className="text-[11px] font-mono text-zinc-500">
+            Daily income, expenses, and inter-account liquidity movements
           </p>
         </div>
 
@@ -255,10 +259,10 @@ export const ExpensesView: React.FC = () => {
               setTransactionInitialType('expense');
               setIsAddExpenseOpen(true);
             }}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-rose-500/25 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-mono text-xs font-bold transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Record Expense</span>
+            <Plus className="w-3.5 h-3.5 stroke-[2.8]" />
+            <span>RECORD EXPENSE</span>
           </button>
 
           <button
@@ -267,33 +271,33 @@ export const ExpensesView: React.FC = () => {
               setTransactionInitialType('income');
               setIsAddExpenseOpen(true);
             }}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs sm:text-sm shadow-md shadow-emerald-500/25 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono text-xs font-bold transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Record Income</span>
+            <Plus className="w-3.5 h-3.5 stroke-[2.8]" />
+            <span>RECORD INCOME</span>
           </button>
         </div>
       </div>
 
-      {/* Filter and Summary Bar */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+      {/* FILTER & CONTROL PANEL */}
+      <div className="p-3.5 rounded bg-[#0d1017] border border-[#1b212e] space-y-3 font-mono">
         {/* Search & Dropdown Primary Filters */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search notes or memo..."
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-rose-500 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none"
+              placeholder="Search memo / notes..."
+              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded pl-8 pr-7 py-1.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3 h-3" />
               </button>
             )}
           </div>
@@ -302,9 +306,9 @@ export const ExpensesView: React.FC = () => {
             <select
               value={selectedAccountFilter}
               onChange={(e) => setSelectedAccountFilter(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-rose-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none cursor-pointer"
+              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none cursor-pointer"
             >
-              <option value="all">All Accounts (Banks & Cash)</option>
+              <option value="all">ALL ACCOUNTS</option>
               {accounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
                   {acc.name} ({acc.type.toUpperCase()})
@@ -320,13 +324,13 @@ export const ExpensesView: React.FC = () => {
                 setSelectedTypeFilter(e.target.value);
                 setSelectedCategoryFilter('all');
               }}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-rose-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none cursor-pointer"
+              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none cursor-pointer"
             >
-              <option value="all">All Transaction Types</option>
-              <option value="expense">Expenses Only (-)</option>
-              <option value="income">Incomes Only (+)</option>
-              <option value="transfer">Bank ↔ Cash Transfers</option>
-              <option value="bank_to_investment">Bank → Investments</option>
+              <option value="all">ALL TRANSACTION TYPES</option>
+              <option value="expense">EXPENSES (-)</option>
+              <option value="income">INFLOWS (+)</option>
+              <option value="transfer">BANK ↔ CASH TRANSFERS</option>
+              <option value="bank_to_investment">BANK → INVESTMENTS</option>
             </select>
           </div>
 
@@ -334,18 +338,18 @@ export const ExpensesView: React.FC = () => {
             <select
               value={selectedCategoryFilter}
               onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-rose-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none cursor-pointer"
+              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none cursor-pointer"
             >
               <option value="all">
                 {selectedTypeFilter === 'income'
-                  ? 'All Income Categories'
+                  ? 'ALL INCOME CATEGORIES'
                   : selectedTypeFilter === 'expense'
-                  ? 'All Expense Categories'
-                  : 'All Categories'}
+                  ? 'ALL EXPENSE CATEGORIES'
+                  : 'ALL CATEGORIES'}
               </option>
               {availableCategories.map((cat) => (
                 <option key={cat} value={cat}>
-                  {cat}
+                  {cat.toUpperCase()}
                 </option>
               ))}
             </select>
@@ -353,57 +357,57 @@ export const ExpensesView: React.FC = () => {
         </div>
 
         {/* Date, Month & Year Filters */}
-        <div className="pt-3 border-t border-slate-200 dark:border-slate-800/80 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="pt-2.5 border-t border-[#1b212e] space-y-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             {/* Quick Period Presets */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-1 flex items-center gap-1 shrink-0">
-                <Calendar className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
-                Period:
+            <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
+              <span className="text-[10px] text-zinc-500 mr-1 flex items-center gap-1 shrink-0 uppercase">
+                <Calendar className="w-3 h-3 text-emerald-400" />
+                PERIOD:
               </span>
               <button
                 type="button"
                 onClick={() => applyPreset('all')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors shrink-0 cursor-pointer ${
+                className={`px-2 py-0.5 rounded text-[11px] transition-colors shrink-0 cursor-pointer ${
                   datePreset === 'all' && selectedYear === 'all' && selectedMonth === 'all' && !selectedDate
                     ? 'bg-emerald-500 text-slate-950 font-bold'
-                    : 'bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800'
+                    : 'bg-[#10141e] text-zinc-400 hover:text-zinc-200 border border-[#1d2332]'
                 }`}
               >
-                All Time
+                ALL TIME
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset('today')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors shrink-0 cursor-pointer ${
+                className={`px-2 py-0.5 rounded text-[11px] transition-colors shrink-0 cursor-pointer ${
                   datePreset === 'today' || (selectedDate && selectedDate === getTodayStr())
                     ? 'bg-emerald-500 text-slate-950 font-bold'
-                    : 'bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800'
+                    : 'bg-[#10141e] text-zinc-400 hover:text-zinc-200 border border-[#1d2332]'
                 }`}
               >
-                Today
+                TODAY
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset('this_month')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors shrink-0 cursor-pointer ${
+                className={`px-2 py-0.5 rounded text-[11px] transition-colors shrink-0 cursor-pointer ${
                   datePreset === 'this_month'
                     ? 'bg-emerald-500 text-slate-950 font-bold'
-                    : 'bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800'
+                    : 'bg-[#10141e] text-zinc-400 hover:text-zinc-200 border border-[#1d2332]'
                 }`}
               >
-                This Month
+                THIS MONTH
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset('this_year')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors shrink-0 cursor-pointer ${
+                className={`px-2 py-0.5 rounded text-[11px] transition-colors shrink-0 cursor-pointer ${
                   datePreset === 'this_year'
                     ? 'bg-emerald-500 text-slate-950 font-bold'
-                    : 'bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800'
+                    : 'bg-[#10141e] text-zinc-400 hover:text-zinc-200 border border-[#1d2332]'
                 }`}
               >
-                This Year
+                THIS YEAR
               </button>
             </div>
 
@@ -412,27 +416,26 @@ export const ExpensesView: React.FC = () => {
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="text-xs text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 font-medium flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+                className="text-[11px] text-rose-400 hover:text-rose-300 font-medium flex items-center gap-1 cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
-                <span>Reset Filters</span>
+                <X className="w-3 h-3" />
+                <span>RESET FILTERS</span>
               </button>
             )}
           </div>
 
           {/* Granular Year, Month, and Exact Date Pickers */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Year Selector */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
-              <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-                Filter by Year
+              <label className="block text-[9px] text-zinc-500 uppercase tracking-wider mb-0.5">
+                FILTER BY YEAR
               </label>
               <select
                 value={selectedYear}
                 onChange={(e) => handleYearChange(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none cursor-pointer"
+                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1 text-xs text-zinc-200 focus:outline-none cursor-pointer"
               >
-                <option value="all">All Years</option>
+                <option value="all">ALL YEARS</option>
                 {availableYears.map((yr) => (
                   <option key={yr} value={yr}>
                     {yr}
@@ -441,30 +444,28 @@ export const ExpensesView: React.FC = () => {
               </select>
             </div>
 
-            {/* Month Selector */}
             <div>
-              <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-                Filter by Month
+              <label className="block text-[9px] text-zinc-500 uppercase tracking-wider mb-0.5">
+                FILTER BY MONTH
               </label>
               <select
                 value={selectedMonth}
                 onChange={(e) => handleMonthChange(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none cursor-pointer"
+                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1 text-xs text-zinc-200 focus:outline-none cursor-pointer"
               >
-                <option value="all">All Months</option>
+                <option value="all">ALL MONTHS</option>
                 {MONTH_OPTIONS.map((m) => (
                   <option key={m.value} value={m.value}>
-                    {m.label} ({m.value})
+                    {m.label.toUpperCase()} ({m.value})
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Specific Exact Date Picker */}
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                  Specific Date
+              <div className="flex items-center justify-between mb-0.5">
+                <label className="block text-[9px] text-zinc-500 uppercase tracking-wider">
+                  SPECIFIC DATE
                 </label>
                 {selectedDate && (
                   <button
@@ -473,7 +474,7 @@ export const ExpensesView: React.FC = () => {
                       setSelectedDate('');
                       setDatePreset('custom');
                     }}
-                    className="text-[10px] text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 cursor-pointer flex items-center gap-0.5"
+                    className="text-[9px] text-rose-400 hover:text-rose-300 cursor-pointer flex items-center gap-0.5"
                   >
                     <X className="w-2.5 h-2.5" />
                     <span>Clear</span>
@@ -484,214 +485,200 @@ export const ExpensesView: React.FC = () => {
                 type="date"
                 value={selectedDate}
                 onChange={(e) => handleDateChange(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none cursor-pointer"
+                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1 text-xs text-zinc-200 focus:outline-none cursor-pointer"
               />
             </div>
           </div>
         </div>
 
-        {/* Filtered Summary Badges */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800/80 text-xs">
+        {/* Filtered Summary Figures */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-[#1b212e] text-xs">
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-slate-500 dark:text-slate-400">Total Expenses:</span>
-              <span className="font-bold text-rose-600 dark:text-rose-400 font-mono text-sm">
+            <div>
+              <span className="text-[10px] text-zinc-500 uppercase mr-1.5">EXPENSES:</span>
+              <span className="font-bold text-rose-400 tabular-nums">
                 {formatMasked(totalFilteredExpense, 'IDR', isPrivacyMode)}
               </span>
             </div>
 
             {totalFilteredIncome > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-slate-500 dark:text-slate-400">Total Incomes:</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono text-sm">
+              <div>
+                <span className="text-[10px] text-zinc-500 uppercase mr-1.5">INFLOWS:</span>
+                <span className="font-bold text-emerald-400 tabular-nums">
                   {formatMasked(totalFilteredIncome, 'IDR', isPrivacyMode)}
                 </span>
               </div>
             )}
+
+            <div>
+              <span className="text-[10px] text-zinc-500 uppercase mr-1.5">NET CASH FLOW:</span>
+              <span
+                className={`font-bold tabular-nums ${
+                  netCashFlow >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                }`}
+              >
+                {netCashFlow >= 0 ? '+' : ''}
+                {formatMasked(netCashFlow, 'IDR', isPrivacyMode)}
+              </span>
+            </div>
           </div>
 
-          {/* Active Period / Filter summary tag */}
-          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-[11px] flex-wrap">
-            <span>
-              Showing <strong className="text-slate-800 dark:text-slate-200">{filteredTransactions.length}</strong> of{' '}
-              <strong className="text-slate-800 dark:text-slate-200">{transactions.length}</strong>
-            </span>
-            {(selectedYear !== 'all' || selectedMonth !== 'all' || selectedDate) && (
-              <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-medium">
-                {selectedDate
-                  ? formatDate(selectedDate)
-                  : `${
-                      selectedMonth !== 'all'
-                        ? MONTH_OPTIONS.find((m) => m.value === selectedMonth)?.label + ' '
-                        : ''
-                    }${selectedYear !== 'all' ? selectedYear : ''}`}
-              </span>
-            )}
+          <div className="text-[10px] text-zinc-500">
+            SHOWING <strong className="text-zinc-200 tabular-nums">{filteredTransactions.length}</strong> OF{' '}
+            <strong className="text-zinc-200 tabular-nums">{transactions.length}</strong> ENTRIES
           </div>
         </div>
       </div>
 
-      {/* Transactions List */}
-      <div className="space-y-2.5">
+      {/* HIGH-DENSITY TRANSACTIONS TABLE */}
+      <div className="overflow-x-auto rounded bg-[#0d1017] border border-[#1b212e]">
         {filteredTransactions.length === 0 ? (
-          <div className="p-12 text-center rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <Receipt className="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-3" />
-            <h3 className="font-bold text-slate-900 dark:text-white text-base">No transactions found</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Try adjusting your date, month, year, or search filters.
+          <div className="p-10 text-center font-mono">
+            <Receipt className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+            <p className="text-xs font-bold text-zinc-300">No transactions found</p>
+            <p className="text-[10px] text-zinc-500 mt-0.5">
+              Adjust your search keywords, category, or date range filter.
             </p>
-            {isAnyFilterActive && (
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer transition-colors"
-              >
-                <X className="w-3.5 h-3.5 text-rose-500" />
-                <span>Reset All Filters</span>
-              </button>
-            )}
           </div>
         ) : (
-          filteredTransactions.map((tx) => {
-            const sourceAcc = accounts.find((a) => a.id === tx.accountId);
-            const destAcc = accounts.find((a) => a.id === tx.toAccountId);
-            const targetInv = investments.find((i) => i.id === tx.toInvestmentId);
-            const catColor = CATEGORY_COLORS[tx.category] || '#94a3b8';
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-[#1b212e] bg-[#090b10] text-[10px] font-mono uppercase tracking-wider text-zinc-500 select-none">
+                <th className="py-2.5 px-3 font-semibold">Date</th>
+                <th className="py-2.5 px-3 font-semibold">Type</th>
+                <th className="py-2.5 px-3 font-semibold">Description / Category</th>
+                <th className="py-2.5 px-3 font-semibold">Funding Account</th>
+                <th className="py-2.5 px-3 font-semibold">Memo / Notes</th>
+                <th className="py-2.5 px-3 font-semibold text-right">Amount (IDR)</th>
+                <th className="py-2.5 px-3 font-semibold text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#171b26] font-mono">
+              {filteredTransactions.map((tx) => {
+                const sourceAcc = accounts.find((a) => a.id === tx.accountId);
+                const destAcc = accounts.find((a) => a.id === tx.toAccountId);
+                const targetInv = investments.find((i) => i.id === tx.toInvestmentId);
 
-            return (
-              <div
-                key={tx.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm transition-all gap-3"
-              >
-                <div className="flex items-start sm:items-center gap-3.5">
-                  {/* Icon */}
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                      tx.type === 'expense'
-                        ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                        : tx.type === 'income'
-                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                        : tx.type === 'bank_to_investment'
-                        ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400'
-                        : 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
-                    }`}
+                return (
+                  <tr
+                    key={tx.id}
+                    className="hover:bg-[#10141e] transition-colors group"
                   >
-                    {tx.type === 'expense' && <Receipt className="w-5 h-5" />}
-                    {tx.type === 'income' && <ArrowDownRight className="w-5 h-5" />}
-                    {tx.type === 'bank_to_investment' && <TrendingUp className="w-5 h-5" />}
-                    {tx.type === 'transfer' && <ArrowRightLeft className="w-5 h-5" />}
-                  </div>
+                    {/* Date */}
+                    <td className="py-2 px-3 text-[11px] tabular-nums text-zinc-400 whitespace-nowrap">
+                      {formatDate(tx.date)}
+                    </td>
 
-                  {/* Details */}
-                  <div className="space-y-0.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+                    {/* Type */}
+                    <td className="py-2 px-3 text-[10px] uppercase whitespace-nowrap">
+                      <span
+                        className={`font-semibold ${
+                          tx.type === 'expense'
+                            ? 'text-rose-400'
+                            : tx.type === 'income'
+                            ? 'text-emerald-400'
+                            : tx.type === 'bank_to_investment'
+                            ? 'text-indigo-400'
+                            : 'text-blue-400'
+                        }`}
+                      >
                         {tx.type === 'bank_to_investment'
-                          ? `Funded ${targetInv?.name || 'Investment'}`
+                          ? 'INVEST'
                           : tx.type === 'transfer'
-                          ? `Moved to ${destAcc?.name || 'Cash'}`
-                          : tx.category}
+                          ? 'XFER'
+                          : tx.type.toUpperCase()}
                       </span>
-                      {(tx.type === 'expense' || tx.type === 'income') && tx.category && (
-                        <span
-                          className="text-[10px] px-2 py-0.5 rounded-full font-semibold text-slate-950"
-                          style={{ backgroundColor: catColor }}
-                        >
-                          {tx.category}
-                        </span>
-                      )}
-                      <span className="text-[10px] px-2 py-0.2 rounded font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                        {tx.type.replace(/_/g, ' ')}
-                      </span>
-                    </div>
+                    </td>
 
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                      <span className="flex items-center gap-1">
-                        <CreditCard className="w-3 h-3 text-slate-400 dark:text-slate-500" />
-                        {sourceAcc?.name || 'Account'}
-                      </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1 font-mono">
-                        <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
-                        {formatDate(tx.date)}
-                      </span>
-                      {tx.notes && (
-                        <>
-                          <span>•</span>
-                          <span className="italic text-slate-600 dark:text-slate-300">"{tx.notes}"</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                    {/* Description / Category */}
+                    <td className="py-2 px-3 text-zinc-200 font-sans font-medium text-xs">
+                      {tx.type === 'bank_to_investment'
+                        ? `Funded ${targetInv?.name || 'Investment'}`
+                        : tx.type === 'transfer'
+                        ? `Transfer to ${destAcc?.name || 'Cash'}`
+                        : tx.category || 'General'}
+                    </td>
 
-                {/* Amount & Actions */}
-                <div className="flex items-center justify-between sm:justify-end gap-4 pl-12 sm:pl-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-800/80">
-                  <div className="text-left sm:text-right">
-                    <span
-                      className={`text-base sm:text-lg font-black font-mono ${
-                        tx.type === 'expense'
-                          ? 'text-rose-600 dark:text-rose-400'
-                          : tx.type === 'income'
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : tx.type === 'bank_to_investment'
-                          ? 'text-indigo-600 dark:text-indigo-400'
-                          : 'text-blue-600 dark:text-blue-400'
-                      }`}
-                    >
-                      {tx.type === 'expense' ? '-' : tx.type === 'income' ? '+' : ''}
-                      {formatMasked(tx.amount, 'IDR', isPrivacyMode)}
-                    </span>
-                    {tx.type === 'bank_to_investment' && tx.amountUsd && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                        +{formatUsd(tx.amountUsd)}
-                      </p>
-                    )}
-                  </div>
+                    {/* Account */}
+                    <td className="py-2 px-3 text-zinc-400 text-[11px] whitespace-nowrap">
+                      {sourceAcc?.name || 'Account'}
+                    </td>
 
-                  <div className="flex items-center gap-1">
-                    {tx.type === 'expense' && (
-                      <button
-                        onClick={() => {
-                          setEditingTransaction(tx);
-                          setIsAddExpenseOpen(true);
-                        }}
-                        className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                        title="Edit transaction"
+                    {/* Notes */}
+                    <td className="py-2 px-3 text-zinc-500 text-[11px] italic truncate max-w-xs">
+                      {tx.notes ? `"${tx.notes}"` : '—'}
+                    </td>
+
+                    {/* Amount */}
+                    <td className="py-2 px-3 text-right tabular-nums whitespace-nowrap">
+                      <span
+                        className={`font-bold ${
+                          tx.type === 'expense'
+                            ? 'text-rose-400'
+                            : tx.type === 'income'
+                            ? 'text-emerald-400'
+                            : tx.type === 'bank_to_investment'
+                            ? 'text-indigo-400'
+                            : 'text-blue-400'
+                        }`}
                       >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                        {tx.type === 'expense' ? '-' : tx.type === 'income' ? '+' : ''}
+                        {formatMasked(tx.amount, 'IDR', isPrivacyMode)}
+                      </span>
+                      {tx.type === 'bank_to_investment' && tx.amountUsd && (
+                        <div className="text-[10px] text-zinc-500 tabular-nums">
+                          +{formatUsd(tx.amountUsd)}
+                        </div>
+                      )}
+                    </td>
 
-                    {deletingId === tx.id ? (
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleDelete(tx.id)}
-                          className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold rounded-lg cursor-pointer"
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          onClick={() => setDeletingId(null)}
-                          className="px-1.5 py-1 text-slate-500 dark:text-slate-400 text-[11px] cursor-pointer"
-                        >
-                          Cancel
-                        </button>
+                    {/* Actions */}
+                    <td className="py-2 px-3 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1">
+                        {tx.type === 'expense' && (
+                          <button
+                            onClick={() => {
+                              setEditingTransaction(tx);
+                              setIsAddExpenseOpen(true);
+                            }}
+                            className="p-1 text-zinc-500 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
+                            title="Edit transaction"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </button>
+                        )}
+
+                        {deletingId === tx.id ? (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleDelete(tx.id)}
+                              className="px-1.5 py-0.5 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded cursor-pointer"
+                            >
+                              Yes
+                            </button>
+                            <button
+                              onClick={() => setDeletingId(null)}
+                              className="px-1 py-0.5 text-zinc-400 text-[10px] cursor-pointer"
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setDeletingId(tx.id)}
+                            className="p-1 text-zinc-500 hover:text-rose-400 rounded hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            title="Delete transaction"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
-                    ) : (
-                      <button
-                        onClick={() => setDeletingId(tx.id)}
-                        className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
-                        title="Delete transaction"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

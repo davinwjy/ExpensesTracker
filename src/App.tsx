@@ -15,6 +15,7 @@ import { AddExpenseModal } from './components/Modals/AddExpenseModal';
 import { TransferModal } from './components/Modals/TransferModal';
 import { AccountModal } from './components/Modals/AccountModal';
 import { InvestmentModal } from './components/Modals/InvestmentModal';
+import { HoldingTypesModal } from './components/Modals/HoldingTypesModal';
 import { FirebaseSetupModal } from './components/Modals/FirebaseSetupModal';
 import { MobileAppModal } from './components/Modals/MobileAppModal';
 import { AuthModal } from './components/AuthModal';
@@ -71,7 +72,7 @@ const MainAppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0a0e17] text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#08090c] text-slate-900 dark:text-zinc-100 flex flex-col transition-colors duration-150">
       {/* Modern Desktop Left Sidebar & Contextual Header */}
       <div className="flex flex-row min-h-screen">
         <Sidebar
@@ -87,7 +88,7 @@ const MainAppContent: React.FC = () => {
             onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           />
 
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-12">
+          <main className="flex-1 max-w-[1520px] w-full mx-auto px-3 sm:px-5 lg:px-6 py-5 pb-24 lg:pb-10">
             {activeTab === 'dashboard' && <DashboardView />}
             {activeTab === 'expenses' && <ExpensesView />}
             {activeTab === 'accounts' && <AccountsView />}
@@ -106,6 +107,7 @@ const MainAppContent: React.FC = () => {
       <TransferModal />
       <AccountModal />
       <InvestmentModal />
+      <HoldingTypesModal />
       <FirebaseSetupModal
         isOpen={isFirebaseSetupOpen}
         onClose={() => setIsFirebaseSetupOpen(false)}
