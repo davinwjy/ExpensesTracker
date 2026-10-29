@@ -68,6 +68,13 @@ interface FinanceContextType {
     fromAccountId: string;
     toAccountId?: string;
     toInvestmentId?: string;
+    newInvestment?: {
+      name: string;
+      category: 'USD' | 'Bitcoin' | 'Saham' | 'RDPU' | 'ETF USA';
+      platform?: string;
+      units?: number;
+      notes?: string;
+    };
     amountIdr: number;
     exchangeRate?: number;
     date?: string;
@@ -466,6 +473,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     fromAccountId: string;
     toAccountId?: string;
     toInvestmentId?: string;
+    newInvestment?: {
+      name: string;
+      category: 'USD' | 'Bitcoin' | 'Saham' | 'RDPU' | 'ETF USA';
+      platform?: string;
+      units?: number;
+      notes?: string;
+    };
     amountIdr: number;
     exchangeRate?: number;
     date?: string;
@@ -503,10 +517,62 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           };
           await firestoreService.saveTransaction(tx);
         }
-      } else if (data.type === 'bank_to_investment' && data.toInvestmentId) {
+      } else if (data.type === 'bank_to_investment') {
         const fromAcc = accounts.find((a) => a.id === data.fromAccountId);
-        const toInv = investments.find((i) => i.id === data.toInvestmentId);
-        if (fromAcc && toInv) {
+        if (!fromAcc) throw new Error('Source account not found');
+
+        let targetInv = data.toInvestmentId ? investments.find((i) => i.id === data.toInvestmentId) : undefined;
+        let targetInvId = data.toInvestmentId;
+
+        // Create new investment directly if newInvestment is specified
+        if (!targetInv && data.newInvestment) {
+          const isUsd = data.newInvestment.category === 'USD' || data.newInvestment.category === 'ETF USA';
+          const rate = data.exchangeRate || usdIdrRate;
+          const initialCost = isUsd ? data.amountIdr / rate : data.amountIdr;
+          targetInvId = 'inv_' + Date.now();
+          targetInv = {
+            id: targetInvId,
+            userId: user.id,
+            name: data.newInvestment.name.trim(),
+            category: data.newInvestment.category,
+            currency: isUsd ? 'USD' : 'IDR',
+            amountInvested: initialCost,
+            currentValue: initialCost,
+            createdAt: now,
+            updatedAt: now,
+            ...(data.newInvestment.units !== undefined ? { units: data.newInvestment.units } : {}),
+            ...(data.newInvestment.platform?.trim() ? { platform: data.newInvestment.platform.trim() } : {}),
+            ...(data.newInvestment.notes?.trim() ? { notes: data.newInvestment.notes.trim() } : {}),
+          };
+          await firestoreService.saveInvestment(targetInv);
+
+          // Deduct from source bank/cash
+          await firestoreService.saveAccount({
+            ...fromAcc,
+            balance: fromAcc.balance - data.amountIdr,
+            updatedAt: now,
+          });
+
+          // Log transaction
+          const tx: Transaction = {
+            id: txId,
+            userId: user.id,
+            type: 'bank_to_investment',
+            amount: data.amountIdr,
+            accountId: data.fromAccountId,
+            toInvestmentId: targetInvId,
+            amountUsd: isUsd ? initialCost : undefined,
+            exchangeRate: isUsd ? rate : undefined,
+            category: `Funded ${targetInv.name}`,
+            date: data.date || now.split('T')[0],
+            notes: data.notes || `Initial funding for ${targetInv.name} from ${fromAcc.name}`,
+            createdAt: now,
+          };
+          await firestoreService.saveTransaction(tx);
+          return;
+        }
+
+        if (fromAcc && targetInv) {
           await firestoreService.saveAccount({
             ...fromAcc,
             balance: fromAcc.balance - data.amountIdr,
@@ -515,15 +581,15 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const rate = data.exchangeRate || usdIdrRate;
           let addedCost = data.amountIdr;
           let addedVal = data.amountIdr;
-          if (toInv.currency === 'USD') {
+          if (targetInv.currency === 'USD') {
             const addedUsd = data.amountIdr / rate;
             addedCost = addedUsd;
             addedVal = addedUsd;
           }
           await firestoreService.saveInvestment({
-            ...toInv,
-            amountInvested: toInv.amountInvested + addedCost,
-            currentValue: toInv.currentValue + addedVal,
+            ...targetInv,
+            amountInvested: targetInv.amountInvested + addedCost,
+            currentValue: targetInv.currentValue + addedVal,
             updatedAt: now,
           });
           const tx: Transaction = {
@@ -533,9 +599,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             amount: data.amountIdr,
             accountId: data.fromAccountId,
             toInvestmentId: data.toInvestmentId,
-            amountUsd: toInv.currency === 'USD' ? data.amountIdr / rate : undefined,
-            exchangeRate: toInv.currency === 'USD' ? rate : undefined,
-            category: `Funded ${toInv.name}`,
+            amountUsd: targetInv.currency === 'USD' ? data.amountIdr / rate : undefined,
+            exchangeRate: targetInv.currency === 'USD' ? rate : undefined,
+            category: `Funded ${targetInv.name}`,
             date: data.date || now.split('T')[0],
             notes: data.notes,
             createdAt: now,
@@ -543,6 +609,31 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           await firestoreService.saveTransaction(tx);
         }
       }
+      return;
+    }
+
+    // Server / Offline LocalDB mode with new investment
+    if (data.type === 'bank_to_investment' && data.newInvestment) {
+      const created = await api.createInvestment({
+        name: data.newInvestment.name.trim(),
+        category: data.newInvestment.category,
+        amountInvested: 0,
+        currentValue: 0,
+        platform: data.newInvestment.platform,
+        units: data.newInvestment.units,
+        notes: data.newInvestment.notes,
+      });
+
+      await api.executeTransfer({
+        type: 'bank_to_investment',
+        fromAccountId: data.fromAccountId,
+        toInvestmentId: created.investment.id,
+        amountIdr: data.amountIdr,
+        exchangeRate: data.exchangeRate,
+        date: data.date,
+        notes: data.notes || `Initial funding for ${created.investment.name}`,
+      });
+      await refreshData();
       return;
     }
 
