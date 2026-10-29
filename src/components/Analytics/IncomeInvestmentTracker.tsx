@@ -10,8 +10,6 @@ import {
   Award,
   Wallet,
   MousePointer,
-  Receipt,
-  TrendingUp,
 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
 import { formatMasked } from '../../lib/formatters';
@@ -102,10 +100,10 @@ function generateAreaPath(points: { x: number; y: number }[], bottomY: number): 
 
 // Safe popup positioning for mobile phones and desktop (never cuts off at screen borders)
 function getSafePopupPosition(xPct: number): React.CSSProperties {
-  if (xPct <= 28) {
+  if (xPct <= 22) {
     return { left: '8px', right: 'auto', transform: 'none' };
   }
-  if (xPct >= 72) {
+  if (xPct >= 78) {
     return { right: '8px', left: 'auto', transform: 'none' };
   }
   return { left: `${xPct}%`, transform: 'translateX(-50%)' };
@@ -128,11 +126,11 @@ export const IncomeInvestmentTracker: React.FC = () => {
 
   // Active month index for tooltip & indicator (defaults to current month, never null so data is immediately visible)
   const [activeMonthIdx, setActiveMonthIdx] = useState<number>(currentMonthIdx);
-  const [isMonthHovered, setIsMonthHovered] = useState<boolean>(false);
+  const [, setIsMonthHovered] = useState<boolean>(false);
 
   // Active year index for tooltip & indicator
   const [activeYearIdx, setActiveYearIdx] = useState<number | null>(null);
-  const [isYearHovered, setIsYearHovered] = useState<boolean>(false);
+  const [, setIsYearHovered] = useState<boolean>(false);
 
   // Current liquid cash balance across all accounts
   const currentTotalAccountBalance = useMemo(() => {
@@ -504,22 +502,44 @@ export const IncomeInvestmentTracker: React.FC = () => {
   const monthScale = useMemo(() => getScaleData(monthlyData, 800, 240), [monthlyData, viewMetric]);
   const yearScale = useMemo(() => getScaleData(yearlyData, 800, 240), [yearlyData, viewMetric]);
 
-  // Unified touch, mouse, and pointer index resolver
+  // Unified touch, mouse, and pointer index resolver with exact SVG matrix transformation
   const resolveCoordIndex = useCallback(
     (
       clientX: number,
+      clientY: number,
       target: SVGSVGElement,
       coords: { x: number }[],
       setIdx: (idx: number) => void
     ) => {
-      const rect = target.getBoundingClientRect();
-      if (!rect || rect.width <= 0) return;
-      const relX = clientX - rect.left;
-      const svgX = (relX / rect.width) * 800;
+      let svgX: number | null = null;
+      try {
+        if (typeof target.getScreenCTM === 'function') {
+          const ctm = target.getScreenCTM();
+          if (ctm) {
+            const pt = target.createSVGPoint();
+            pt.x = clientX;
+            pt.y = clientY;
+            const transformed = pt.matrixTransform(ctm.inverse());
+            if (!isNaN(transformed.x)) {
+              svgX = transformed.x;
+            }
+          }
+        }
+      } catch {
+        // fallback below
+      }
+
+      if (svgX === null || isNaN(svgX)) {
+        const rect = target.getBoundingClientRect();
+        if (!rect || rect.width <= 0) return;
+        const relX = clientX - rect.left;
+        svgX = (relX / rect.width) * 800;
+      }
+
       let closest = 0;
       let minDist = Infinity;
       coords.forEach((c, i) => {
-        const dist = Math.abs(c.x - svgX);
+        const dist = Math.abs(c.x - svgX!);
         if (dist < minDist) {
           minDist = dist;
           closest = i;
@@ -978,385 +998,416 @@ export const IncomeInvestmentTracker: React.FC = () => {
 
             {/* SVG GRAPH CONTAINER WITH MOBILE-VISIBLE POPUP */}
             <div className="relative w-full rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 p-2 sm:p-5 select-none">
-              {/* INTERACTIVE FLOATING POPUP */}
-              <div
-                className="absolute top-2 z-30 transition-all duration-100 pointer-events-none select-none"
-                style={getSafePopupPosition((monthScale.incomeCoords[safeMonthIdx].x / 800) * 100)}
-              >
-                <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/95 text-white border border-slate-700/80 shadow-2xl space-y-1 text-xs font-mono min-w-[200px] sm:min-w-[220px] max-w-[calc(100vw-3rem)] backdrop-blur-md">
-                  <div className="flex items-center justify-between font-bold border-b border-slate-800 pb-1 font-sans">
-                    <span className="text-xs text-white flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>{activeMonthPoint.fullMonthName} {selectedYear}</span>
-                    </span>
-                    {activeMonthPoint.income > 0 && (
-                      <span className="text-[10px] text-emerald-400 font-mono font-bold">
-                        {((activeMonthPoint.investment / activeMonthPoint.income) * 100).toFixed(0)}% Inv.
+              <div className="relative w-full overflow-visible">
+                {/* INTERACTIVE FLOATING POPUP */}
+                <div
+                  className="absolute top-2 z-30 transition-all duration-100 pointer-events-none select-none"
+                  style={getSafePopupPosition((monthScale.incomeCoords[safeMonthIdx].x / 800) * 100)}
+                >
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/95 text-white border border-slate-700/80 shadow-2xl space-y-1 text-xs font-mono min-w-[200px] sm:min-w-[220px] max-w-[calc(100vw-3rem)] backdrop-blur-md">
+                    <div className="flex items-center justify-between font-bold border-b border-slate-800 pb-1 font-sans">
+                      <span className="text-xs text-white flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>{activeMonthPoint.fullMonthName} {selectedYear}</span>
                       </span>
-                    )}
-                  </div>
-                  <div className="space-y-0.5 text-[11px]">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-emerald-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                        Income:
-                      </span>
-                      <strong className="text-emerald-300 font-bold">{formatMasked(activeMonthPoint.income, 'IDR', isPrivacyMode)}</strong>
+                      {activeMonthPoint.income > 0 && (
+                        <span className="text-[10px] text-emerald-400 font-mono font-bold">
+                          {((activeMonthPoint.investment / activeMonthPoint.income) * 100).toFixed(0)}% Inv.
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-rose-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
-                        Expenses:
-                      </span>
-                      <strong className="text-rose-300 font-bold">{formatMasked(activeMonthPoint.expense, 'IDR', isPrivacyMode)}</strong>
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-indigo-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                        Invested:
-                      </span>
-                      <strong className="text-indigo-300 font-bold">{formatMasked(activeMonthPoint.investment, 'IDR', isPrivacyMode)}</strong>
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sky-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
-                        Account:
-                      </span>
-                      <strong className="text-sky-300 font-bold">{formatMasked(activeMonthPoint.accountBalance, 'IDR', isPrivacyMode)}</strong>
+                    <div className="space-y-0.5 text-[11px]">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-emerald-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                          Income:
+                        </span>
+                        <strong className="text-emerald-300 font-bold">{formatMasked(activeMonthPoint.income, 'IDR', isPrivacyMode)}</strong>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-rose-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
+                          Expenses:
+                        </span>
+                        <strong className="text-rose-300 font-bold">{formatMasked(activeMonthPoint.expense, 'IDR', isPrivacyMode)}</strong>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-indigo-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
+                          Invested:
+                        </span>
+                        <strong className="text-indigo-300 font-bold">{formatMasked(activeMonthPoint.investment, 'IDR', isPrivacyMode)}</strong>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-sky-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+                          Account:
+                        </span>
+                        <strong className="text-sky-300 font-bold">{formatMasked(activeMonthPoint.accountBalance, 'IDR', isPrivacyMode)}</strong>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* SVG Canvas with Unified Touch, Pointer & Mouse support */}
-              <svg
-                viewBox="0 0 800 240"
-                className="w-full h-56 sm:h-64 overflow-visible cursor-crosshair select-none"
-                style={{ touchAction: 'none' }}
-                onPointerDown={(e) => {
-                  resolveCoordIndex(e.clientX, e.currentTarget, monthScale.incomeCoords, setActiveMonthIdx);
-                  setIsMonthHovered(true);
-                }}
-                onPointerMove={(e) => {
-                  resolveCoordIndex(e.clientX, e.currentTarget, monthScale.incomeCoords, setActiveMonthIdx);
-                  setIsMonthHovered(true);
-                }}
-                onPointerLeave={() => setIsMonthHovered(false)}
-                onTouchStart={(e) => {
-                  if (e.touches && e.touches[0]) {
-                    resolveCoordIndex(e.touches[0].clientX, e.currentTarget, monthScale.incomeCoords, setActiveMonthIdx);
+                {/* SVG Canvas with Unified Touch, Pointer & Mouse support */}
+                <svg
+                  viewBox="0 0 800 240"
+                  preserveAspectRatio="none"
+                  className="w-full h-56 sm:h-64 overflow-visible cursor-crosshair select-none block"
+                  style={{ touchAction: 'none' }}
+                  onPointerDown={(e) => {
+                    resolveCoordIndex(e.clientX, e.clientY, e.currentTarget, monthScale.incomeCoords, setActiveMonthIdx);
                     setIsMonthHovered(true);
-                  }
-                }}
-                onTouchMove={(e) => {
-                  if (e.touches && e.touches[0]) {
-                    resolveCoordIndex(e.touches[0].clientX, e.currentTarget, monthScale.incomeCoords, setActiveMonthIdx);
+                  }}
+                  onPointerMove={(e) => {
+                    resolveCoordIndex(e.clientX, e.clientY, e.currentTarget, monthScale.incomeCoords, setActiveMonthIdx);
                     setIsMonthHovered(true);
-                  }
-                }}
-                onTouchEnd={() => setIsMonthHovered(false)}
-                onMouseMove={(e) => {
-                  resolveCoordIndex(e.clientX, e.currentTarget, monthScale.incomeCoords, setActiveMonthIdx);
-                  setIsMonthHovered(true);
-                }}
-                onMouseEnter={() => setIsMonthHovered(true)}
-              >
-                <defs>
-                  <linearGradient id="month-income-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
-                  </linearGradient>
-                  <linearGradient id="month-expense-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.22" />
-                    <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.0" />
-                  </linearGradient>
-                  <linearGradient id="month-invest-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
-                  </linearGradient>
-                  <linearGradient id="month-account-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.20" />
-                    <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.0" />
-                  </linearGradient>
-                </defs>
+                  }}
+                  onPointerLeave={() => setIsMonthHovered(false)}
+                >
+                  <defs>
+                    <linearGradient id="month-income-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                    </linearGradient>
+                    <linearGradient id="month-expense-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.22" />
+                      <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.0" />
+                    </linearGradient>
+                    <linearGradient id="month-invest-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
+                    </linearGradient>
+                    <linearGradient id="month-account-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.20" />
+                      <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
 
-                {/* Y-Axis Gridlines */}
-                {monthScale.ticks.map((tick, i) => (
-                  <g key={i}>
-                    <line
-                      x1="24"
-                      y1={tick.y}
-                      x2="776"
-                      y2={tick.y}
-                      stroke="currentColor"
-                      className="text-slate-200 dark:text-slate-800/80"
-                      strokeDasharray="4 4"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x="26"
-                      y={tick.y - 4}
-                      fill="currentColor"
-                      className="text-[10px] font-mono text-slate-400 dark:text-slate-600 fill-current"
-                    >
-                      {formatCompactIdr(tick.val)}
-                    </text>
-                  </g>
-                ))}
-
-                {chartType === 'line' ? (
-                  <>
-                    {/* AREA FILLS */}
-                    {(viewMetric === 'all' || viewMetric === 'account') && (
-                      <path
-                        d={generateAreaPath(monthScale.accountCoords, monthScale.bottomY)}
-                        fill="url(#month-account-grad)"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'income') && (
-                      <path
-                        d={generateAreaPath(monthScale.incomeCoords, monthScale.bottomY)}
-                        fill="url(#month-income-grad)"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'expense') && (
-                      <path
-                        d={generateAreaPath(monthScale.expenseCoords, monthScale.bottomY)}
-                        fill="url(#month-expense-grad)"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'investment') && (
-                      <path
-                        d={generateAreaPath(monthScale.investCoords, monthScale.bottomY)}
-                        fill="url(#month-invest-grad)"
-                      />
-                    )}
-
-                    {/* LINE PATHS */}
-                    {(viewMetric === 'all' || viewMetric === 'account') && (
-                      <path
-                        d={generateBezierPath(monthScale.accountCoords)}
-                        fill="none"
-                        stroke="#0ea5e9"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'income') && (
-                      <path
-                        d={generateBezierPath(monthScale.incomeCoords)}
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'expense') && (
-                      <path
-                        d={generateBezierPath(monthScale.expenseCoords)}
-                        fill="none"
-                        stroke="#f43f5e"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'investment') && (
-                      <path
-                        d={generateBezierPath(monthScale.investCoords)}
-                        fill="none"
-                        stroke="#6366f1"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    )}
-
-                    {/* Active vertical crosshair guide line */}
-                    {monthScale.incomeCoords[safeMonthIdx] && (
+                  {/* Y-Axis Gridlines */}
+                  {monthScale.ticks.map((tick, i) => (
+                    <g key={i}>
                       <line
-                        x1={monthScale.incomeCoords[safeMonthIdx].x}
-                        y1="25"
-                        x2={monthScale.incomeCoords[safeMonthIdx].x}
-                        y2={monthScale.bottomY}
-                        stroke="#94a3b8"
-                        strokeWidth="1.5"
-                        strokeDasharray="3 3"
-                        className="transition-all duration-75"
+                        x1="24"
+                        y1={tick.y}
+                        x2="776"
+                        y2={tick.y}
+                        stroke="currentColor"
+                        className="text-slate-200 dark:text-slate-800/80"
+                        strokeDasharray="4 4"
+                        strokeWidth="1"
                       />
-                    )}
+                      <text
+                        x="26"
+                        y={tick.y - 4}
+                        fill="currentColor"
+                        className="text-[10px] font-mono text-slate-400 dark:text-slate-600 fill-current"
+                      >
+                        {formatCompactIdr(tick.val)}
+                      </text>
+                    </g>
+                  ))}
 
-                    {/* DATA POINTS & INTERACTION */}
-                    {monthlyData.map((pt, idx) => {
-                      const incPt = monthScale.incomeCoords[idx];
-                      const expPt = monthScale.expenseCoords[idx];
-                      const invPt = monthScale.investCoords[idx];
-                      const accPt = monthScale.accountCoords[idx];
-                      const isActive = safeMonthIdx === idx;
+                  {chartType === 'line' ? (
+                    <>
+                      {/* AREA FILLS */}
+                      {(viewMetric === 'all' || viewMetric === 'account') && (
+                        <path
+                          d={generateAreaPath(monthScale.accountCoords, monthScale.bottomY)}
+                          fill="url(#month-account-grad)"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'income') && (
+                        <path
+                          d={generateAreaPath(monthScale.incomeCoords, monthScale.bottomY)}
+                          fill="url(#month-income-grad)"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'expense') && (
+                        <path
+                          d={generateAreaPath(monthScale.expenseCoords, monthScale.bottomY)}
+                          fill="url(#month-expense-grad)"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'investment') && (
+                        <path
+                          d={generateAreaPath(monthScale.investCoords, monthScale.bottomY)}
+                          fill="url(#month-invest-grad)"
+                        />
+                      )}
 
-                      return (
-                        <g key={idx}>
-                          {/* Account Marker */}
-                          {(viewMetric === 'all' || viewMetric === 'account') && pt.accountBalance > 0 && (
-                            <circle
-                              cx={accPt.x}
-                              cy={accPt.y}
-                              r={isActive ? 6.5 : 3.5}
-                              className="fill-sky-500 stroke-white dark:stroke-slate-900 transition-all cursor-pointer"
-                              strokeWidth="2"
+                      {/* LINE PATHS */}
+                      {(viewMetric === 'all' || viewMetric === 'account') && (
+                        <path
+                          d={generateBezierPath(monthScale.accountCoords)}
+                          fill="none"
+                          stroke="#0ea5e9"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'income') && (
+                        <path
+                          d={generateBezierPath(monthScale.incomeCoords)}
+                          fill="none"
+                          stroke="#10b981"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'expense') && (
+                        <path
+                          d={generateBezierPath(monthScale.expenseCoords)}
+                          fill="none"
+                          stroke="#f43f5e"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'investment') && (
+                        <path
+                          d={generateBezierPath(monthScale.investCoords)}
+                          fill="none"
+                          stroke="#6366f1"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      )}
+
+                      {/* Active vertical crosshair guide line */}
+                      {monthScale.incomeCoords[safeMonthIdx] && (
+                        <line
+                          x1={monthScale.incomeCoords[safeMonthIdx].x}
+                          y1="25"
+                          x2={monthScale.incomeCoords[safeMonthIdx].x}
+                          y2={monthScale.bottomY}
+                          stroke="#94a3b8"
+                          strokeWidth="1.5"
+                          strokeDasharray="3 3"
+                          className="transition-all duration-75 pointer-events-none"
+                        />
+                      )}
+
+                      {/* DATA POINTS & EXACT COLUMN INTERACTION */}
+                      {monthlyData.map((pt, idx) => {
+                        const incPt = monthScale.incomeCoords[idx];
+                        const expPt = monthScale.expenseCoords[idx];
+                        const invPt = monthScale.investCoords[idx];
+                        const accPt = monthScale.accountCoords[idx];
+                        const isActive = safeMonthIdx === idx;
+
+                        const rectX = idx === 0 ? 0 : incPt.x - monthScale.stepX / 2;
+                        const rectW =
+                          idx === 0
+                            ? incPt.x + monthScale.stepX / 2
+                            : idx === monthlyData.length - 1
+                            ? 800 - (incPt.x - monthScale.stepX / 2)
+                            : monthScale.stepX;
+
+                        return (
+                          <g key={idx}>
+                            {/* Account Marker */}
+                            {(viewMetric === 'all' || viewMetric === 'account') && pt.accountBalance > 0 && (
+                              <circle
+                                cx={accPt.x}
+                                cy={accPt.y}
+                                r={isActive ? 6.5 : 3.5}
+                                className="fill-sky-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
+                                strokeWidth="2"
+                              />
+                            )}
+
+                            {/* Income Marker */}
+                            {(viewMetric === 'all' || viewMetric === 'income') && pt.income > 0 && (
+                              <circle
+                                cx={incPt.x}
+                                cy={incPt.y}
+                                r={isActive ? 6.5 : 3.5}
+                                className="fill-emerald-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
+                                strokeWidth="2"
+                              />
+                            )}
+
+                            {/* Expense Marker */}
+                            {(viewMetric === 'all' || viewMetric === 'expense') && pt.expense > 0 && (
+                              <circle
+                                cx={expPt.x}
+                                cy={expPt.y}
+                                r={isActive ? 6.5 : 3.5}
+                                className="fill-rose-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
+                                strokeWidth="2"
+                              />
+                            )}
+
+                            {/* Invest Marker */}
+                            {(viewMetric === 'all' || viewMetric === 'investment') && pt.investment > 0 && (
+                              <circle
+                                cx={invPt.x}
+                                cy={invPt.y}
+                                r={isActive ? 6.5 : 3.5}
+                                className="fill-indigo-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
+                                strokeWidth="2"
+                              />
+                            )}
+
+                            {/* Exact Touch/Click/Hover capture rect with stopPropagation */}
+                            <rect
+                              x={rectX}
+                              y="0"
+                              width={rectW}
+                              height="240"
+                              fill="transparent"
+                              className="cursor-pointer"
+                              onPointerEnter={() => {
+                                setActiveMonthIdx(idx);
+                                setIsMonthHovered(true);
+                              }}
+                              onPointerMove={(e) => {
+                                e.stopPropagation();
+                                setActiveMonthIdx(idx);
+                                setIsMonthHovered(true);
+                              }}
+                              onClick={() => {
+                                setActiveMonthIdx(idx);
+                                setIsMonthHovered(true);
+                              }}
+                              onTouchStart={() => {
+                                setActiveMonthIdx(idx);
+                                setIsMonthHovered(true);
+                              }}
                             />
-                          )}
 
-                          {/* Income Marker */}
-                          {(viewMetric === 'all' || viewMetric === 'income') && pt.income > 0 && (
-                            <circle
-                              cx={incPt.x}
-                              cy={incPt.y}
-                              r={isActive ? 6.5 : 3.5}
-                              className="fill-emerald-500 stroke-white dark:stroke-slate-900 transition-all cursor-pointer"
-                              strokeWidth="2"
-                            />
-                          )}
+                            {/* Month label */}
+                            <text
+                              x={incPt.x}
+                              y="230"
+                              textAnchor="middle"
+                              className={`text-[10px] font-mono fill-current pointer-events-none ${
+                                isActive
+                                  ? 'text-slate-900 dark:text-white font-bold'
+                                  : 'text-slate-400 dark:text-slate-500'
+                              }`}
+                            >
+                              {pt.monthName}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    // Bar view fallback
+                    <g>
+                      {monthlyData.map((pt, idx) => {
+                        const incPt = monthScale.incomeCoords[idx];
+                        const expPt = monthScale.expenseCoords[idx];
+                        const invPt = monthScale.investCoords[idx];
+                        const accPt = monthScale.accountCoords[idx];
+                        const isActive = safeMonthIdx === idx;
+                        const incH = Math.max(0, monthScale.bottomY - incPt.y);
+                        const expH = Math.max(0, monthScale.bottomY - expPt.y);
+                        const invH = Math.max(0, monthScale.bottomY - invPt.y);
+                        const accH = Math.max(0, monthScale.bottomY - accPt.y);
+                        const barW = Math.min(13, Math.max(4, monthScale.stepX / 5.2));
 
-                          {/* Expense Marker */}
-                          {(viewMetric === 'all' || viewMetric === 'expense') && pt.expense > 0 && (
-                            <circle
-                              cx={expPt.x}
-                              cy={expPt.y}
-                              r={isActive ? 6.5 : 3.5}
-                              className="fill-rose-500 stroke-white dark:stroke-slate-900 transition-all cursor-pointer"
-                              strokeWidth="2"
-                            />
-                          )}
+                        const rectX = idx === 0 ? 0 : incPt.x - monthScale.stepX / 2;
+                        const rectW =
+                          idx === 0
+                            ? incPt.x + monthScale.stepX / 2
+                            : idx === monthlyData.length - 1
+                            ? 800 - (incPt.x - monthScale.stepX / 2)
+                            : monthScale.stepX;
 
-                          {/* Invest Marker */}
-                          {(viewMetric === 'all' || viewMetric === 'investment') && pt.investment > 0 && (
-                            <circle
-                              cx={invPt.x}
-                              cy={invPt.y}
-                              r={isActive ? 6.5 : 3.5}
-                              className="fill-indigo-500 stroke-white dark:stroke-slate-900 transition-all cursor-pointer"
-                              strokeWidth="2"
-                            />
-                          )}
-
-                          {/* Touch/Click capture rect */}
-                          <rect
-                            x={incPt.x - monthScale.stepX / 2}
-                            y="0"
-                            width={monthScale.stepX}
-                            height="240"
-                            fill="transparent"
-                            className="cursor-pointer"
+                        return (
+                          <g
+                            key={idx}
+                            onPointerEnter={() => setActiveMonthIdx(idx)}
+                            onPointerMove={(e) => {
+                              e.stopPropagation();
+                              setActiveMonthIdx(idx);
+                            }}
                             onClick={() => setActiveMonthIdx(idx)}
                             onTouchStart={() => setActiveMonthIdx(idx)}
-                            onMouseEnter={() => setActiveMonthIdx(idx)}
-                          />
-
-                          {/* Month label */}
-                          <text
-                            x={incPt.x}
-                            y="230"
-                            textAnchor="middle"
-                            className={`text-[10px] font-mono fill-current ${
-                              isActive
-                                ? 'text-slate-900 dark:text-white font-bold'
-                                : 'text-slate-400 dark:text-slate-500'
-                            }`}
+                            className="cursor-pointer"
                           >
-                            {pt.monthName}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </>
-                ) : (
-                  // Bar view fallback
-                  <g>
-                    {monthlyData.map((pt, idx) => {
-                      const incPt = monthScale.incomeCoords[idx];
-                      const expPt = monthScale.expenseCoords[idx];
-                      const invPt = monthScale.investCoords[idx];
-                      const accPt = monthScale.accountCoords[idx];
-                      const isActive = safeMonthIdx === idx;
-                      const incH = Math.max(0, monthScale.bottomY - incPt.y);
-                      const expH = Math.max(0, monthScale.bottomY - expPt.y);
-                      const invH = Math.max(0, monthScale.bottomY - invPt.y);
-                      const accH = Math.max(0, monthScale.bottomY - accPt.y);
-                      const barW = Math.min(13, Math.max(4, monthScale.stepX / 5.2));
-
-                      return (
-                        <g
-                          key={idx}
-                          onClick={() => setActiveMonthIdx(idx)}
-                          onTouchStart={() => setActiveMonthIdx(idx)}
-                          onMouseEnter={() => setActiveMonthIdx(idx)}
-                          className="cursor-pointer"
-                        >
-                          {(viewMetric === 'all' || viewMetric === 'income') && (
                             <rect
-                              x={incPt.x - barW * 2}
-                              y={incPt.y}
-                              width={barW}
-                              height={incH}
-                              rx="2.5"
-                              fill="#10b981"
-                              opacity={isActive ? 1 : 0.85}
+                              x={rectX}
+                              y="0"
+                              width={rectW}
+                              height="240"
+                              fill="transparent"
+                              className="cursor-pointer"
                             />
-                          )}
-                          {(viewMetric === 'all' || viewMetric === 'expense') && (
-                            <rect
-                              x={incPt.x - barW * 0.7}
-                              y={expPt.y}
-                              width={barW}
-                              height={expH}
-                              rx="2.5"
-                              fill="#f43f5e"
-                              opacity={isActive ? 1 : 0.85}
-                            />
-                          )}
-                          {(viewMetric === 'all' || viewMetric === 'investment') && (
-                            <rect
-                              x={incPt.x + barW * 0.6}
-                              y={invPt.y}
-                              width={barW}
-                              height={invH}
-                              rx="2.5"
-                              fill="#6366f1"
-                              opacity={isActive ? 1 : 0.85}
-                            />
-                          )}
-                          {(viewMetric === 'all' || viewMetric === 'account') && (
-                            <rect
-                              x={incPt.x + barW * 1.9}
-                              y={accPt.y}
-                              width={barW}
-                              height={accH}
-                              rx="2.5"
-                              fill="#0ea5e9"
-                              opacity={isActive ? 1 : 0.85}
-                            />
-                          )}
-                          <text
-                            x={incPt.x}
-                            y="230"
-                            textAnchor="middle"
-                            className={`text-[10px] font-mono fill-current ${
-                              isActive
-                                ? 'text-slate-900 dark:text-white font-bold'
-                                : 'text-slate-400 dark:text-slate-500'
-                            }`}
-                          >
-                            {pt.monthName}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </g>
-                )}
-              </svg>
+                            {(viewMetric === 'all' || viewMetric === 'income') && (
+                              <rect
+                                x={incPt.x - barW * 2}
+                                y={incPt.y}
+                                width={barW}
+                                height={incH}
+                                rx="2.5"
+                                fill="#10b981"
+                                opacity={isActive ? 1 : 0.85}
+                                className="pointer-events-none"
+                              />
+                            )}
+                            {(viewMetric === 'all' || viewMetric === 'expense') && (
+                              <rect
+                                x={incPt.x - barW * 0.7}
+                                y={expPt.y}
+                                width={barW}
+                                height={expH}
+                                rx="2.5"
+                                fill="#f43f5e"
+                                opacity={isActive ? 1 : 0.85}
+                                className="pointer-events-none"
+                              />
+                            )}
+                            {(viewMetric === 'all' || viewMetric === 'investment') && (
+                              <rect
+                                x={incPt.x + barW * 0.6}
+                                y={invPt.y}
+                                width={barW}
+                                height={invH}
+                                rx="2.5"
+                                fill="#6366f1"
+                                opacity={isActive ? 1 : 0.85}
+                                className="pointer-events-none"
+                              />
+                            )}
+                            {(viewMetric === 'all' || viewMetric === 'account') && (
+                              <rect
+                                x={incPt.x + barW * 1.9}
+                                y={accPt.y}
+                                width={barW}
+                                height={accH}
+                                rx="2.5"
+                                fill="#0ea5e9"
+                                opacity={isActive ? 1 : 0.85}
+                                className="pointer-events-none"
+                              />
+                            )}
+                            <text
+                              x={incPt.x}
+                              y="230"
+                              textAnchor="middle"
+                              className={`text-[10px] font-mono fill-current pointer-events-none ${
+                                isActive
+                                  ? 'text-slate-900 dark:text-white font-bold'
+                                  : 'text-slate-400 dark:text-slate-500'
+                              }`}
+                            >
+                              {pt.monthName}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </g>
+                  )}
+                </svg>
+              </div>
             </div>
 
             {/* Quick Month Selector Buttons (1-Tap Selection on Mobile) */}
@@ -1494,378 +1545,423 @@ export const IncomeInvestmentTracker: React.FC = () => {
 
             {/* SVG GRAPH CONTAINER WITH MOBILE-VISIBLE POPUP */}
             <div className="relative w-full rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 p-2 sm:p-5 select-none">
-              {/* INTERACTIVE FLOATING POPUP */}
-              <div
-                className="absolute top-2 z-30 transition-all duration-100 pointer-events-none select-none"
-                style={getSafePopupPosition((yearScale.incomeCoords[safeYearIdx].x / 800) * 100)}
-              >
-                <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/95 text-white border border-slate-700/80 shadow-2xl space-y-1 text-xs font-mono min-w-[200px] sm:min-w-[220px] max-w-[calc(100vw-3rem)] backdrop-blur-md">
-                  <div className="flex items-center justify-between font-bold border-b border-slate-800 pb-1 font-sans">
-                    <span className="text-xs text-white flex items-center gap-1">
-                      <Layers className="w-3.5 h-3.5 text-indigo-400" />
-                      <span>Full Year {activeYearPoint.year}</span>
-                    </span>
-                    {activeYearPoint.income > 0 && (
-                      <span className="text-[10px] text-indigo-400 font-mono font-bold">
-                        {((activeYearPoint.investment / activeYearPoint.income) * 100).toFixed(0)}% Inv.
+              <div className="relative w-full overflow-visible">
+                {/* INTERACTIVE FLOATING POPUP */}
+                <div
+                  className="absolute top-2 z-30 transition-all duration-100 pointer-events-none select-none"
+                  style={getSafePopupPosition((yearScale.incomeCoords[safeYearIdx].x / 800) * 100)}
+                >
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/95 text-white border border-slate-700/80 shadow-2xl space-y-1 text-xs font-mono min-w-[200px] sm:min-w-[220px] max-w-[calc(100vw-3rem)] backdrop-blur-md">
+                    <div className="flex items-center justify-between font-bold border-b border-slate-800 pb-1 font-sans">
+                      <span className="text-xs text-white flex items-center gap-1">
+                        <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Full Year {activeYearPoint.year}</span>
                       </span>
-                    )}
-                  </div>
-                  <div className="space-y-0.5 text-[11px]">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-emerald-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                        Income:
-                      </span>
-                      <strong className="text-emerald-300 font-bold">{formatMasked(activeYearPoint.income, 'IDR', isPrivacyMode)}</strong>
+                      {activeYearPoint.income > 0 && (
+                        <span className="text-[10px] text-indigo-400 font-mono font-bold">
+                          {((activeYearPoint.investment / activeYearPoint.income) * 100).toFixed(0)}% Inv.
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-rose-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
-                        Expenses:
-                      </span>
-                      <strong className="text-rose-300 font-bold">{formatMasked(activeYearPoint.expense, 'IDR', isPrivacyMode)}</strong>
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-indigo-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                        Invested:
-                      </span>
-                      <strong className="text-indigo-300 font-bold">{formatMasked(activeYearPoint.investment, 'IDR', isPrivacyMode)}</strong>
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sky-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
-                        Account:
-                      </span>
-                      <strong className="text-sky-300 font-bold">{formatMasked(activeYearPoint.accountBalance, 'IDR', isPrivacyMode)}</strong>
+                    <div className="space-y-0.5 text-[11px]">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-emerald-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                          Income:
+                        </span>
+                        <strong className="text-emerald-300 font-bold">{formatMasked(activeYearPoint.income, 'IDR', isPrivacyMode)}</strong>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-rose-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
+                          Expenses:
+                        </span>
+                        <strong className="text-rose-300 font-bold">{formatMasked(activeYearPoint.expense, 'IDR', isPrivacyMode)}</strong>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-indigo-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
+                          Invested:
+                        </span>
+                        <strong className="text-indigo-300 font-bold">{formatMasked(activeYearPoint.investment, 'IDR', isPrivacyMode)}</strong>
+                      </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-sky-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+                          Account:
+                        </span>
+                        <strong className="text-sky-300 font-bold">{formatMasked(activeYearPoint.accountBalance, 'IDR', isPrivacyMode)}</strong>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* SVG Canvas with Unified Touch, Pointer & Mouse support */}
-              <svg
-                viewBox="0 0 800 240"
-                className="w-full h-56 sm:h-64 overflow-visible cursor-crosshair select-none"
-                style={{ touchAction: 'none' }}
-                onPointerDown={(e) => {
-                  resolveCoordIndex(e.clientX, e.currentTarget, yearScale.incomeCoords, setActiveYearIdx);
-                  setIsYearHovered(true);
-                }}
-                onPointerMove={(e) => {
-                  resolveCoordIndex(e.clientX, e.currentTarget, yearScale.incomeCoords, setActiveYearIdx);
-                  setIsYearHovered(true);
-                }}
-                onPointerLeave={() => setIsYearHovered(false)}
-                onTouchStart={(e) => {
-                  if (e.touches && e.touches[0]) {
-                    resolveCoordIndex(e.touches[0].clientX, e.currentTarget, yearScale.incomeCoords, setActiveYearIdx);
+                {/* SVG Canvas with Unified Touch, Pointer & Mouse support */}
+                <svg
+                  viewBox="0 0 800 240"
+                  preserveAspectRatio="none"
+                  className="w-full h-56 sm:h-64 overflow-visible cursor-crosshair select-none block"
+                  style={{ touchAction: 'none' }}
+                  onPointerDown={(e) => {
+                    resolveCoordIndex(e.clientX, e.clientY, e.currentTarget, yearScale.incomeCoords, setActiveYearIdx);
                     setIsYearHovered(true);
-                  }
-                }}
-                onTouchMove={(e) => {
-                  if (e.touches && e.touches[0]) {
-                    resolveCoordIndex(e.touches[0].clientX, e.currentTarget, yearScale.incomeCoords, setActiveYearIdx);
+                  }}
+                  onPointerMove={(e) => {
+                    resolveCoordIndex(e.clientX, e.clientY, e.currentTarget, yearScale.incomeCoords, setActiveYearIdx);
                     setIsYearHovered(true);
-                  }
-                }}
-                onTouchEnd={() => setIsYearHovered(false)}
-                onMouseMove={(e) => {
-                  resolveCoordIndex(e.clientX, e.currentTarget, yearScale.incomeCoords, setActiveYearIdx);
-                  setIsYearHovered(true);
-                }}
-                onMouseEnter={() => setIsYearHovered(true)}
-              >
-                <defs>
-                  <linearGradient id="year-income-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
-                  </linearGradient>
-                  <linearGradient id="year-expense-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.22" />
-                    <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.0" />
-                  </linearGradient>
-                  <linearGradient id="year-invest-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
-                  </linearGradient>
-                  <linearGradient id="year-account-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.20" />
-                    <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.0" />
-                  </linearGradient>
-                </defs>
+                  }}
+                  onPointerLeave={() => setIsYearHovered(false)}
+                >
+                  <defs>
+                    <linearGradient id="year-income-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                    </linearGradient>
+                    <linearGradient id="year-expense-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.22" />
+                      <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.0" />
+                    </linearGradient>
+                    <linearGradient id="year-invest-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
+                    </linearGradient>
+                    <linearGradient id="year-account-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.20" />
+                      <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
 
-                {/* Y-Axis Gridlines */}
-                {yearScale.ticks.map((tick, i) => (
-                  <g key={i}>
-                    <line
-                      x1="24"
-                      y1={tick.y}
-                      x2="776"
-                      y2={tick.y}
-                      stroke="currentColor"
-                      className="text-slate-200 dark:text-slate-800/80"
-                      strokeDasharray="4 4"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x="26"
-                      y={tick.y - 4}
-                      fill="currentColor"
-                      className="text-[10px] font-mono text-slate-400 dark:text-slate-600 fill-current"
-                    >
-                      {formatCompactIdr(tick.val)}
-                    </text>
-                  </g>
-                ))}
-
-                {chartType === 'line' ? (
-                  <>
-                    {/* AREA FILLS */}
-                    {(viewMetric === 'all' || viewMetric === 'account') && (
-                      <path
-                        d={generateAreaPath(yearScale.accountCoords, yearScale.bottomY)}
-                        fill="url(#year-account-grad)"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'income') && (
-                      <path
-                        d={generateAreaPath(yearScale.incomeCoords, yearScale.bottomY)}
-                        fill="url(#year-income-grad)"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'expense') && (
-                      <path
-                        d={generateAreaPath(yearScale.expenseCoords, yearScale.bottomY)}
-                        fill="url(#year-expense-grad)"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'investment') && (
-                      <path
-                        d={generateAreaPath(yearScale.investCoords, yearScale.bottomY)}
-                        fill="url(#year-invest-grad)"
-                      />
-                    )}
-
-                    {/* LINE PATHS */}
-                    {(viewMetric === 'all' || viewMetric === 'account') && (
-                      <path
-                        d={generateBezierPath(yearScale.accountCoords)}
-                        fill="none"
-                        stroke="#0ea5e9"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'income') && (
-                      <path
-                        d={generateBezierPath(yearScale.incomeCoords)}
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'expense') && (
-                      <path
-                        d={generateBezierPath(yearScale.expenseCoords)}
-                        fill="none"
-                        stroke="#f43f5e"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    )}
-                    {(viewMetric === 'all' || viewMetric === 'investment') && (
-                      <path
-                        d={generateBezierPath(yearScale.investCoords)}
-                        fill="none"
-                        stroke="#6366f1"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    )}
-
-                    {/* Active vertical crosshair guide line */}
-                    {yearScale.incomeCoords[safeYearIdx] && (
+                  {/* Y-Axis Gridlines */}
+                  {yearScale.ticks.map((tick, i) => (
+                    <g key={i}>
                       <line
-                        x1={yearScale.incomeCoords[safeYearIdx].x}
-                        y1="25"
-                        x2={yearScale.incomeCoords[safeYearIdx].x}
-                        y2={yearScale.bottomY}
-                        stroke="#94a3b8"
-                        strokeWidth="1.5"
-                        strokeDasharray="3 3"
-                        className="transition-all duration-75"
+                        x1="24"
+                        y1={tick.y}
+                        x2="776"
+                        y2={tick.y}
+                        stroke="currentColor"
+                        className="text-slate-200 dark:text-slate-800/80"
+                        strokeDasharray="4 4"
+                        strokeWidth="1"
                       />
-                    )}
+                      <text
+                        x="26"
+                        y={tick.y - 4}
+                        fill="currentColor"
+                        className="text-[10px] font-mono text-slate-400 dark:text-slate-600 fill-current"
+                      >
+                        {formatCompactIdr(tick.val)}
+                      </text>
+                    </g>
+                  ))}
 
-                    {/* DATA POINTS & INTERACTION */}
-                    {yearlyData.map((pt, idx) => {
-                      const incPt = yearScale.incomeCoords[idx];
-                      const expPt = yearScale.expenseCoords[idx];
-                      const invPt = yearScale.investCoords[idx];
-                      const accPt = yearScale.accountCoords[idx];
-                      const isActive = safeYearIdx === idx;
+                  {chartType === 'line' ? (
+                    <>
+                      {/* AREA FILLS */}
+                      {(viewMetric === 'all' || viewMetric === 'account') && (
+                        <path
+                          d={generateAreaPath(yearScale.accountCoords, yearScale.bottomY)}
+                          fill="url(#year-account-grad)"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'income') && (
+                        <path
+                          d={generateAreaPath(yearScale.incomeCoords, yearScale.bottomY)}
+                          fill="url(#year-income-grad)"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'expense') && (
+                        <path
+                          d={generateAreaPath(yearScale.expenseCoords, yearScale.bottomY)}
+                          fill="url(#year-expense-grad)"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'investment') && (
+                        <path
+                          d={generateAreaPath(yearScale.investCoords, yearScale.bottomY)}
+                          fill="url(#year-invest-grad)"
+                        />
+                      )}
 
-                      return (
-                        <g key={idx}>
-                          {(viewMetric === 'all' || viewMetric === 'account') && pt.accountBalance > 0 && (
-                            <circle
-                              cx={accPt.x}
-                              cy={accPt.y}
-                              r={isActive ? 7 : 4}
-                              className="fill-sky-500 stroke-white dark:stroke-slate-900 transition-all cursor-pointer"
-                              strokeWidth="2.5"
+                      {/* LINE PATHS */}
+                      {(viewMetric === 'all' || viewMetric === 'account') && (
+                        <path
+                          d={generateBezierPath(yearScale.accountCoords)}
+                          fill="none"
+                          stroke="#0ea5e9"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'income') && (
+                        <path
+                          d={generateBezierPath(yearScale.incomeCoords)}
+                          fill="none"
+                          stroke="#10b981"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'expense') && (
+                        <path
+                          d={generateBezierPath(yearScale.expenseCoords)}
+                          fill="none"
+                          stroke="#f43f5e"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      )}
+                      {(viewMetric === 'all' || viewMetric === 'investment') && (
+                        <path
+                          d={generateBezierPath(yearScale.investCoords)}
+                          fill="none"
+                          stroke="#6366f1"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      )}
+
+                      {/* Active vertical crosshair guide line */}
+                      {yearScale.incomeCoords[safeYearIdx] && (
+                        <line
+                          x1={yearScale.incomeCoords[safeYearIdx].x}
+                          y1="25"
+                          x2={yearScale.incomeCoords[safeYearIdx].x}
+                          y2={yearScale.bottomY}
+                          stroke="#94a3b8"
+                          strokeWidth="1.5"
+                          strokeDasharray="3 3"
+                          className="transition-all duration-75 pointer-events-none"
+                        />
+                      )}
+
+                      {/* DATA POINTS & EXACT COLUMN INTERACTION */}
+                      {yearlyData.map((pt, idx) => {
+                        const incPt = yearScale.incomeCoords[idx];
+                        const expPt = yearScale.expenseCoords[idx];
+                        const invPt = yearScale.investCoords[idx];
+                        const accPt = yearScale.accountCoords[idx];
+                        const isActive = safeYearIdx === idx;
+
+                        const rectX =
+                          yearlyData.length <= 1
+                            ? 0
+                            : idx === 0
+                            ? 0
+                            : incPt.x - yearScale.stepX / 2;
+                        const rectW =
+                          yearlyData.length <= 1
+                            ? 800
+                            : idx === 0
+                            ? incPt.x + yearScale.stepX / 2
+                            : idx === yearlyData.length - 1
+                            ? 800 - (incPt.x - yearScale.stepX / 2)
+                            : yearScale.stepX;
+
+                        return (
+                          <g key={idx}>
+                            {(viewMetric === 'all' || viewMetric === 'account') && pt.accountBalance > 0 && (
+                              <circle
+                                cx={accPt.x}
+                                cy={accPt.y}
+                                r={isActive ? 7 : 4}
+                                className="fill-sky-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
+                                strokeWidth="2.5"
+                              />
+                            )}
+
+                            {(viewMetric === 'all' || viewMetric === 'income') && (
+                              <circle
+                                cx={incPt.x}
+                                cy={incPt.y}
+                                r={isActive ? 7 : 4}
+                                className="fill-emerald-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
+                                strokeWidth="2.5"
+                              />
+                            )}
+
+                            {(viewMetric === 'all' || viewMetric === 'expense') && (
+                              <circle
+                                cx={expPt.x}
+                                cy={expPt.y}
+                                r={isActive ? 7 : 4}
+                                className="fill-rose-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
+                                strokeWidth="2.5"
+                              />
+                            )}
+
+                            {(viewMetric === 'all' || viewMetric === 'investment') && (
+                              <circle
+                                cx={invPt.x}
+                                cy={invPt.y}
+                                r={isActive ? 7 : 4}
+                                className="fill-indigo-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
+                                strokeWidth="2.5"
+                              />
+                            )}
+
+                            <rect
+                              x={rectX}
+                              y="0"
+                              width={rectW}
+                              height="240"
+                              fill="transparent"
+                              className="cursor-pointer"
+                              onPointerEnter={() => {
+                                setActiveYearIdx(idx);
+                                setIsYearHovered(true);
+                              }}
+                              onPointerMove={(e) => {
+                                e.stopPropagation();
+                                setActiveYearIdx(idx);
+                                setIsYearHovered(true);
+                              }}
+                              onClick={() => {
+                                setActiveYearIdx(idx);
+                                setIsYearHovered(true);
+                              }}
+                              onTouchStart={() => {
+                                setActiveYearIdx(idx);
+                                setIsYearHovered(true);
+                              }}
                             />
-                          )}
 
-                          {(viewMetric === 'all' || viewMetric === 'income') && (
-                            <circle
-                              cx={incPt.x}
-                              cy={incPt.y}
-                              r={isActive ? 7 : 4}
-                              className="fill-emerald-500 stroke-white dark:stroke-slate-900 transition-all cursor-pointer"
-                              strokeWidth="2.5"
-                            />
-                          )}
+                            <text
+                              x={incPt.x}
+                              y="230"
+                              textAnchor="middle"
+                              className={`text-[11px] font-mono fill-current pointer-events-none ${
+                                isActive
+                                  ? 'text-slate-900 dark:text-white font-bold'
+                                  : 'text-slate-400 dark:text-slate-500'
+                              }`}
+                            >
+                              Year {pt.year}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    <g>
+                      {yearlyData.map((pt, idx) => {
+                        const incPt = yearScale.incomeCoords[idx];
+                        const expPt = yearScale.expenseCoords[idx];
+                        const invPt = yearScale.investCoords[idx];
+                        const accPt = yearScale.accountCoords[idx];
+                        const isActive = safeYearIdx === idx;
+                        const incH = Math.max(0, yearScale.bottomY - incPt.y);
+                        const expH = Math.max(0, yearScale.bottomY - expPt.y);
+                        const invH = Math.max(0, yearScale.bottomY - invPt.y);
+                        const accH = Math.max(0, yearScale.bottomY - accPt.y);
+                        const barW = Math.min(20, Math.max(8, yearScale.stepX / 5.2));
 
-                          {(viewMetric === 'all' || viewMetric === 'expense') && (
-                            <circle
-                              cx={expPt.x}
-                              cy={expPt.y}
-                              r={isActive ? 7 : 4}
-                              className="fill-rose-500 stroke-white dark:stroke-slate-900 transition-all cursor-pointer"
-                              strokeWidth="2.5"
-                            />
-                          )}
+                        const rectX =
+                          yearlyData.length <= 1
+                            ? 0
+                            : idx === 0
+                            ? 0
+                            : incPt.x - yearScale.stepX / 2;
+                        const rectW =
+                          yearlyData.length <= 1
+                            ? 800
+                            : idx === 0
+                            ? incPt.x + yearScale.stepX / 2
+                            : idx === yearlyData.length - 1
+                            ? 800 - (incPt.x - yearScale.stepX / 2)
+                            : yearScale.stepX;
 
-                          {(viewMetric === 'all' || viewMetric === 'investment') && (
-                            <circle
-                              cx={invPt.x}
-                              cy={invPt.y}
-                              r={isActive ? 7 : 4}
-                              className="fill-indigo-500 stroke-white dark:stroke-slate-900 transition-all cursor-pointer"
-                              strokeWidth="2.5"
-                            />
-                          )}
-
-                          <rect
-                            x={incPt.x - yearScale.stepX / 2}
-                            y="0"
-                            width={yearScale.stepX}
-                            height="240"
-                            fill="transparent"
-                            className="cursor-pointer"
+                        return (
+                          <g
+                            key={idx}
+                            onPointerEnter={() => setActiveYearIdx(idx)}
+                            onPointerMove={(e) => {
+                              e.stopPropagation();
+                              setActiveYearIdx(idx);
+                            }}
                             onClick={() => setActiveYearIdx(idx)}
                             onTouchStart={() => setActiveYearIdx(idx)}
-                            onMouseEnter={() => setActiveYearIdx(idx)}
-                          />
-
-                          <text
-                            x={incPt.x}
-                            y="230"
-                            textAnchor="middle"
-                            className={`text-[11px] font-mono fill-current ${
-                              isActive
-                                ? 'text-slate-900 dark:text-white font-bold'
-                                : 'text-slate-400 dark:text-slate-500'
-                            }`}
+                            className="cursor-pointer"
                           >
-                            Year {pt.year}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </>
-                ) : (
-                  <g>
-                    {yearlyData.map((pt, idx) => {
-                      const incPt = yearScale.incomeCoords[idx];
-                      const expPt = yearScale.expenseCoords[idx];
-                      const invPt = yearScale.investCoords[idx];
-                      const accPt = yearScale.accountCoords[idx];
-                      const isActive = safeYearIdx === idx;
-                      const incH = Math.max(0, yearScale.bottomY - incPt.y);
-                      const expH = Math.max(0, yearScale.bottomY - expPt.y);
-                      const invH = Math.max(0, yearScale.bottomY - invPt.y);
-                      const accH = Math.max(0, yearScale.bottomY - accPt.y);
-                      const barW = Math.min(20, Math.max(8, yearScale.stepX / 5.2));
-
-                      return (
-                        <g
-                          key={idx}
-                          onClick={() => setActiveYearIdx(idx)}
-                          onTouchStart={() => setActiveYearIdx(idx)}
-                          onMouseEnter={() => setActiveYearIdx(idx)}
-                          className="cursor-pointer"
-                        >
-                          {(viewMetric === 'all' || viewMetric === 'income') && (
                             <rect
-                              x={incPt.x - barW * 2}
-                              y={incPt.y}
-                              width={barW}
-                              height={incH}
-                              rx="3.5"
-                              fill="#10b981"
-                              opacity={isActive ? 1 : 0.85}
+                              x={rectX}
+                              y="0"
+                              width={rectW}
+                              height="240"
+                              fill="transparent"
+                              className="cursor-pointer"
                             />
-                          )}
-                          {(viewMetric === 'all' || viewMetric === 'expense') && (
-                            <rect
-                              x={incPt.x - barW * 0.7}
-                              y={expPt.y}
-                              width={barW}
-                              height={expH}
-                              rx="3.5"
-                              fill="#f43f5e"
-                              opacity={isActive ? 1 : 0.85}
-                            />
-                          )}
-                          {(viewMetric === 'all' || viewMetric === 'investment') && (
-                            <rect
-                              x={incPt.x + barW * 0.6}
-                              y={invPt.y}
-                              width={barW}
-                              height={invH}
-                              rx="3.5"
-                              fill="#6366f1"
-                              opacity={isActive ? 1 : 0.85}
-                            />
-                          )}
-                          {(viewMetric === 'all' || viewMetric === 'account') && (
-                            <rect
-                              x={incPt.x + barW * 1.9}
-                              y={accPt.y}
-                              width={barW}
-                              height={accH}
-                              rx="3.5"
-                              fill="#0ea5e9"
-                              opacity={isActive ? 1 : 0.85}
-                            />
-                          )}
-                          <text
-                            x={incPt.x}
-                            y="230"
-                            textAnchor="middle"
-                            className={`text-[11px] font-mono fill-current ${
-                              isActive
-                                ? 'text-slate-900 dark:text-white font-bold'
-                                : 'text-slate-400 dark:text-slate-500'
-                            }`}
-                          >
-                            Year {pt.year}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </g>
-                )}
-              </svg>
+                            {(viewMetric === 'all' || viewMetric === 'income') && (
+                              <rect
+                                x={incPt.x - barW * 2}
+                                y={incPt.y}
+                                width={barW}
+                                height={incH}
+                                rx="3.5"
+                                fill="#10b981"
+                                opacity={isActive ? 1 : 0.85}
+                                className="pointer-events-none"
+                              />
+                            )}
+                            {(viewMetric === 'all' || viewMetric === 'expense') && (
+                              <rect
+                                x={incPt.x - barW * 0.7}
+                                y={expPt.y}
+                                width={barW}
+                                height={expH}
+                                rx="3.5"
+                                fill="#f43f5e"
+                                opacity={isActive ? 1 : 0.85}
+                                className="pointer-events-none"
+                              />
+                            )}
+                            {(viewMetric === 'all' || viewMetric === 'investment') && (
+                              <rect
+                                x={incPt.x + barW * 0.6}
+                                y={invPt.y}
+                                width={barW}
+                                height={invH}
+                                rx="3.5"
+                                fill="#6366f1"
+                                opacity={isActive ? 1 : 0.85}
+                                className="pointer-events-none"
+                              />
+                            )}
+                            {(viewMetric === 'all' || viewMetric === 'account') && (
+                              <rect
+                                x={incPt.x + barW * 1.9}
+                                y={accPt.y}
+                                width={barW}
+                                height={accH}
+                                rx="3.5"
+                                fill="#0ea5e9"
+                                opacity={isActive ? 1 : 0.85}
+                                className="pointer-events-none"
+                              />
+                            )}
+                            <text
+                              x={incPt.x}
+                              y="230"
+                              textAnchor="middle"
+                              className={`text-[11px] font-mono fill-current pointer-events-none ${
+                                isActive
+                                  ? 'text-slate-900 dark:text-white font-bold'
+                                  : 'text-slate-400 dark:text-slate-500'
+                              }`}
+                            >
+                              Year {pt.year}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </g>
+                  )}
+                </svg>
+              </div>
             </div>
 
             {/* Quick Year Selector Buttons (1-Tap Selection on Mobile) */}
