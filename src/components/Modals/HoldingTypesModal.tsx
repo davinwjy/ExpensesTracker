@@ -8,8 +8,11 @@ import {
   Check,
   ShieldCheck,
   TrendingUp,
+  Edit2,
+  RotateCcw,
 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
+import { HoldingType } from '../../types';
 
 const COLOR_OPTIONS: { id: string; label: string; class: string; border: string }[] = [
   { id: 'emerald', label: 'Emerald', class: 'bg-emerald-500/15 text-emerald-400', border: 'border-emerald-500/30' },
@@ -27,10 +30,12 @@ export const HoldingTypesModal: React.FC = () => {
     setIsHoldingTypesModalOpen,
     holdingTypes,
     addHoldingType,
+    updateHoldingType,
     deleteHoldingType,
     investments,
   } = useFinance();
 
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [label, setLabel] = useState('');
   const [defaultCurrency, setDefaultCurrency] = useState<'IDR' | 'USD'>('IDR');
   const [example, setExample] = useState('');
@@ -42,43 +47,71 @@ export const HoldingTypesModal: React.FC = () => {
 
   if (!isHoldingTypesModalOpen) return null;
 
-  const handleClose = () => {
+  const resetForm = () => {
+    setEditingId(null);
     setLabel('');
     setDefaultCurrency('IDR');
     setExample('');
     setBadgeColor('blue');
     setError('');
-    setSuccess('');
     setDeletingId(null);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    setSuccess('');
     setIsHoldingTypesModalOpen(false);
   };
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleStartEdit = (ht: HoldingType) => {
+    setEditingId(ht.id);
+    setLabel(ht.label);
+    setDefaultCurrency(ht.defaultCurrency);
+    setExample(ht.example || '');
+    setBadgeColor(ht.badgeColor || (ht.defaultCurrency === 'USD' ? 'purple' : 'blue'));
+    setError('');
+    setSuccess('');
+    setDeletingId(null);
+  };
+
+  const handleCancelEdit = () => {
+    resetForm();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
     const trimmedLabel = label.trim();
     if (!trimmedLabel) {
-      setError('Masukkan nama jenis holdings');
+      setError('Please enter a holding type name');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await addHoldingType({
-        label: trimmedLabel,
-        defaultCurrency,
-        example: example.trim() || undefined,
-        badgeColor,
-      });
-
-      setSuccess(`Jenis holdings "${trimmedLabel}" berhasil ditambahkan.`);
-      setLabel('');
-      setExample('');
-      setDefaultCurrency('IDR');
+      if (editingId) {
+        await updateHoldingType(editingId, {
+          label: trimmedLabel,
+          defaultCurrency,
+          example: example.trim() || undefined,
+          badgeColor,
+        });
+        setSuccess(`Holding type "${trimmedLabel}" updated successfully.`);
+        resetForm();
+      } else {
+        await addHoldingType({
+          label: trimmedLabel,
+          defaultCurrency,
+          example: example.trim() || undefined,
+          badgeColor,
+        });
+        setSuccess(`Holding type "${trimmedLabel}" created successfully.`);
+        resetForm();
+      }
     } catch (err: any) {
-      setError(err?.message || 'Gagal menambahkan jenis holdings');
+      setError(err?.message || 'Failed to save holding type');
     } finally {
       setIsSubmitting(false);
     }
@@ -89,10 +122,13 @@ export const HoldingTypesModal: React.FC = () => {
     setSuccess('');
     try {
       await deleteHoldingType(id);
-      setSuccess('Jenis holdings berhasil dihapus.');
+      setSuccess('Holding type deleted successfully.');
       setDeletingId(null);
+      if (editingId === id) {
+        resetForm();
+      }
     } catch (err: any) {
-      setError(err?.message || 'Gagal menghapus jenis holdings');
+      setError(err?.message || 'Failed to delete holding type');
     }
   };
 
@@ -119,10 +155,10 @@ export const HoldingTypesModal: React.FC = () => {
             </div>
             <div>
               <h3 className="font-bold text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
-                MASTER JENIS HOLDINGS / ASSET CLASSES
+                MASTER HOLDINGS / ASSET CLASSES
               </h3>
               <p className="text-[10px] text-zinc-500">
-                Kelola kategori instrumen investasi & mata uang dasar (IDR / USD)
+                Manage holding categories, native currency (IDR / USD) and platform display
               </p>
             </div>
           </div>
@@ -151,35 +187,46 @@ export const HoldingTypesModal: React.FC = () => {
             </div>
           )}
 
-          {/* Form Create New Holding Type */}
-          <form onSubmit={handleAdd} className="p-3.5 rounded bg-[#080a0f] border border-[#1d2332] space-y-3">
+          {/* Form: Add or Edit Holding Type */}
+          <form onSubmit={handleSubmit} className="p-3.5 rounded bg-[#080a0f] border border-[#1d2332] space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-[#1a1f2c]">
               <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Plus className="w-3 h-3" />
-                <span>TAMBAH JENIS HOLDINGS BARU</span>
+                {editingId ? <Edit2 className="w-3 h-3 text-amber-400" /> : <Plus className="w-3 h-3 text-indigo-400" />}
+                <span className={editingId ? 'text-amber-400' : 'text-indigo-400'}>
+                  {editingId ? `EDIT HOLDING TYPE: ${label || editingId}` : 'ADD NEW HOLDING TYPE'}
+                </span>
               </span>
-              <span className="text-[9px] text-zinc-500">MASTER DATA</span>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="text-[10px] text-zinc-400 hover:text-zinc-200 flex items-center gap-1 cursor-pointer"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  <span>Cancel Edit</span>
+                </button>
+              )}
             </div>
 
             {/* Name / Label */}
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                NAMA JENIS HOLDINGS <span className="text-rose-400">*</span>
+                HOLDING TYPE NAME <span className="text-rose-400">*</span>
               </label>
               <input
                 type="text"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
-                placeholder="e.g. Emas / Gold, Obligasi (SBN), P2P Lending, Properti..."
+                placeholder="e.g. Gold / Metals, SBN Bonds, P2P Lending, Real Estate..."
                 className="w-full bg-[#0d1017] border border-[#1d2332] focus:border-indigo-500 rounded px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono"
                 required
               />
             </div>
 
-            {/* Currency Choice */}
+            {/* Base Currency Choice */}
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                MATA UANG DASAR (CURRENCY) <span className="text-rose-400">*</span>
+                BASE DENOMINATION (CURRENCY) <span className="text-rose-400">*</span>
               </label>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
@@ -191,7 +238,7 @@ export const HoldingTypesModal: React.FC = () => {
                       : 'bg-[#0d1017] text-zinc-400 hover:text-zinc-200 border border-[#1a1f2c]'
                   }`}
                 >
-                  <span>Rp IDR (Rupiah)</span>
+                  <span>Rp IDR (Indonesian Rupiah)</span>
                 </button>
                 <button
                   type="button"
@@ -206,20 +253,20 @@ export const HoldingTypesModal: React.FC = () => {
                 </button>
               </div>
               <p className="text-[10px] text-zinc-500 mt-1">
-                Aset yang menggunakan jenis ini akan otomatis dinilai dalam {defaultCurrency}.
+                Positions in this holding class are natively recorded in {defaultCurrency}.
               </p>
             </div>
 
-            {/* Example / Notes */}
+            {/* Example / Ticker Notes */}
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                CONTOH INSTRUMEN / PLATFORM (OPSIONAL)
+                EXAMPLE ASSETS / PLATFORMS (OPTIONAL)
               </label>
               <input
                 type="text"
                 value={example}
                 onChange={(e) => setExample(e.target.value)}
-                placeholder="e.g. Antam, Pluang Gold, ORI, Sukuk, KoinWorks..."
+                placeholder="e.g. Antam, Pluang Gold, ORI024, Sucor, Gotrade..."
                 className="w-full bg-[#0d1017] border border-[#1d2332] focus:border-indigo-500 rounded px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono"
               />
             </div>
@@ -227,7 +274,7 @@ export const HoldingTypesModal: React.FC = () => {
             {/* Color Accent */}
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                WARNA BADGE
+                BADGE ACCENT COLOR
               </label>
               <div className="flex flex-wrap gap-1">
                 {COLOR_OPTIONS.map((c) => (
@@ -245,14 +292,33 @@ export const HoldingTypesModal: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-1 flex justify-end">
+            <div className="pt-1 flex items-center justify-end gap-2">
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-3 py-1.5 rounded text-xs font-semibold text-zinc-400 hover:text-zinc-200 bg-[#141923] border border-[#202737] transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+              )}
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center gap-1 px-3.5 py-1.5 rounded text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer transition-all disabled:opacity-50"
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded text-xs font-bold cursor-pointer transition-all disabled:opacity-50 ${
+                  editingId
+                    ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono'
+                    : 'bg-indigo-600 hover:bg-indigo-500 text-white font-mono'
+                }`}
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>{isSubmitting ? 'MENYIMPAN...' : '+ TAMBAHKAN JENIS HOLDINGS'}</span>
+                {editingId ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                <span>
+                  {isSubmitting
+                    ? 'SAVING...'
+                    : editingId
+                    ? 'SAVE CHANGES'
+                    : '+ CREATE HOLDING TYPE'}
+                </span>
               </button>
             </div>
           </form>
@@ -261,7 +327,7 @@ export const HoldingTypesModal: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                DAFTAR JENIS HOLDINGS TERSEDIA ({holdingTypes.length})
+                REGISTERED HOLDING TYPES ({holdingTypes.length})
               </span>
               <span className="text-[9px] text-zinc-500 font-mono">IDR & USD</span>
             </div>
@@ -270,11 +336,14 @@ export const HoldingTypesModal: React.FC = () => {
               {holdingTypes.map((ht) => {
                 const isUsd = ht.defaultCurrency === 'USD';
                 const taggedCount = investments.filter((i) => i.category === ht.id).length;
+                const isBeingEdited = editingId === ht.id;
 
                 return (
                   <div
                     key={ht.id}
-                    className="p-3 flex items-center justify-between gap-2 hover:bg-[#0d1017] transition-colors"
+                    className={`p-3 flex items-center justify-between gap-2 transition-colors ${
+                      isBeingEdited ? 'bg-[#151a26] border-l-2 border-l-amber-400' : 'hover:bg-[#0d1017]'
+                    }`}
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -304,42 +373,63 @@ export const HoldingTypesModal: React.FC = () => {
                       </p>
                     </div>
 
-                    {!ht.isSystem && (
-                      <div>
-                        {deletingId === ht.id ? (
-                          <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
+                      {/* Edit Button for all holdings */}
+                      <button
+                        type="button"
+                        onClick={() => handleStartEdit(ht)}
+                        title="Edit holding type"
+                        className={`p-1.5 rounded transition-colors cursor-pointer ${
+                          isBeingEdited
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            : 'text-zinc-400 hover:text-zinc-100 hover:bg-[#182030]'
+                        }`}
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Delete Button (Only for custom holdings) */}
+                      {!ht.isSystem && (
+                        <div>
+                          {deletingId === ht.id ? (
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(ht.id)}
+                                className="px-2 py-1 rounded bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-bold cursor-pointer"
+                              >
+                                DELETE?
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeletingId(null)}
+                                className="px-1.5 py-1 text-zinc-400 hover:text-white text-[10px] cursor-pointer"
+                              >
+                                CANCEL
+                              </button>
+                            </div>
+                          ) : (
                             <button
                               type="button"
-                              onClick={() => handleDelete(ht.id)}
-                              className="px-2 py-1 rounded bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-bold cursor-pointer"
+                              onClick={() => setDeletingId(ht.id)}
+                              title={
+                                taggedCount > 0
+                                  ? 'Cannot delete while active assets use this category'
+                                  : 'Delete holding type'
+                              }
+                              disabled={taggedCount > 0}
+                              className={`p-1.5 rounded transition-colors ${
+                                taggedCount > 0
+                                  ? 'text-zinc-700 cursor-not-allowed opacity-40'
+                                  : 'text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer'
+                              }`}
                             >
-                              HAPUS?
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeletingId(null)}
-                              className="px-1.5 py-1 text-zinc-400 hover:text-white text-[10px]"
-                            >
-                              BATAL
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setDeletingId(ht.id)}
-                            title="Hapus jenis holdings"
-                            disabled={taggedCount > 0}
-                            className={`p-1.5 rounded transition-colors ${
-                              taggedCount > 0
-                                ? 'text-zinc-700 cursor-not-allowed'
-                                : 'text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer'
-                            }`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    )}
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -354,7 +444,7 @@ export const HoldingTypesModal: React.FC = () => {
             onClick={handleClose}
             className="px-3.5 py-1.5 rounded text-xs font-semibold text-zinc-300 hover:text-white bg-[#131722] hover:bg-[#1a2030] border border-[#21293a] transition-colors cursor-pointer"
           >
-            TUTUP
+            CLOSE
           </button>
         </div>
       </div>

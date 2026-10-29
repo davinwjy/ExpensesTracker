@@ -113,7 +113,7 @@ export const InvestmentsView: React.FC = () => {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#131722] hover:bg-[#1a2030] text-zinc-300 font-mono text-xs border border-[#252c40] transition-all cursor-pointer"
           >
             <Layers className="w-3.5 h-3.5 text-indigo-400" />
-            <span>MASTER JENIS HOLDINGS</span>
+            <span>MASTER HOLDINGS</span>
           </button>
 
           <button
@@ -193,15 +193,6 @@ export const InvestmentsView: React.FC = () => {
             {tab.label}
           </button>
         ))}
-
-        <button
-          onClick={() => setIsHoldingTypesModalOpen(true)}
-          className="px-2.5 py-1.5 rounded text-xs font-mono whitespace-nowrap text-indigo-400 hover:text-indigo-300 hover:bg-[#151a26] border border-dashed border-indigo-500/30 flex items-center gap-1 cursor-pointer transition-colors shrink-0"
-          title="Kelola & Tambah Jenis Holdings"
-        >
-          <Plus className="w-3 h-3" />
-          <span>+ JENIS</span>
-        </button>
       </div>
 
       {/* SPLIT MASTER-DETAIL WORKSPACE */}

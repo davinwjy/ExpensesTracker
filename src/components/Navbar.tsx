@@ -265,22 +265,6 @@ export const Navbar: React.FC = () => {
                         <div className="text-[10px] text-slate-400 truncate">BCA, Mandiri, Dompet Tunai</div>
                       </div>
                     </button>
-
-                    <button
-                      onClick={() => {
-                        setIsNewMenuOpen(false);
-                        setIsHoldingTypesModalOpen(true);
-                      }}
-                      className="w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-left hover:bg-slate-800/80 active:bg-slate-800 transition-colors group cursor-pointer"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-indigo-500/25 transition-all">
-                        <Layers className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-semibold text-slate-100 group-hover:text-white">Master Jenis Holdings</div>
-                        <div className="text-[10px] text-slate-400 truncate">Kelola kategori aset & mata uang</div>
-                      </div>
-                    </button>
                   </div>
                 </div>
               )}

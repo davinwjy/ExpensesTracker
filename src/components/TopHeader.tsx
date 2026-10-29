@@ -304,22 +304,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                       <div className="text-[10px] text-zinc-500 truncate">BCA, Mandiri, Cash</div>
                     </div>
                   </button>
-
-                  <button
-                    onClick={() => {
-                      setIsNewMenuOpen(false);
-                      setIsHoldingTypesModalOpen(true);
-                    }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-left hover:bg-[#161c29] transition-colors group cursor-pointer"
-                  >
-                    <div className="w-6 h-6 rounded bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
-                      <Layers className="w-3 h-3" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-semibold text-zinc-200">Master Jenis Holdings</div>
-                      <div className="text-[10px] text-zinc-500 truncate">Manage custom asset classes</div>
-                    </div>
-                  </button>
                 </div>
               </div>
             )}

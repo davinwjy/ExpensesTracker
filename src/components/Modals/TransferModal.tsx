@@ -520,7 +520,7 @@ export const TransferModal: React.FC = () => {
                         title="Manage or add custom holding types"
                       >
                         <Layers className="w-2.5 h-2.5" />
-                        <span>Master Jenis</span>
+                        <span>Master Holdings</span>
                       </button>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">

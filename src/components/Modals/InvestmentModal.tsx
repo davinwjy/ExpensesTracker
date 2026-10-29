@@ -261,7 +261,7 @@ export const InvestmentModal: React.FC = () => {
                 title="Manage or add custom holding types"
               >
                 <Layers className="w-2.5 h-2.5" />
-                <span>Master Jenis</span>
+                <span>Master Holdings</span>
               </button>
             </div>
             <div className="flex flex-wrap gap-1 p-1 bg-[#080a0f] rounded border border-[#1d2332] text-xs">

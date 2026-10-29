@@ -1624,8 +1624,13 @@ app.get('/api/admin/export-database', authenticateAdmin, (_req: AuthenticatedReq
 async function startServer() {
   if (!isProduction) {
     const { createServer: createViteServer } = await import('vite');
+    const isHmrDisabled = process.env.DISABLE_HMR === 'true';
     const vite = await createViteServer({
-      server: { middlewareMode: true, host: '0.0.0.0' },
+      server: {
+        middlewareMode: true,
+        host: '0.0.0.0',
+        hmr: isHmrDisabled ? false : undefined,
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
