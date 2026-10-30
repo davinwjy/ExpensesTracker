@@ -1,4 +1,4 @@
-export type AccountType = 'bank' | 'cash' | 'ewallet';
+export type AccountType = 'bank' | 'cash' | 'credit_card' | 'paylater';
 export type InvestmentCategory = string;
 export type Currency = 'IDR' | 'USD';
 export type TransactionType = 'expense' | 'income' | 'transfer' | 'bank_to_investment';
@@ -69,9 +69,14 @@ export interface Account {
   userId: string;
   name: string;
   type: AccountType;
-  balance: number; // in IDR
+  balance: number; // in IDR (for credit cards, represents current outstanding debt)
   accountNumber?: string;
   color?: string;
+  creditLimit?: number;
+  billingDate?: number; // e.g. 25
+  dueDate?: number; // e.g. 10
+  cardNetwork?: string; // 'Visa' | 'Mastercard' | 'JCB' | 'Amex'
+  last4Digits?: string; // '4821'
   createdAt: string;
   updatedAt: string;
 }

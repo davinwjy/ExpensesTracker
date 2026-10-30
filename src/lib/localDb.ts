@@ -370,10 +370,15 @@ export const localDb = {
 
   createAccount(data: {
     name: string;
-    type: 'bank' | 'cash' | 'ewallet';
+    type: 'bank' | 'cash' | 'credit_card' | 'paylater';
     balance: number;
     accountNumber?: string;
     color?: string;
+    creditLimit?: number;
+    billingDate?: number;
+    dueDate?: number;
+    cardNetwork?: string;
+    last4Digits?: string;
   }): { account: Account } {
     const store = getStore();
     const userId = this.getUserId();
@@ -386,6 +391,11 @@ export const localDb = {
       balance: Number(data.balance) || 0,
       accountNumber: data.accountNumber?.trim() || undefined,
       color: data.color || '#3b82f6',
+      creditLimit: data.creditLimit !== undefined ? Number(data.creditLimit) : undefined,
+      billingDate: data.billingDate !== undefined ? Number(data.billingDate) : undefined,
+      dueDate: data.dueDate !== undefined ? Number(data.dueDate) : undefined,
+      cardNetwork: data.cardNetwork?.trim() || undefined,
+      last4Digits: data.last4Digits?.trim() || undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -406,6 +416,11 @@ export const localDb = {
     if (data.balance !== undefined) acc.balance = Number(data.balance);
     if (data.accountNumber !== undefined) acc.accountNumber = data.accountNumber.trim();
     if (data.color !== undefined) acc.color = data.color;
+    if (data.creditLimit !== undefined) acc.creditLimit = Number(data.creditLimit);
+    if (data.billingDate !== undefined) acc.billingDate = Number(data.billingDate);
+    if (data.dueDate !== undefined) acc.dueDate = Number(data.dueDate);
+    if (data.cardNetwork !== undefined) acc.cardNetwork = data.cardNetwork.trim();
+    if (data.last4Digits !== undefined) acc.last4Digits = data.last4Digits.trim();
     acc.updatedAt = new Date().toISOString();
 
     saveStore(store);
@@ -459,10 +474,18 @@ export const localDb = {
     if (!acc) throw new Error('Account not found');
 
     const amount = Math.abs(Number(data.amount));
-    if (data.type === 'expense') {
-      acc.balance -= amount;
+    if (acc.type === 'credit_card' || acc.type === 'paylater') {
+      if (data.type === 'expense') {
+        acc.balance += amount; // spending increases debt
+      } else {
+        acc.balance -= amount; // credit/income decreases debt
+      }
     } else {
-      acc.balance += amount;
+      if (data.type === 'expense') {
+        acc.balance -= amount;
+      } else {
+        acc.balance += amount;
+      }
     }
     acc.updatedAt = new Date().toISOString();
 
@@ -492,8 +515,13 @@ export const localDb = {
     // Revert old effect
     const oldAcc = store.accounts.find(a => a.id === tx.accountId && a.userId === userId);
     if (oldAcc) {
-      if (tx.type === 'expense') oldAcc.balance += tx.amount;
-      else if (tx.type === 'income') oldAcc.balance -= tx.amount;
+      if (oldAcc.type === 'credit_card' || oldAcc.type === 'paylater') {
+        if (tx.type === 'expense') oldAcc.balance -= tx.amount;
+        else if (tx.type === 'income') oldAcc.balance += tx.amount;
+      } else {
+        if (tx.type === 'expense') oldAcc.balance += tx.amount;
+        else if (tx.type === 'income') oldAcc.balance -= tx.amount;
+      }
     }
 
     // Apply new effect
@@ -503,8 +531,13 @@ export const localDb = {
     const targetAcc = store.accounts.find(a => a.id === targetAccId && a.userId === userId);
 
     if (targetAcc) {
-      if (newType === 'expense') targetAcc.balance -= newAmount;
-      else if (newType === 'income') targetAcc.balance += newAmount;
+      if (targetAcc.type === 'credit_card' || targetAcc.type === 'paylater') {
+        if (newType === 'expense') targetAcc.balance += newAmount;
+        else if (newType === 'income') targetAcc.balance -= newAmount;
+      } else {
+        if (newType === 'expense') targetAcc.balance -= newAmount;
+        else if (newType === 'income') targetAcc.balance += newAmount;
+      }
     }
 
     tx.amount = newAmount;
@@ -527,8 +560,13 @@ export const localDb = {
     const tx = store.transactions[idx];
     const acc = store.accounts.find(a => a.id === tx.accountId && a.userId === userId);
     if (acc) {
-      if (tx.type === 'expense') acc.balance += tx.amount;
-      else if (tx.type === 'income') acc.balance -= tx.amount;
+      if (acc.type === 'credit_card' || acc.type === 'paylater') {
+        if (tx.type === 'expense') acc.balance -= tx.amount;
+        else if (tx.type === 'income') acc.balance += tx.amount;
+      } else {
+        if (tx.type === 'expense') acc.balance += tx.amount;
+        else if (tx.type === 'income') acc.balance -= tx.amount;
+      }
     }
 
     if (tx.type === 'transfer' && tx.toAccountId) {
@@ -625,6 +663,47 @@ export const localDb = {
       category: `Transfer to ${toAcc.name}`,
       date: txDate,
       notes: data.notes || `Transfer from ${fromAcc.name} to ${toAcc.name}`,
+      createdAt: new Date().toISOString(),
+    };
+
+    store.transactions.push(tx);
+    saveStore(store);
+    return { success: true, transaction: tx };
+  },
+
+  payCreditCardBill(data: {
+    creditCardAccountId: string;
+    sourceAccountId: string;
+    amountIdr: number;
+    date?: string;
+    notes?: string;
+  }): { success: boolean; transaction: Transaction } {
+    const store = getStore();
+    const userId = this.getUserId();
+    const sourceAcc = store.accounts.find(a => a.id === data.sourceAccountId && a.userId === userId);
+    const ccAcc = store.accounts.find(a => a.id === data.creditCardAccountId && a.userId === userId);
+
+    if (!sourceAcc) throw new Error('Source bank/cash account not found');
+    if (!ccAcc) throw new Error('Credit card account not found');
+
+    const amount = Math.abs(Number(data.amountIdr));
+    const txDate = data.date || new Date().toISOString().split('T')[0];
+
+    sourceAcc.balance -= amount;
+    ccAcc.balance = Math.max(0, ccAcc.balance - amount);
+    sourceAcc.updatedAt = new Date().toISOString();
+    ccAcc.updatedAt = new Date().toISOString();
+
+    const tx: Transaction = {
+      id: 'tx_cc_' + Date.now(),
+      userId,
+      type: 'transfer',
+      amount,
+      accountId: data.sourceAccountId,
+      toAccountId: data.creditCardAccountId,
+      category: `Credit Card Payment (${ccAcc.name})`,
+      date: txDate,
+      notes: data.notes || `Paid credit card bill for ${ccAcc.name} from ${sourceAcc.name}`,
       createdAt: new Date().toISOString(),
     };
 
@@ -857,7 +936,10 @@ export const localDb = {
     const userInvestments = store.investments.filter(i => i.userId === userId);
     const userTransactions = store.transactions.filter(t => t.userId === userId);
 
-    const totalLiquidCashIdr = userAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+    const totalLiquidCashIdr = userAccounts.reduce(
+      (sum, acc) => ((acc.type === 'credit_card' || acc.type === 'paylater') ? sum - (Number(acc.balance) || 0) : sum + (Number(acc.balance) || 0)),
+      0
+    );
 
     let totalInvestedCostIdr = 0;
     let totalInvestmentValueIdr = 0;

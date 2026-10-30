@@ -173,10 +173,15 @@ export const api = {
 
   async createAccount(data: {
     name: string;
-    type: 'bank' | 'cash' | 'ewallet';
+    type: 'bank' | 'cash' | 'credit_card' | 'paylater';
     balance: number;
     accountNumber?: string;
     color?: string;
+    creditLimit?: number;
+    billingDate?: number;
+    dueDate?: number;
+    cardNetwork?: string;
+    last4Digits?: string;
   }): Promise<{ account: Account }> {
     const hasServer = await checkServer();
     if (hasServer) {
@@ -315,6 +320,27 @@ export const api = {
       }
     }
     return localDb.executeTransfer(data);
+  },
+
+  async payCreditCardBill(data: {
+    creditCardAccountId: string;
+    sourceAccountId: string;
+    amountIdr: number;
+    date?: string;
+    notes?: string;
+  }): Promise<{ success: boolean; transaction: Transaction }> {
+    const hasServer = await checkServer();
+    if (hasServer) {
+      try {
+        return await request<{ success: boolean; transaction: Transaction }>('/api/pay-cc-bill', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+      } catch (err) {
+        isServerAvailable = false;
+      }
+    }
+    return localDb.payCreditCardBill(data);
   },
 
   // Investments

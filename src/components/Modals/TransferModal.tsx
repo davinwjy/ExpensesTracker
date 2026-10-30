@@ -383,11 +383,13 @@ export const TransferModal: React.FC = () => {
               className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-indigo-500 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono"
               required
             >
-              {accounts.map((acc) => (
-                <option key={acc.id} value={acc.id}>
-                  {acc.name} ({acc.type.toUpperCase()}) — Balance: {formatIdr(acc.balance)}
-                </option>
-              ))}
+              {accounts
+                .filter((a) => a.type === 'bank' || a.type === 'cash')
+                .map((acc) => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.name} ({acc.type.toUpperCase()}) — Balance: {formatIdr(acc.balance)}
+                  </option>
+                ))}
             </select>
             {selectedSourceAccount && (
               <div className="flex items-center justify-between mt-1 text-[10px] font-mono">
@@ -602,7 +604,7 @@ export const TransferModal: React.FC = () => {
                 required
               >
                 {accounts
-                  .filter((a) => a.id !== fromAccountId)
+                  .filter((a) => a.id !== fromAccountId && a.type !== 'credit_card' && a.type !== 'paylater')
                   .map((acc) => (
                     <option key={acc.id} value={acc.id}>
                       {acc.name} ({acc.type.toUpperCase()}) — Balance: {formatIdr(acc.balance)}

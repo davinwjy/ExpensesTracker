@@ -6,7 +6,10 @@ export function computeStats(
   investments: Investment[],
   rate: number
 ): DashboardStats {
-  const totalLiquidCashIdr = accounts.reduce((sum, a) => sum + (Number(a.balance) || 0), 0);
+  const totalLiquidCashIdr = accounts.reduce(
+    (sum, a) => (a.type === 'credit_card' ? sum - (Number(a.balance) || 0) : sum + (Number(a.balance) || 0)),
+    0
+  );
 
   let totalInvestedCostIdr = 0;
   let totalInvestmentValueIdr = 0;

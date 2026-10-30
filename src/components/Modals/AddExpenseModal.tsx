@@ -3,6 +3,13 @@ import { X, Check, RotateCcw, AlertCircle, ArrowDownRight, Receipt } from 'lucid
 import { useFinance } from '../../context/FinanceContext';
 import { formatIdr, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../lib/formatters';
 
+function getGmtPlus7DateString(): string {
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const gmt7Date = new Date(utc + (3600000 * 7));
+  return gmt7Date.toISOString().split('T')[0];
+}
+
 export const AddExpenseModal: React.FC = () => {
   const {
     isAddExpenseOpen,
@@ -19,7 +26,7 @@ export const AddExpenseModal: React.FC = () => {
   const [amount, setAmount] = useState<string>('');
   const [accountId, setAccountId] = useState<string>('');
   const [category, setCategory] = useState<string>(EXPENSE_CATEGORIES[0]);
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState<string>(getGmtPlus7DateString());
   const [notes, setNotes] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,7 +49,7 @@ export const AddExpenseModal: React.FC = () => {
         setAmount('');
         setAccountId(accounts.length > 0 ? accounts[0].id : '');
         setCategory(initType === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
-        setDate(new Date().toISOString().split('T')[0]);
+        setDate(getGmtPlus7DateString());
         setNotes('');
       }
       setError('');
@@ -55,7 +62,7 @@ export const AddExpenseModal: React.FC = () => {
     setAmount('');
     setAccountId(accounts.length > 0 ? accounts[0].id : '');
     setCategory(initType === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(getGmtPlus7DateString());
     setNotes('');
     setError('');
   };

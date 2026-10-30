@@ -16,6 +16,7 @@ import { TransferModal } from './components/Modals/TransferModal';
 import { AccountModal } from './components/Modals/AccountModal';
 import { InvestmentModal } from './components/Modals/InvestmentModal';
 import { HoldingTypesModal } from './components/Modals/HoldingTypesModal';
+import { PayBillModal } from './components/Modals/PayBillModal';
 import { FirebaseSetupModal } from './components/Modals/FirebaseSetupModal';
 import { MobileAppModal } from './components/Modals/MobileAppModal';
 import { AuthModal } from './components/AuthModal';
@@ -108,6 +109,7 @@ const MainAppContent: React.FC = () => {
       <AccountModal />
       <InvestmentModal />
       <HoldingTypesModal />
+      <PayBillModal />
       <FirebaseSetupModal
         isOpen={isFirebaseSetupOpen}
         onClose={() => setIsFirebaseSetupOpen(false)}

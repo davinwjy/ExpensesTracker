@@ -7,7 +7,6 @@ import {
   LineChart as LineChartIcon,
   BarChart3,
   Sparkles,
-  Award,
   Wallet,
   MousePointer,
 } from 'lucide-react';
@@ -165,7 +164,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
   // -------------------------------------------------------------
   // DATA EXTRACTION & HISTORICAL BALANCE RECONSTRUCTION
   // -------------------------------------------------------------
-  const { monthlyData, yearlyData, ytdStats, yearEndProjection } = useMemo(() => {
+  const { monthlyData, yearlyData, ytdStats } = useMemo(() => {
     // 1. Monthly array for selectedYear
     const months: MonthlyPoint[] = Array.from({ length: 12 }, (_, i) => ({
       type: 'month' as const,
@@ -369,23 +368,6 @@ export const IncomeInvestmentTracker: React.FC = () => {
     const yearInvestRate = totalYearIncome > 0 ? (totalYearInvest / totalYearIncome) * 100 : 0;
     const yearSavings = totalYearIncome - totalYearExpense - totalYearInvest;
 
-    // End of Year (EOY) Projection for currentYear
-    const elapsedMonths = Math.min(12, Math.max(1, currentMonthIdx + 1));
-    const isCurrentYearSelected = selectedYear === currentYear;
-
-    const projectedFullYearIncome = isCurrentYearSelected && elapsedMonths < 12
-      ? (totalYearIncome / elapsedMonths) * 12
-      : totalYearIncome;
-
-    const projectedFullYearExpense = isCurrentYearSelected && elapsedMonths < 12
-      ? (totalYearExpense / elapsedMonths) * 12
-      : totalYearExpense;
-
-    const projectedFullYearInvest = isCurrentYearSelected && elapsedMonths < 12
-      ? (totalYearInvest / elapsedMonths) * 12
-      : totalYearInvest;
-
-    // Year-over-Year (YoY) Growth calculation
     const prevYearData = yearMap[selectedYear - 1];
     let yoyIncomeGrowth: number | null = null;
     let yoyExpenseGrowth: number | null = null;
@@ -414,13 +396,6 @@ export const IncomeInvestmentTracker: React.FC = () => {
         yoyIncomeGrowth,
         yoyExpenseGrowth,
         yoyInvestGrowth,
-        elapsedMonths,
-      },
-      yearEndProjection: {
-        projectedIncome: projectedFullYearIncome,
-        projectedExpense: projectedFullYearExpense,
-        projectedInvest: projectedFullYearInvest,
-        isClosingSoon: elapsedMonths >= 9,
       },
     };
   }, [transactions, investments, accounts, currentTotalAccountBalance, selectedYear, availableYears, usdIdrRate, currentYear, currentMonthIdx, todayStr]);
@@ -562,188 +537,23 @@ export const IncomeInvestmentTracker: React.FC = () => {
     <div className="space-y-6">
       {/* SECTION WRAPPER */}
       <div className="rounded bg-[#0d1017] border border-[#1b212e] p-3.5 sm:p-5 space-y-4 font-mono">
-        {/* HEADER & CONTROLS */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-[#1b212e]">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded bg-[#141824] border border-[#212838] text-emerald-400 flex items-center justify-center shrink-0">
-                <LineChartIcon className="w-3.5 h-3.5" />
-              </div>
-              <h3 className="text-sm sm:text-base font-bold text-zinc-100 uppercase tracking-wider">
-                INCOME, EXPENSES, INVESTMENTS & CASH BALANCES
-              </h3>
+        {/* HEADER */}
+        <div className="pb-3 border-b border-[#1b212e]">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded bg-[#141824] border border-[#212838] text-emerald-400 flex items-center justify-center shrink-0">
+              <LineChartIcon className="w-3.5 h-3.5" />
             </div>
-            <p className="text-[10px] text-zinc-500 mt-0.5">
-              Multi-axis trend lines tracking monthly income, daily outflows, investment funding, and bank runways
-            </p>
+            <h3 className="text-sm sm:text-base font-bold text-zinc-100 uppercase tracking-wider">
+              INCOME, EXPENSES, INVESTMENTS & CASH BALANCES
+            </h3>
           </div>
-
-          {/* CONTROLS ROW */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {/* View Mode: Both Graphs (Stacked) vs Month vs Year */}
-            <div className="flex p-0.5 bg-[#080a0f] rounded border border-[#1d2332] text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setViewMode('both_stacked')}
-                className={`px-2 py-1 rounded transition-all cursor-pointer flex items-center gap-1 ${
-                  viewMode === 'both_stacked'
-                    ? 'bg-[#151a26] text-zinc-100 font-bold border border-[#232c40]'
-                    : 'text-zinc-500 hover:text-zinc-300'
-                }`}
-                title="Display both monthly and annual views simultaneously"
-              >
-                <Sparkles className="w-3 h-3 text-amber-400" />
-                <span>BOTH</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('month')}
-                className={`px-2 py-1 rounded transition-all cursor-pointer flex items-center gap-1 ${
-                  viewMode === 'month'
-                    ? 'bg-[#151a26] text-zinc-100 font-bold border border-[#232c40]'
-                    : 'text-zinc-500 hover:text-zinc-300'
-                }`}
-              >
-                <Calendar className="w-3 h-3 text-emerald-400" />
-                <span>MONTHLY</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('year')}
-                className={`px-2 py-1 rounded transition-all cursor-pointer flex items-center gap-1 ${
-                  viewMode === 'year'
-                    ? 'bg-[#151a26] text-zinc-100 font-bold border border-[#232c40]'
-                    : 'text-zinc-500 hover:text-zinc-300'
-                }`}
-              >
-                <Layers className="w-3 h-3 text-indigo-400" />
-                <span>YEARLY</span>
-              </button>
-            </div>
-
-            {/* Year Selector for Monthly View */}
-            {(viewMode === 'month' || viewMode === 'both_stacked') && (
-              <div className="relative">
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="appearance-none bg-[#080a0f] text-zinc-200 text-xs font-bold font-mono pl-2.5 pr-6 py-1 rounded border border-[#1d2332] focus:outline-none focus:border-emerald-500 cursor-pointer"
-                >
-                  {availableYears.map((yr) => (
-                    <option key={yr} value={yr}>
-                      {yr}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-3 h-3 text-zinc-500 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-            )}
-
-            {/* Metric Filter */}
-            <div className="flex p-0.5 bg-[#080a0f] rounded border border-[#1d2332] text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setViewMetric('all')}
-                className={`px-2 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMetric === 'all'
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm font-bold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                All 4
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMetric('income')}
-                className={`px-2 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMetric === 'income'
-                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                Income
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMetric('expense')}
-                className={`px-2 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMetric === 'expense'
-                    ? 'bg-rose-500 text-white font-bold shadow-sm'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                Expense
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMetric('investment')}
-                className={`px-2 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMetric === 'investment'
-                    ? 'bg-indigo-600 text-white font-bold shadow-sm'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                Invest
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMetric('account')}
-                className={`px-2 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMetric === 'account'
-                    ? 'bg-sky-500 text-slate-950 font-bold shadow-sm'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                Account
-              </button>
-            </div>
-
-            {/* Chart Style Switcher */}
-            <div className="flex p-0.5 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
-              <button
-                type="button"
-                onClick={() => setChartType('line')}
-                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                  chartType === 'line'
-                    ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-                title="Line Graph View (Active)"
-              >
-                <LineChartIcon className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setChartType('bar')}
-                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                  chartType === 'bar'
-                    ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-                title="Bar Chart View"
-              >
-                <BarChart3 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Table Button */}
-            <button
-              type="button"
-              onClick={() => setShowTable(!showTable)}
-              className={`p-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                showTable
-                  ? 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700'
-                  : 'bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <TableIcon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{showTable ? 'Hide Table' : 'Table'}</span>
-            </button>
-          </div>
+          <p className="text-[10px] text-zinc-500 mt-0.5">
+            Multi-axis trend lines tracking monthly income, daily outflows, investment funding, and bank runways
+          </p>
         </div>
 
-        {/* 5-KPI SUMMARY METRICS CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        {/* 4-KPI SUMMARY METRICS CARDS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Total Income */}
           <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-1">
             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
@@ -800,83 +610,183 @@ export const IncomeInvestmentTracker: React.FC = () => {
               <span>{accounts.length} Bank & Cash Accounts</span>
             </p>
           </div>
-
-          {/* Investment Rate % */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-1 col-span-2 md:col-span-1 lg:col-span-1">
-            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-              <span className="font-medium">Investment Rate</span>
-              <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                  ytdStats.investmentRate >= 30
-                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                    : ytdStats.investmentRate >= 15
-                    ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
-                    : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                }`}
-              >
-                {ytdStats.investmentRate >= 30
-                  ? 'High Growth'
-                  : ytdStats.investmentRate >= 15
-                  ? 'Healthy'
-                  : 'Building Up'}
-              </span>
-            </div>
-            <p className="text-sm sm:text-lg font-bold font-mono text-slate-900 dark:text-white">
-              {ytdStats.investmentRate.toFixed(1)}%
-            </p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500">
-              of total earnings deployed
-            </p>
-          </div>
         </div>
 
-        {/* END-OF-YEAR (EOY) HIGHLIGHT BANNER */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-rose-500/10 to-indigo-500/10 border border-emerald-500/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-              <Award className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                  Year-End {selectedYear} Performance & Run-Rate
-                </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
-                  Annual Overview
-                </span>
+        {/* UNIFIED FILTER & DISPLAY BAR (Mobile-optimized layout) */}
+        <div className="flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-slate-100 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800 shadow-sm">
+          {/* Top Row: Display Mode & Year Selector */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-200 dark:border-slate-800/80">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+              <span className="text-[11px] sm:text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase font-sans shrink-0">
+                Display:
+              </span>
+              <div className="flex p-0.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('both_stacked')}
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                    viewMode === 'both_stacked'
+                      ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <span>BOTH</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('month')}
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                    viewMode === 'month'
+                      ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Calendar className="w-3 h-3" />
+                  <span>MONTHLY</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('year')}
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                    viewMode === 'year'
+                      ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Layers className="w-3 h-3" />
+                  <span>YEARLY</span>
+                </button>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
-                {selectedYear === currentYear
-                  ? `Active year tracking! ${ytdStats.elapsedMonths} months of performance tracked with full-year annualized projections:`
-                  : `Full-year financial performance summary for ${selectedYear}:`}
-              </p>
             </div>
+
+            {(viewMode === 'month' || viewMode === 'both_stacked') && (
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <span className="text-[11px] sm:text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase font-sans shrink-0">
+                  Year:
+                </span>
+                <div className="relative">
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(Number(e.target.value))}
+                    className="appearance-none bg-white dark:bg-slate-900 text-slate-900 dark:text-zinc-200 text-xs font-bold font-mono pl-3 pr-7 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500 cursor-pointer shadow-sm"
+                  >
+                    {availableYears.map((yr) => (
+                      <option key={yr} value={yr}>
+                        {yr}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-3 sm:gap-5 text-xs font-mono">
-            <div className="space-y-0.5">
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block font-sans">Full Year Income Est.</span>
-              <strong className="text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm">
-                {formatMasked(yearEndProjection.projectedIncome, 'IDR', isPrivacyMode)}
-              </strong>
+          {/* Bottom Row: Metric Filter, Chart Style & Table */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            {/* Metric Filter */}
+            <div className="flex items-center overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+              <div className="flex p-0.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setViewMetric('all')}
+                  className={`px-2 sm:px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    viewMetric === 'all'
+                      ? 'bg-slate-900 text-white dark:bg-slate-800 dark:text-white shadow-sm font-bold'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  All 4
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMetric('income')}
+                  className={`px-2 sm:px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    viewMetric === 'income'
+                      ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  Income
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMetric('expense')}
+                  className={`px-2 sm:px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    viewMetric === 'expense'
+                      ? 'bg-rose-500 text-white font-bold shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  Expense
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMetric('investment')}
+                  className={`px-2 sm:px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    viewMetric === 'investment'
+                      ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  Invest
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMetric('account')}
+                  className={`px-2 sm:px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    viewMetric === 'account'
+                      ? 'bg-sky-500 text-slate-950 font-bold shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  Account
+                </button>
+              </div>
             </div>
-            <div className="space-y-0.5">
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block font-sans">Full Year Expense Est.</span>
-              <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm">
-                {formatMasked(yearEndProjection.projectedExpense, 'IDR', isPrivacyMode)}
-              </strong>
-            </div>
-            <div className="space-y-0.5">
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block font-sans">Full Year Invest Est.</span>
-              <strong className="text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm">
-                {formatMasked(yearEndProjection.projectedInvest, 'IDR', isPrivacyMode)}
-              </strong>
-            </div>
-            <div className="space-y-0.5 col-span-2 sm:col-span-1">
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block font-sans">Current Liquid Cash</span>
-              <strong className="text-sky-600 dark:text-sky-400 text-xs sm:text-sm">
-                {formatMasked(currentTotalAccountBalance, 'IDR', isPrivacyMode)}
-              </strong>
+
+            {/* Right Group: Chart Style & Table */}
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <div className="flex p-0.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setChartType('line')}
+                  className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                    chartType === 'line'
+                      ? 'bg-slate-900 text-emerald-400 dark:bg-slate-800 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Line Graph View"
+                >
+                  <LineChartIcon className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartType('bar')}
+                  className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                    chartType === 'bar'
+                      ? 'bg-slate-900 text-indigo-400 dark:bg-slate-800 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Bar Chart View"
+                >
+                  <BarChart3 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowTable(!showTable)}
+                className={`p-1.5 px-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  showTable
+                    ? 'bg-slate-900 text-white dark:bg-slate-800 border-slate-700'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <TableIcon className="w-3.5 h-3.5" />
+                <span>{showTable ? 'Hide Table' : 'Table'}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -1142,7 +1052,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                           d={generateBezierPath(monthScale.accountCoords)}
                           fill="none"
                           stroke="#0ea5e9"
-                          strokeWidth="3"
+                          strokeWidth="3.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
@@ -1152,7 +1062,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                           d={generateBezierPath(monthScale.incomeCoords)}
                           fill="none"
                           stroke="#10b981"
-                          strokeWidth="3"
+                          strokeWidth="3.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
@@ -1162,7 +1072,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                           d={generateBezierPath(monthScale.expenseCoords)}
                           fill="none"
                           stroke="#f43f5e"
-                          strokeWidth="3"
+                          strokeWidth="3.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
@@ -1172,7 +1082,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                           d={generateBezierPath(monthScale.investCoords)}
                           fill="none"
                           stroke="#6366f1"
-                          strokeWidth="3"
+                          strokeWidth="3.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
@@ -1200,9 +1110,16 @@ export const IncomeInvestmentTracker: React.FC = () => {
                         const accPt = monthScale.accountCoords[idx];
                         const isActive = safeMonthIdx === idx;
 
-                        const rectX = idx === 0 ? 0 : incPt.x - monthScale.stepX / 2;
+                        const rectX =
+                          monthlyData.length <= 1
+                            ? 0
+                            : idx === 0
+                            ? 0
+                            : incPt.x - monthScale.stepX / 2;
                         const rectW =
-                          idx === 0
+                          monthlyData.length <= 1
+                            ? 800
+                            : idx === 0
                             ? incPt.x + monthScale.stepX / 2
                             : idx === monthlyData.length - 1
                             ? 800 - (incPt.x - monthScale.stepX / 2)
@@ -1210,51 +1127,46 @@ export const IncomeInvestmentTracker: React.FC = () => {
 
                         return (
                           <g key={idx}>
-                            {/* Account Marker */}
                             {(viewMetric === 'all' || viewMetric === 'account') && pt.accountBalance > 0 && (
                               <circle
                                 cx={accPt.x}
                                 cy={accPt.y}
-                                r={isActive ? 6.5 : 3.5}
+                                r={isActive ? 6 : 3.5}
                                 className="fill-sky-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
                                 strokeWidth="2"
                               />
                             )}
 
-                            {/* Income Marker */}
-                            {(viewMetric === 'all' || viewMetric === 'income') && pt.income > 0 && (
+                            {(viewMetric === 'all' || viewMetric === 'income') && (
                               <circle
                                 cx={incPt.x}
                                 cy={incPt.y}
-                                r={isActive ? 6.5 : 3.5}
+                                r={isActive ? 6 : 3.5}
                                 className="fill-emerald-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
                                 strokeWidth="2"
                               />
                             )}
 
-                            {/* Expense Marker */}
-                            {(viewMetric === 'all' || viewMetric === 'expense') && pt.expense > 0 && (
+                            {(viewMetric === 'all' || viewMetric === 'expense') && (
                               <circle
                                 cx={expPt.x}
                                 cy={expPt.y}
-                                r={isActive ? 6.5 : 3.5}
+                                r={isActive ? 6 : 3.5}
                                 className="fill-rose-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
                                 strokeWidth="2"
                               />
                             )}
 
-                            {/* Invest Marker */}
-                            {(viewMetric === 'all' || viewMetric === 'investment') && pt.investment > 0 && (
+                            {(viewMetric === 'all' || viewMetric === 'investment') && (
                               <circle
                                 cx={invPt.x}
                                 cy={invPt.y}
-                                r={isActive ? 6.5 : 3.5}
+                                r={isActive ? 6 : 3.5}
                                 className="fill-indigo-500 stroke-white dark:stroke-slate-900 transition-all pointer-events-none"
                                 strokeWidth="2"
                               />
                             )}
 
-                            {/* Exact Touch/Click/Hover capture rect with stopPropagation */}
                             <rect
                               x={rectX}
                               y="0"
@@ -1281,12 +1193,11 @@ export const IncomeInvestmentTracker: React.FC = () => {
                               }}
                             />
 
-                            {/* Month label */}
                             <text
                               x={incPt.x}
                               y="230"
                               textAnchor="middle"
-                              className={`text-[10px] font-mono fill-current pointer-events-none ${
+                              className={`text-[10px] sm:text-[11px] font-mono fill-current pointer-events-none ${
                                 isActive
                                   ? 'text-slate-900 dark:text-white font-bold'
                                   : 'text-slate-400 dark:text-slate-500'
@@ -1299,7 +1210,6 @@ export const IncomeInvestmentTracker: React.FC = () => {
                       })}
                     </>
                   ) : (
-                    // Bar view fallback
                     <g>
                       {monthlyData.map((pt, idx) => {
                         const incPt = monthScale.incomeCoords[idx];
@@ -1311,11 +1221,18 @@ export const IncomeInvestmentTracker: React.FC = () => {
                         const expH = Math.max(0, monthScale.bottomY - expPt.y);
                         const invH = Math.max(0, monthScale.bottomY - invPt.y);
                         const accH = Math.max(0, monthScale.bottomY - accPt.y);
-                        const barW = Math.min(13, Math.max(4, monthScale.stepX / 5.2));
+                        const barW = Math.min(16, Math.max(6, monthScale.stepX / 5.2));
 
-                        const rectX = idx === 0 ? 0 : incPt.x - monthScale.stepX / 2;
+                        const rectX =
+                          monthlyData.length <= 1
+                            ? 0
+                            : idx === 0
+                            ? 0
+                            : incPt.x - monthScale.stepX / 2;
                         const rectW =
-                          idx === 0
+                          monthlyData.length <= 1
+                            ? 800
+                            : idx === 0
                             ? incPt.x + monthScale.stepX / 2
                             : idx === monthlyData.length - 1
                             ? 800 - (incPt.x - monthScale.stepX / 2)
@@ -1347,7 +1264,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                                 y={incPt.y}
                                 width={barW}
                                 height={incH}
-                                rx="2.5"
+                                rx="3"
                                 fill="#10b981"
                                 opacity={isActive ? 1 : 0.85}
                                 className="pointer-events-none"
@@ -1359,7 +1276,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                                 y={expPt.y}
                                 width={barW}
                                 height={expH}
-                                rx="2.5"
+                                rx="3"
                                 fill="#f43f5e"
                                 opacity={isActive ? 1 : 0.85}
                                 className="pointer-events-none"
@@ -1371,7 +1288,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                                 y={invPt.y}
                                 width={barW}
                                 height={invH}
-                                rx="2.5"
+                                rx="3"
                                 fill="#6366f1"
                                 opacity={isActive ? 1 : 0.85}
                                 className="pointer-events-none"
@@ -1383,7 +1300,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                                 y={accPt.y}
                                 width={barW}
                                 height={accH}
-                                rx="2.5"
+                                rx="3"
                                 fill="#0ea5e9"
                                 opacity={isActive ? 1 : 0.85}
                                 className="pointer-events-none"
@@ -1393,7 +1310,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                               x={incPt.x}
                               y="230"
                               textAnchor="middle"
-                              className={`text-[10px] font-mono fill-current pointer-events-none ${
+                              className={`text-[10px] sm:text-[11px] font-mono fill-current pointer-events-none ${
                                 isActive
                                   ? 'text-slate-900 dark:text-white font-bold'
                                   : 'text-slate-400 dark:text-slate-500'
@@ -1410,23 +1327,23 @@ export const IncomeInvestmentTracker: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Month Selector Buttons (1-Tap Selection on Mobile) */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 scrollbar-thin">
+            {/* Quick Month Selector Chips */}
+            <div className="flex items-center gap-1 overflow-x-auto pb-1 pt-1 scrollbar-thin">
               <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0 mr-1 hidden sm:inline">
                 Jump to Month:
               </span>
-              {monthlyData.map((pt, idx) => (
+              {MONTH_NAMES.map((name, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setActiveMonthIdx(idx)}
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold shrink-0 transition-all cursor-pointer ${
                     safeMonthIdx === idx
-                      ? 'bg-emerald-500 text-slate-950 shadow-sm scale-105'
+                      ? 'bg-emerald-600 text-white shadow-sm scale-105'
                       : 'bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800'
                   }`}
                 >
-                  {pt.monthName}
+                  {name}
                 </button>
               ))}
             </div>
@@ -1434,41 +1351,46 @@ export const IncomeInvestmentTracker: React.FC = () => {
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* GRAPH 2: YEAR BY YEAR LINE GRAPH (WITH FULL MOBILE POPUP) */}
+        {/* GRAPH 2: YEAR BY YEAR LINE GRAPH */}
         {/* ------------------------------------------------------------- */}
         {(viewMode === 'year' || viewMode === 'both_stacked') && (
-          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+          <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Layers className="w-4 h-4 text-indigo-500" />
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Year by Year Trajectory & Annual Multi-Year Growth
+                  Multi-Year Historical Trend ({yearlyData.length} Years Tracked)
                 </h4>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-xs font-mono">
-                <span className="text-emerald-500 flex items-center gap-1.5 font-semibold">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
-                  Annual Income
-                </span>
-                <span className="text-rose-500 flex items-center gap-1.5 font-semibold">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
-                  Annual Expenses
-                </span>
-                <span className="text-indigo-400 flex items-center gap-1.5 font-semibold">
-                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block" />
-                  Annual Investment
-                </span>
-                <span className="text-sky-400 flex items-center gap-1.5 font-semibold">
-                  <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block" />
-                  Account Amount
-                </span>
-                <span className="text-slate-400">
-                  {yearlyData.length} Years Tracked
-                </span>
+                {(viewMetric === 'all' || viewMetric === 'income') && (
+                  <span className="text-emerald-500 flex items-center gap-1.5 font-semibold">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
+                    Income
+                  </span>
+                )}
+                {(viewMetric === 'all' || viewMetric === 'expense') && (
+                  <span className="text-rose-500 flex items-center gap-1.5 font-semibold">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
+                    Expenses
+                  </span>
+                )}
+                {(viewMetric === 'all' || viewMetric === 'investment') && (
+                  <span className="text-indigo-400 flex items-center gap-1.5 font-semibold">
+                    <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block" />
+                    Investment
+                  </span>
+                )}
+                {(viewMetric === 'all' || viewMetric === 'account') && (
+                  <span className="text-sky-400 flex items-center gap-1.5 font-semibold">
+                    <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block" />
+                    Account
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* RESPONSIVE ACTIVE DETAIL BAR FOR YEAR-BY-YEAR GRAPH */}
+            {/* RESPONSIVE ACTIVE YEAR DETAIL BAR */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 sm:p-3.5 rounded-2xl bg-slate-100/90 dark:bg-slate-950/90 border border-slate-200/90 dark:border-slate-800 shadow-sm">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
@@ -1480,14 +1402,14 @@ export const IncomeInvestmentTracker: React.FC = () => {
                       Full Year {activeYearPoint.year}
                     </span>
                     {activeYearPoint.year === currentYear && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400">
-                        Active Year
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">
+                        Current Year
                       </span>
                     )}
                   </div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
                     <MousePointer className="w-3 h-3 text-slate-400" />
-                    <span>Touch, drag, or hover to inspect yearly totals</span>
+                    <span>Touch or hover annual graph points</span>
                   </p>
                 </div>
               </div>
@@ -1964,7 +1886,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Year Selector Buttons (1-Tap Selection on Mobile) */}
+            {/* Quick Year Selector Buttons */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 scrollbar-thin">
               <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0 mr-1 hidden sm:inline">
                 Jump to Year:

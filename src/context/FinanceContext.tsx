@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   Account,
+  AccountType,
   Transaction,
   Investment,
   DashboardStats,
@@ -45,13 +46,25 @@ interface FinanceContextType {
   // Account Operations
   addAccount: (data: {
     name: string;
-    type: 'bank' | 'cash' | 'ewallet';
+    type: AccountType;
     balance: number;
     accountNumber?: string;
     color?: string;
+    creditLimit?: number;
+    billingDate?: number;
+    dueDate?: number;
+    cardNetwork?: string;
+    last4Digits?: string;
   }) => Promise<void>;
   updateAccount: (id: string, data: Partial<Account>) => Promise<void>;
   deleteAccount: (id: string) => Promise<void>;
+  payCreditCardBill: (data: {
+    creditCardAccountId: string;
+    sourceAccountId: string;
+    amountIdr: number;
+    date?: string;
+    notes?: string;
+  }) => Promise<void>;
 
   // Transaction Operations
   addTransaction: (data: {
@@ -140,6 +153,10 @@ interface FinanceContextType {
   setIsFirebaseSetupOpen: (v: boolean) => void;
   isMobileAppModalOpen: boolean;
   setIsMobileAppModalOpen: (v: boolean) => void;
+  isPayBillOpen: boolean;
+  setIsPayBillOpen: (v: boolean) => void;
+  payBillCard: Account | null;
+  setPayBillCard: (a: Account | null) => void;
 }
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
@@ -253,6 +270,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [isFirebaseSetupOpen, setIsFirebaseSetupOpen] = useState(false);
   const [isMobileAppModalOpen, setIsMobileAppModalOpen] = useState(false);
+  const [isPayBillOpen, setIsPayBillOpen] = useState(false);
+  const [payBillCard, setPayBillCard] = useState<Account | null>(null);
 
   const togglePrivacyMode = () => {
     setIsPrivacyMode((prev) => {
@@ -358,23 +377,33 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Accounts
   const addAccount = async (data: {
     name: string;
-    type: 'bank' | 'cash' | 'ewallet';
+    type: AccountType;
     balance: number;
     accountNumber?: string;
     color?: string;
+    creditLimit?: number;
+    billingDate?: number;
+    dueDate?: number;
+    cardNetwork?: string;
+    last4Digits?: string;
   }) => {
     if (isFirebase && user) {
       const now = new Date().toISOString();
       const newAccount: Account = {
         id: 'acc_' + Date.now(),
         userId: user.id,
-        name: data.name,
+        name: data.name.trim(),
         type: data.type,
-        balance: data.balance,
+        balance: Number(data.balance) || 0,
         color: data.color || '#3b82f6',
         createdAt: now,
         updatedAt: now,
         ...(data.accountNumber?.trim() ? { accountNumber: data.accountNumber.trim() } : {}),
+        ...(data.creditLimit !== undefined ? { creditLimit: Number(data.creditLimit) } : {}),
+        ...(data.billingDate !== undefined ? { billingDate: Number(data.billingDate) } : {}),
+        ...(data.dueDate !== undefined ? { dueDate: Number(data.dueDate) } : {}),
+        ...(data.cardNetwork?.trim() ? { cardNetwork: data.cardNetwork.trim() } : {}),
+        ...(data.last4Digits?.trim() ? { last4Digits: data.last4Digits.trim() } : {}),
       };
       await firestoreService.saveAccount(newAccount);
       return;
@@ -439,10 +468,12 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Adjust account balance
       const targetAcc = accounts.find((a) => a.id === data.accountId);
       if (targetAcc) {
-        const newBal =
-          data.type === 'expense'
-            ? targetAcc.balance - data.amount
-            : targetAcc.balance + data.amount;
+        let newBal = targetAcc.balance;
+        if (targetAcc.type === 'credit_card') {
+          newBal = data.type === 'expense' ? targetAcc.balance + data.amount : targetAcc.balance - data.amount;
+        } else {
+          newBal = data.type === 'expense' ? targetAcc.balance - data.amount : targetAcc.balance + data.amount;
+        }
         await firestoreService.saveAccount({
           ...targetAcc,
           balance: newBal,
@@ -453,6 +484,53 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     await api.createTransaction(data);
+    await refreshData();
+  };
+
+  const payCreditCardBill = async (data: {
+    creditCardAccountId: string;
+    sourceAccountId: string;
+    amountIdr: number;
+    date?: string;
+    notes?: string;
+  }) => {
+    if (isFirebase && user) {
+      const sourceAcc = accounts.find((a) => a.id === data.sourceAccountId);
+      const ccAcc = accounts.find((a) => a.id === data.creditCardAccountId);
+      if (!sourceAcc || !ccAcc) throw new Error('Accounts not found');
+
+      const amount = Math.abs(Number(data.amountIdr));
+      const now = new Date().toISOString();
+      const txId = 'tx_cc_' + Date.now();
+
+      await firestoreService.saveAccount({
+        ...sourceAcc,
+        balance: sourceAcc.balance - amount,
+        updatedAt: now,
+      });
+      await firestoreService.saveAccount({
+        ...ccAcc,
+        balance: Math.max(0, ccAcc.balance - amount),
+        updatedAt: now,
+      });
+
+      const tx: Transaction = {
+        id: txId,
+        userId: user.id,
+        type: 'transfer',
+        amount,
+        accountId: data.sourceAccountId,
+        toAccountId: data.creditCardAccountId,
+        category: `Credit Card Payment (${ccAcc.name})`,
+        date: data.date || now.split('T')[0],
+        notes: data.notes || `Paid credit card bill for ${ccAcc.name} from ${sourceAcc.name}`,
+        createdAt: now,
+      };
+      await firestoreService.saveTransaction(tx);
+      return;
+    }
+
+    await api.payCreditCardBill(data);
     await refreshData();
   };
 
@@ -977,6 +1055,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateInvestment,
         deleteInvestment,
         updateRate,
+        payCreditCardBill,
 
         // Holding Types (Master Data)
         holdingTypes,
@@ -1009,6 +1088,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsFirebaseSetupOpen,
         isMobileAppModalOpen,
         setIsMobileAppModalOpen,
+        isPayBillOpen,
+        setIsPayBillOpen,
+        payBillCard,
+        setPayBillCard,
       }}
     >
       {children}
