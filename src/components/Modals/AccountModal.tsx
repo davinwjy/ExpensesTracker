@@ -47,6 +47,7 @@ export const AccountModal: React.FC = () => {
 
   useEffect(() => {
     if (isAddAccountOpen) {
+      setIsSubmitting(false);
       if (editingAccount) {
         setName(editingAccount.name);
         setType(editingAccount.type);
@@ -67,6 +68,7 @@ export const AccountModal: React.FC = () => {
   }, [isAddAccountOpen, editingAccount]);
 
   const resetFields = () => {
+    setIsSubmitting(false);
     setName('');
     setType('bank');
     setBalance('0');
@@ -382,7 +384,7 @@ export const AccountModal: React.FC = () => {
           </div>
 
           {/* Account Number (Optional) */}
-          {type !== 'credit_card' && type !== 'paylater' && (
+          {type !== 'credit_card' && type !== 'paylater' && type !== 'cash' && (
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
                 ACCOUNT NUMBER / MAPPING (OPTIONAL)

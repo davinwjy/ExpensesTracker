@@ -26,6 +26,7 @@ export const PayBillModal: React.FC = () => {
 
   useEffect(() => {
     if (isPayBillOpen) {
+      setIsSubmitting(false);
       if (payBillCard) {
         setCreditCardAccountId(payBillCard.id);
         setAmountIdr(payBillCard.balance > 0 ? payBillCard.balance.toString() : '');
@@ -55,6 +56,7 @@ export const PayBillModal: React.FC = () => {
   }, [creditCardAccountId, accounts]);
 
   const resetForm = () => {
+    setIsSubmitting(false);
     if (creditCards.length > 0) {
       setCreditCardAccountId(creditCards[0].id);
       setAmountIdr(creditCards[0].balance > 0 ? creditCards[0].balance.toString() : '');

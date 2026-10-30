@@ -131,17 +131,7 @@ export const MobileNav: React.FC = () => {
             </button>
           </div>
 
-          <div className="pt-2 border-t border-slate-800">
-            <button
-              onClick={() => {
-                setIsQuickMenuOpen(false);
-                setEditingAccount(null);
-                setIsAddAccountOpen(true);
-              }}
-              className="w-full py-2.5 px-3 rounded-xl bg-slate-950 text-slate-200 hover:text-white border border-slate-800 text-xs font-semibold text-center"
-            >
-              + Bank / Cash
-            </button>
+          <div className="pt-2 border-t border-slate-800 space-y-1.5">
             {isUserAdmin(user) && (
               <button
                 onClick={() => {

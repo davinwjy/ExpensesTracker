@@ -16,6 +16,7 @@ export const AddExpenseModal: React.FC = () => {
     setIsAddExpenseOpen,
     transactionInitialType,
     accounts,
+    transactions,
     addTransaction,
     editingTransaction,
     setEditingTransaction,
@@ -31,9 +32,21 @@ export const AddExpenseModal: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const categorySuggestions = React.useMemo(() => {
+    if (!category) return [];
+    const set = new Set<string>();
+    transactions.forEach((tx) => {
+      if (tx.type === type && tx.category === category && tx.notes && tx.notes.trim()) {
+        set.add(tx.notes.trim());
+      }
+    });
+    return Array.from(set).slice(-6).reverse();
+  }, [transactions, type, category]);
+
   // Clean form every time modal opens or resets
   useEffect(() => {
     if (isAddExpenseOpen) {
+      setIsSubmitting(false);
       if (editingTransaction) {
         const txType = editingTransaction.type === 'income' ? 'income' : 'expense';
         setType(txType);
@@ -57,6 +70,7 @@ export const AddExpenseModal: React.FC = () => {
   }, [isAddExpenseOpen, editingTransaction, accounts, transactionInitialType]);
 
   const resetForm = () => {
+    setIsSubmitting(false);
     const initType = transactionInitialType || 'expense';
     setType(initType);
     setAmount('');
@@ -389,6 +403,21 @@ export const AddExpenseModal: React.FC = () => {
                 }
                 className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono"
               />
+              {categorySuggestions.length > 0 && (
+                <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                  <span className="text-[9px] text-zinc-500 font-bold uppercase">Suggestions:</span>
+                  {categorySuggestions.map((sug) => (
+                    <button
+                      key={sug}
+                      type="button"
+                      onClick={() => setNotes(sug)}
+                      className="px-2 py-0.5 rounded bg-[#131722] hover:bg-[#1a202c] text-[10px] text-zinc-300 border border-[#212838] hover:border-emerald-500/50 transition-colors cursor-pointer"
+                    >
+                      {sug}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </form>

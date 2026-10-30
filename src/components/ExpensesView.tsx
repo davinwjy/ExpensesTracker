@@ -497,7 +497,7 @@ export const ExpensesView: React.FC = () => {
             <div>
               <span className="text-[10px] text-zinc-500 uppercase mr-1.5">EXPENSES:</span>
               <span className="font-bold text-rose-400 tabular-nums">
-                {formatMasked(totalFilteredExpense, 'IDR', isPrivacyMode)}
+                {formatIdr(totalFilteredExpense)}
               </span>
             </div>
 
@@ -505,7 +505,7 @@ export const ExpensesView: React.FC = () => {
               <div>
                 <span className="text-[10px] text-zinc-500 uppercase mr-1.5">INFLOWS:</span>
                 <span className="font-bold text-emerald-400 tabular-nums">
-                  {formatMasked(totalFilteredIncome, 'IDR', isPrivacyMode)}
+                  {formatIdr(totalFilteredIncome)}
                 </span>
               </div>
             )}
@@ -518,7 +518,7 @@ export const ExpensesView: React.FC = () => {
                 }`}
               >
                 {netCashFlow >= 0 ? '+' : ''}
-                {formatMasked(netCashFlow, 'IDR', isPrivacyMode)}
+                {formatIdr(netCashFlow)}
               </span>
             </div>
           </div>
@@ -623,7 +623,7 @@ export const ExpensesView: React.FC = () => {
                         }`}
                       >
                         {tx.type === 'expense' ? '-' : tx.type === 'income' ? '+' : ''}
-                        {formatMasked(tx.amount, 'IDR', isPrivacyMode)}
+                        {formatIdr(tx.amount)}
                       </span>
                       {tx.type === 'bank_to_investment' && tx.amountUsd && (
                         <div className="text-[10px] text-zinc-500 tabular-nums">

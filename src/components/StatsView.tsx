@@ -4,7 +4,6 @@ import {
   TrendingUp,
   Receipt,
   SlidersHorizontal,
-  Shield,
   Layers,
   Building,
   Landmark,
@@ -26,7 +25,6 @@ export const StatsView: React.FC = () => {
     accounts,
     investments,
     isPrivacyMode,
-    togglePrivacyMode,
     usdIdrRate,
     rateSource,
     rateLastUpdated,
@@ -394,7 +392,7 @@ export const StatsView: React.FC = () => {
       </div>
 
       {/* SYSTEM & EXCHANGE RATE SETTINGS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 font-mono">
+      <div className="font-mono max-w-xl">
         {/* USD / IDR Exchange Rate Setting */}
         <div className="p-4 rounded bg-[#0d1017] border border-[#1b212e] space-y-3">
           <div className="flex items-start justify-between gap-2">
@@ -506,30 +504,6 @@ export const StatsView: React.FC = () => {
                 <span>{rateSaved ? 'SAVED' : 'OVERRIDE'}</span>
               </button>
             </form>
-          </div>
-        </div>
-
-        {/* Privacy & Safe Mode Toggle Card */}
-        <div className="p-4 rounded bg-[#0d1017] border border-[#1b212e] space-y-2.5">
-          <div className="flex items-center gap-1.5 text-zinc-200 font-bold text-xs uppercase tracking-wider">
-            <Shield className="w-3.5 h-3.5 text-amber-400" />
-            <span>PUBLIC PRIVACY SHIELD</span>
-          </div>
-          <p className="text-[10px] text-zinc-500">
-            Mask all monetary figures on screen with asterisks for public security during screen-sharing or café use.
-          </p>
-
-          <div className="pt-2">
-            <button
-              onClick={togglePrivacyMode}
-              className={`w-full py-2 px-3 rounded border text-xs font-mono font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                isPrivacyMode
-                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-300'
-                  : 'bg-[#10141e] border-[#1d2332] text-zinc-300 hover:text-white hover:bg-[#151a26]'
-              }`}
-            >
-              <span>{isPrivacyMode ? 'PRIVACY SHIELD IS ACTIVE (VALUES MASKED)' : 'ENABLE PRIVACY SHIELD (MASK NOMINALS)'}</span>
-            </button>
           </div>
         </div>
       </div>

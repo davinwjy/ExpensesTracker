@@ -377,7 +377,7 @@ export const DashboardView: React.FC = () => {
                 className="text-[10px] font-mono flex items-center gap-1 px-2 py-1 rounded bg-[#131722] hover:bg-[#1a2030] text-sky-400 border border-[#21293a] cursor-pointer"
               >
                 <Plus className="w-3 h-3" />
-                <span>+ BANK</span>
+                <span>BANK</span>
               </button>
               <button
                 onClick={() => setActiveTab('accounts')}
@@ -523,7 +523,7 @@ export const DashboardView: React.FC = () => {
                         }`}
                       >
                         {tx.type === 'expense' ? '-' : tx.type === 'income' ? '+' : ''}
-                        {formatMasked(tx.amount, 'IDR', isPrivacyMode)}
+                        {formatIdr(tx.amount)}
                       </span>
                       {tx.type === 'bank_to_investment' && tx.amountUsd && (
                         <p className="text-[9px] text-zinc-500 font-mono tabular-nums">

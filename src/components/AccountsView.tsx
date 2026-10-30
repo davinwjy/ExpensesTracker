@@ -89,7 +89,7 @@ export const AccountsView: React.FC = () => {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold font-mono text-xs transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.8]" />
-            <span>+ NEW ACCOUNT</span>
+            <span>NEW ACCOUNT</span>
           </button>
         </div>
       </div>

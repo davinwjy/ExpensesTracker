@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
+import { GoogleGenAI } from "@google/genai";
 import {
   initDB,
   db,
@@ -18,6 +19,15 @@ import {
 } from './server/db.ts';
 
 dotenv.config();
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+  httpOptions: {
+    headers: {
+      'User-Agent': 'aistudio-build',
+    }
+  }
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -487,6 +497,52 @@ app.get('/api/transactions', authenticateToken, (req: AuthenticatedRequest, res:
   }
 
   res.json({ transactions: txs });
+});
+
+// AI Auto-Categorize endpoint
+app.post('/api/ai/categorize', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { description, type } = req.body;
+    if (!description || !String(description).trim()) {
+      res.status(400).json({ error: 'Description is required' });
+      return;
+    }
+
+    const categories = type === 'income' ? [
+      'Salary / Wages',
+      'Business / Freelance',
+      'Investment Returns',
+      'Gifts / Bonus',
+      'Other Income'
+    ] : [
+      'Food & Dining',
+      'Transportation',
+      'Shopping',
+      'Bills & Utilities',
+      'Entertainment',
+      'Health & Fitness',
+      'Travel',
+      'Education',
+      'Subscriptions',
+      'Other Expense'
+    ];
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: `Classify the following transaction description into one of the provided categories. 
+Transaction Type: ${type || 'expense'}
+Description: "${String(description).trim()}"
+Available Categories: ${JSON.stringify(categories)}
+
+Return ONLY the category name as plain text (exact match from the list).`,
+    });
+
+    const suggestedCategory = (response.text || '').trim();
+    res.json({ category: suggestedCategory });
+  } catch (err: any) {
+    console.error('AI Categorization error:', err);
+    res.status(500).json({ error: err.message || 'Failed to auto-categorize' });
+  }
 });
 
 app.post('/api/transactions', authenticateToken, (req: AuthenticatedRequest, res: Response): void => {

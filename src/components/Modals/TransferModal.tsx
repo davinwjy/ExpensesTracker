@@ -72,12 +72,14 @@ export const TransferModal: React.FC = () => {
 
   useEffect(() => {
     if (isTransferOpen) {
+      setIsSubmitting(false);
       setMode(transferInitialMode || 'bank_to_investment');
       resetFields();
     }
   }, [isTransferOpen, transferInitialMode, accounts, investments, usdIdrRate]);
 
   const resetFields = () => {
+    setIsSubmitting(false);
     setFromAccountId(accounts.length > 0 ? accounts[0].id : '');
     if (accounts.length > 1) {
       setToAccountId(accounts[1].id);

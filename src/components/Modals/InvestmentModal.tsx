@@ -61,6 +61,7 @@ export const InvestmentModal: React.FC = () => {
 
   useEffect(() => {
     if (isAddInvestmentOpen) {
+      setIsSubmitting(false);
       if (editingInvestment) {
         setCategory(editingInvestment.category);
         const matched = categoriesList.find((c) => c.id === editingInvestment.category);
@@ -82,6 +83,7 @@ export const InvestmentModal: React.FC = () => {
   }, [isAddInvestmentOpen, editingInvestment]);
 
   const resetFields = () => {
+    setIsSubmitting(false);
     setCategory('Saham');
     setCurrency('IDR');
     setCustomExchangeRate('');
