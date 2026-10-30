@@ -9,17 +9,10 @@ import {
   TrendingUp,
   ArrowDownRight,
   X,
-  Building2,
-  Flame,
-  Shield,
-  Smartphone,
 } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
-import { useAuth } from '../context/AuthContext';
-import { isUserAdmin } from '../lib/admin';
 
 export const MobileNav: React.FC = () => {
-  const { user, isFirebase } = useAuth();
   const {
     activeTab,
     setActiveTab,
@@ -27,11 +20,7 @@ export const MobileNav: React.FC = () => {
     setTransactionInitialType,
     setIsTransferOpen,
     setTransferInitialMode,
-    setIsAddAccountOpen,
     setEditingTransaction,
-    setEditingAccount,
-    setIsFirebaseSetupOpen,
-    setIsMobileAppModalOpen,
   } = useFinance();
 
   const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
@@ -128,45 +117,6 @@ export const MobileNav: React.FC = () => {
                 <p className="text-xs font-bold text-white">Account Transfer</p>
                 <p className="text-[11px] text-slate-400">Transfer between accounts</p>
               </div>
-            </button>
-          </div>
-
-          <div className="pt-2 border-t border-slate-800 space-y-1.5">
-            {isUserAdmin(user) && (
-              <button
-                onClick={() => {
-                  setIsQuickMenuOpen(false);
-                  setActiveTab('admin');
-                }}
-                className="col-span-2 py-2.5 px-3 rounded-xl text-xs font-semibold text-center flex items-center justify-center gap-1.5 border bg-emerald-950/60 text-emerald-300 border-emerald-800/60 hover:bg-emerald-900/60 transition-colors"
-              >
-                <Shield className="w-3.5 h-3.5 text-emerald-400" />
-                <span>🛡️ Admin Management Console</span>
-              </button>
-            )}
-            <button
-              onClick={() => {
-                setIsQuickMenuOpen(false);
-                setIsFirebaseSetupOpen(true);
-              }}
-              className={`col-span-2 py-2.5 px-3 rounded-xl text-xs font-semibold text-center flex items-center justify-center gap-1.5 border ${
-                isFirebase
-                  ? 'bg-amber-950/60 text-amber-300 border-amber-800/60'
-                  : 'bg-slate-900 text-slate-300 hover:text-amber-300 border-slate-800'
-              }`}
-            >
-              <Flame className="w-3.5 h-3.5 text-amber-400" />
-              <span>{isFirebase ? '🔥 Firebase Cloud Active' : '🔥 Hubungkan Firebase Cloud'}</span>
-            </button>
-            <button
-              onClick={() => {
-                setIsQuickMenuOpen(false);
-                setIsMobileAppModalOpen(true);
-              }}
-              className="col-span-2 py-2.5 px-3 rounded-xl text-xs font-semibold text-center flex items-center justify-center gap-2 border bg-emerald-950/40 border-emerald-800/40 text-emerald-300 hover:text-white cursor-pointer"
-            >
-              <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-              <span>📱 Pasang di Layar HP / Download APK</span>
             </button>
           </div>
         </div>
