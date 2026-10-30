@@ -449,37 +449,68 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     date: string;
     notes?: string;
   }) => {
-    if (isFirebase && user) {
-      const now = new Date().toISOString();
-      const txId = 'tx_' + Date.now();
-      const newTx: Transaction = {
-        id: txId,
-        userId: user.id,
-        type: data.type,
-        amount: data.amount,
-        accountId: data.accountId,
-        category: data.category,
-        date: data.date,
-        createdAt: now,
-        ...(data.notes?.trim() ? { notes: data.notes.trim() } : {}),
-      };
-      await firestoreService.saveTransaction(newTx);
+    const parsedAmount = Math.abs(Number(data.amount));
+    const now = new Date().toISOString();
+    const txId = 'tx_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
 
-      // Adjust account balance
-      const targetAcc = accounts.find((a) => a.id === data.accountId);
-      if (targetAcc) {
-        let newBal = targetAcc.balance;
-        if (targetAcc.type === 'credit_card') {
-          newBal = data.type === 'expense' ? targetAcc.balance + data.amount : targetAcc.balance - data.amount;
-        } else {
-          newBal = data.type === 'expense' ? targetAcc.balance - data.amount : targetAcc.balance + data.amount;
+    const targetAcc = accounts.find((a) => a.id === data.accountId);
+    if (!targetAcc) throw new Error('Funding account not found');
+
+    if (data.type === 'expense') {
+      if (targetAcc.type === 'credit_card' || targetAcc.type === 'paylater') {
+        if (targetAcc.creditLimit !== undefined && targetAcc.balance + parsedAmount > targetAcc.creditLimit) {
+          const avail = Math.max(0, targetAcc.creditLimit - targetAcc.balance);
+          throw new Error(`Limit kredit tidak mencukupi (${avail.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
         }
-        await firestoreService.saveAccount({
-          ...targetAcc,
-          balance: newBal,
-          updatedAt: now,
-        });
+      } else {
+        if (parsedAmount > targetAcc.balance) {
+          throw new Error(`Saldo tidak mencukupi (${targetAcc.balance.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+        }
       }
+    }
+
+    let updatedAccounts = [...accounts];
+    let updatedAcc: Account | null = null;
+
+    if (targetAcc) {
+      let newBal = targetAcc.balance;
+      if (targetAcc.type === 'credit_card' || targetAcc.type === 'paylater') {
+        newBal = data.type === 'expense' ? targetAcc.balance + parsedAmount : targetAcc.balance - parsedAmount;
+      } else {
+        newBal = data.type === 'expense' ? targetAcc.balance - parsedAmount : targetAcc.balance + parsedAmount;
+      }
+      updatedAcc = {
+        ...targetAcc,
+        balance: newBal,
+        updatedAt: now,
+      };
+      updatedAccounts = updatedAccounts.map((a) => (a.id === updatedAcc!.id ? updatedAcc! : a));
+    }
+
+    const newTx: Transaction = {
+      id: txId,
+      userId: user?.id || 'usr_local',
+      type: data.type,
+      amount: parsedAmount,
+      accountId: data.accountId,
+      category: data.category,
+      date: data.date,
+      createdAt: now,
+      ...(data.notes?.trim() ? { notes: data.notes.trim() } : {}),
+    };
+
+    // Immediate optimistic state update
+    const nextTxs = [newTx, ...transactions];
+    setAccounts(updatedAccounts);
+    setTransactions(nextTxs);
+    setStats(computeStats(updatedAccounts, nextTxs, investments, usdIdrRate));
+
+    if (isFirebase && user) {
+      const promises: Promise<any>[] = [firestoreService.saveTransaction(newTx)];
+      if (updatedAcc) {
+        promises.push(firestoreService.saveAccount(updatedAcc));
+      }
+      await Promise.all(promises);
       return;
     }
 
@@ -535,12 +566,141 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateTransaction = async (id: string, data: Partial<Transaction>) => {
-    if (isFirebase && user) {
-      const target = transactions.find((t) => t.id === id);
-      if (target) {
-        await firestoreService.saveTransaction({ ...target, ...data });
+    const oldTx = transactions.find((t) => t.id === id);
+    if (!oldTx) return;
+
+    const newAmount = data.amount !== undefined ? Math.abs(Number(data.amount)) : oldTx.amount;
+    const newType = (data.type || oldTx.type) as 'expense' | 'income';
+    const newAccountId = data.accountId || oldTx.accountId;
+    const now = new Date().toISOString();
+
+    const oldAcc = accounts.find((a) => a.id === oldTx.accountId);
+    const newAcc = accounts.find((a) => a.id === newAccountId);
+    if (!newAcc) throw new Error('Target account not found');
+
+    // Validate available balance/credit for updated expense
+    if (newType === 'expense') {
+      if (newAcc.type === 'credit_card' || newAcc.type === 'paylater') {
+        if (newAcc.creditLimit !== undefined) {
+          let revertedDebt = newAcc.balance;
+          if (oldAcc && oldAcc.id === newAcc.id && oldTx.type === 'expense') {
+            revertedDebt = Math.max(0, revertedDebt - oldTx.amount);
+          }
+          if (revertedDebt + newAmount > newAcc.creditLimit) {
+            const avail = Math.max(0, newAcc.creditLimit - revertedDebt);
+            throw new Error(`Limit kredit tidak mencukupi (${avail.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+          }
+        }
+      } else {
+        let revertedBal = newAcc.balance;
+        if (oldAcc && oldAcc.id === newAcc.id && oldTx.type === 'expense') {
+          revertedBal += oldTx.amount;
+        }
+        if (newAmount > revertedBal) {
+          throw new Error(`Saldo tidak mencukupi (${revertedBal.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+        }
       }
-      return;
+    }
+
+    const updatedTx: Transaction = {
+      ...oldTx,
+      ...data,
+      amount: newAmount,
+      type: newType,
+      accountId: newAccountId,
+    };
+
+    let updatedAccounts = [...accounts];
+
+    if (oldAcc && newAcc && oldAcc.id === newAcc.id) {
+      // Modifying transaction within the same account
+      let bal = oldAcc.balance;
+
+      // 1. Revert previous transaction effect
+      if (oldAcc.type === 'credit_card' || oldAcc.type === 'paylater') {
+        if (oldTx.type === 'expense') bal -= oldTx.amount;
+        else if (oldTx.type === 'income') bal += oldTx.amount;
+      } else {
+        if (oldTx.type === 'expense') bal += oldTx.amount;
+        else if (oldTx.type === 'income') bal -= oldTx.amount;
+      }
+
+      // 2. Apply new transaction effect
+      if (oldAcc.type === 'credit_card' || oldAcc.type === 'paylater') {
+        if (newType === 'expense') bal += newAmount;
+        else if (newType === 'income') bal -= newAmount;
+      } else {
+        if (newType === 'expense') bal -= newAmount;
+        else if (newType === 'income') bal += newAmount;
+      }
+
+      const modAcc = { ...oldAcc, balance: bal, updatedAt: now };
+      updatedAccounts = updatedAccounts.map((a) => (a.id === modAcc.id ? modAcc : a));
+
+      // Immediate optimistic update
+      const nextTxs = transactions.map((t) => (t.id === id ? updatedTx : t));
+      setAccounts(updatedAccounts);
+      setTransactions(nextTxs);
+      setStats(computeStats(updatedAccounts, nextTxs, investments, usdIdrRate));
+
+      if (isFirebase && user) {
+        await Promise.all([
+          firestoreService.saveTransaction(updatedTx),
+          firestoreService.saveAccount(modAcc),
+        ]);
+        return;
+      }
+    } else {
+      // Account was changed to a different one
+      let modOldAcc = oldAcc ? { ...oldAcc } : null;
+      let modNewAcc = newAcc ? { ...newAcc } : null;
+
+      if (modOldAcc) {
+        let bal = modOldAcc.balance;
+        if (modOldAcc.type === 'credit_card' || modOldAcc.type === 'paylater') {
+          if (oldTx.type === 'expense') bal -= oldTx.amount;
+          else if (oldTx.type === 'income') bal += oldTx.amount;
+        } else {
+          if (oldTx.type === 'expense') bal += oldTx.amount;
+          else if (oldTx.type === 'income') bal -= oldTx.amount;
+        }
+        modOldAcc.balance = bal;
+        modOldAcc.updatedAt = now;
+      }
+
+      if (modNewAcc) {
+        let bal = modNewAcc.balance;
+        if (modNewAcc.type === 'credit_card' || modNewAcc.type === 'paylater') {
+          if (newType === 'expense') bal += newAmount;
+          else if (newType === 'income') bal -= newAmount;
+        } else {
+          if (newType === 'expense') bal -= newAmount;
+          else if (newType === 'income') bal += newAmount;
+        }
+        modNewAcc.balance = bal;
+        modNewAcc.updatedAt = now;
+      }
+
+      if (modOldAcc) {
+        updatedAccounts = updatedAccounts.map((a) => (a.id === modOldAcc!.id ? modOldAcc! : a));
+      }
+      if (modNewAcc) {
+        updatedAccounts = updatedAccounts.map((a) => (a.id === modNewAcc!.id ? modNewAcc! : a));
+      }
+
+      // Immediate optimistic update
+      const nextTxs = transactions.map((t) => (t.id === id ? updatedTx : t));
+      setAccounts(updatedAccounts);
+      setTransactions(nextTxs);
+      setStats(computeStats(updatedAccounts, nextTxs, investments, usdIdrRate));
+
+      if (isFirebase && user) {
+        const promises: Promise<any>[] = [firestoreService.saveTransaction(updatedTx)];
+        if (modOldAcc) promises.push(firestoreService.saveAccount(modOldAcc));
+        if (modNewAcc) promises.push(firestoreService.saveAccount(modNewAcc));
+        await Promise.all(promises);
+        return;
+      }
     }
 
     await api.updateTransaction(id, data);
@@ -548,24 +708,40 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const deleteTransaction = async (id: string) => {
-    if (isFirebase && user) {
-      const target = transactions.find((t) => t.id === id);
-      if (target) {
-        // Reverse account balance change
-        const targetAcc = accounts.find((a) => a.id === target.accountId);
-        if (targetAcc) {
-          const newBal =
-            target.type === 'expense'
-              ? targetAcc.balance + target.amount
-              : targetAcc.balance - target.amount;
-          await firestoreService.saveAccount({
-            ...targetAcc,
-            balance: newBal,
-            updatedAt: new Date().toISOString(),
-          });
-        }
-        await firestoreService.deleteTransaction(id);
+    const target = transactions.find((t) => t.id === id);
+    if (!target) return;
+
+    const targetAcc = accounts.find((a) => a.id === target.accountId);
+    let updatedAccounts = [...accounts];
+    let modAcc: Account | null = null;
+
+    if (targetAcc) {
+      let newBal = targetAcc.balance;
+      if (targetAcc.type === 'credit_card' || targetAcc.type === 'paylater') {
+        newBal = target.type === 'expense' ? targetAcc.balance - target.amount : targetAcc.balance + target.amount;
+      } else {
+        newBal = target.type === 'expense' ? targetAcc.balance + target.amount : targetAcc.balance - target.amount;
       }
+      modAcc = {
+        ...targetAcc,
+        balance: newBal,
+        updatedAt: new Date().toISOString(),
+      };
+      updatedAccounts = updatedAccounts.map((a) => (a.id === modAcc!.id ? modAcc! : a));
+    }
+
+    // Immediate optimistic update
+    const nextTxs = transactions.filter((t) => t.id !== id);
+    setAccounts(updatedAccounts);
+    setTransactions(nextTxs);
+    setStats(computeStats(updatedAccounts, nextTxs, investments, usdIdrRate));
+
+    if (isFirebase && user) {
+      const promises: Promise<any>[] = [firestoreService.deleteTransaction(id)];
+      if (modAcc) {
+        promises.push(firestoreService.saveAccount(modAcc));
+      }
+      await Promise.all(promises);
       return;
     }
 

@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 const DATA_DIR = path.resolve(__dirname, '../data');
 const DATA_FILE = path.join(DATA_DIR, 'wealthtrack.json');
 
-export type AccountType = 'bank' | 'cash' | 'ewallet';
+export type AccountType = 'bank' | 'cash' | 'credit_card' | 'paylater' | 'ewallet';
 export type InvestmentCategory = string;
 export type Currency = 'IDR' | 'USD';
 
@@ -47,6 +47,11 @@ export interface Account {
   balance: number; // in IDR
   accountNumber?: string;
   color?: string;
+  creditLimit?: number;
+  billingDate?: number;
+  dueDate?: number;
+  cardNetwork?: string;
+  last4Digits?: string;
   createdAt: string;
   updatedAt: string;
 }

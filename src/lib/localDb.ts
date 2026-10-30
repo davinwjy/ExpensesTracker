@@ -474,6 +474,20 @@ export const localDb = {
     if (!acc) throw new Error('Account not found');
 
     const amount = Math.abs(Number(data.amount));
+
+    if (data.type === 'expense') {
+      if (acc.type === 'credit_card' || acc.type === 'paylater') {
+        if (acc.creditLimit !== undefined && acc.balance + amount > acc.creditLimit) {
+          const avail = Math.max(0, acc.creditLimit - acc.balance);
+          throw new Error(`Limit kredit tidak mencukupi (${avail.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+        }
+      } else {
+        if (amount > acc.balance) {
+          throw new Error(`Saldo tidak mencukupi (${acc.balance.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+        }
+      }
+    }
+
     if (acc.type === 'credit_card' || acc.type === 'paylater') {
       if (data.type === 'expense') {
         acc.balance += amount; // spending increases debt
@@ -512,8 +526,38 @@ export const localDb = {
     const tx = store.transactions.find(t => t.id === id && t.userId === userId);
     if (!tx) throw new Error('Transaction not found');
 
-    // Revert old effect
+    const newAmount = data.amount !== undefined ? Math.abs(Number(data.amount)) : tx.amount;
+    const newType = data.type || tx.type;
+    const targetAccId = data.accountId || tx.accountId;
     const oldAcc = store.accounts.find(a => a.id === tx.accountId && a.userId === userId);
+    const targetAcc = store.accounts.find(a => a.id === targetAccId && a.userId === userId);
+    if (!targetAcc) throw new Error('Target account not found');
+
+    // Validate available balance/credit for updated expense
+    if (newType === 'expense') {
+      if (targetAcc.type === 'credit_card' || targetAcc.type === 'paylater') {
+        if (targetAcc.creditLimit !== undefined) {
+          let revertedDebt = targetAcc.balance;
+          if (oldAcc && oldAcc.id === targetAcc.id && tx.type === 'expense') {
+            revertedDebt = Math.max(0, revertedDebt - tx.amount);
+          }
+          if (revertedDebt + newAmount > targetAcc.creditLimit) {
+            const avail = Math.max(0, targetAcc.creditLimit - revertedDebt);
+            throw new Error(`Limit kredit tidak mencukupi (${avail.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+          }
+        }
+      } else {
+        let revertedBal = targetAcc.balance;
+        if (oldAcc && oldAcc.id === targetAcc.id && tx.type === 'expense') {
+          revertedBal += tx.amount;
+        }
+        if (newAmount > revertedBal) {
+          throw new Error(`Saldo tidak mencukupi (${revertedBal.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+        }
+      }
+    }
+
+    // Revert old effect
     if (oldAcc) {
       if (oldAcc.type === 'credit_card' || oldAcc.type === 'paylater') {
         if (tx.type === 'expense') oldAcc.balance -= tx.amount;
@@ -522,14 +566,10 @@ export const localDb = {
         if (tx.type === 'expense') oldAcc.balance += tx.amount;
         else if (tx.type === 'income') oldAcc.balance -= tx.amount;
       }
+      oldAcc.updatedAt = new Date().toISOString();
     }
 
     // Apply new effect
-    const newAmount = data.amount !== undefined ? Math.abs(Number(data.amount)) : tx.amount;
-    const newType = data.type || tx.type;
-    const targetAccId = data.accountId || tx.accountId;
-    const targetAcc = store.accounts.find(a => a.id === targetAccId && a.userId === userId);
-
     if (targetAcc) {
       if (targetAcc.type === 'credit_card' || targetAcc.type === 'paylater') {
         if (newType === 'expense') targetAcc.balance += newAmount;
@@ -538,6 +578,7 @@ export const localDb = {
         if (newType === 'expense') targetAcc.balance -= newAmount;
         else if (newType === 'income') targetAcc.balance += newAmount;
       }
+      targetAcc.updatedAt = new Date().toISOString();
     }
 
     tx.amount = newAmount;
@@ -567,6 +608,7 @@ export const localDb = {
         if (tx.type === 'expense') acc.balance += tx.amount;
         else if (tx.type === 'income') acc.balance -= tx.amount;
       }
+      acc.updatedAt = new Date().toISOString();
     }
 
     if (tx.type === 'transfer' && tx.toAccountId) {

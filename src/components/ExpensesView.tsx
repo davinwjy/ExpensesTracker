@@ -635,7 +635,7 @@ export const ExpensesView: React.FC = () => {
                     {/* Actions */}
                     <td className="py-2 px-3 text-center whitespace-nowrap">
                       <div className="flex items-center justify-center gap-1">
-                        {tx.type === 'expense' && (
+                        {(tx.type === 'expense' || tx.type === 'income') && (
                           <button
                             onClick={() => {
                               setEditingTransaction(tx);

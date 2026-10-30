@@ -108,6 +108,42 @@ export const AddExpenseModal: React.FC = () => {
     setAmount((current + inc).toString());
   };
 
+  const selectedAccount = accounts.find((a) => a.id === accountId);
+
+  const availableBalance = React.useMemo(() => {
+    if (!selectedAccount) return 0;
+    if (selectedAccount.type === 'credit_card' || selectedAccount.type === 'paylater') {
+      if (selectedAccount.creditLimit === undefined) return 0;
+      let revertedDebt = selectedAccount.balance;
+      if (
+        editingTransaction &&
+        editingTransaction.accountId === selectedAccount.id &&
+        editingTransaction.type === 'expense'
+      ) {
+        revertedDebt = Math.max(0, revertedDebt - editingTransaction.amount);
+      }
+      return Math.max(0, selectedAccount.creditLimit - revertedDebt);
+    }
+    let revertedBal = selectedAccount.balance;
+    if (
+      editingTransaction &&
+      editingTransaction.accountId === selectedAccount.id &&
+      editingTransaction.type === 'expense'
+    ) {
+      revertedBal += editingTransaction.amount;
+    }
+    return revertedBal;
+  }, [selectedAccount, editingTransaction]);
+
+  const parsedNumAmount = Number(amount);
+  const isInsufficientBalance = Boolean(
+    type === 'expense' &&
+    selectedAccount &&
+    !isNaN(parsedNumAmount) &&
+    parsedNumAmount > 0 &&
+    parsedNumAmount > availableBalance
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -121,6 +157,25 @@ export const AddExpenseModal: React.FC = () => {
     if (!accountId) {
       setError('Please select a Bank or Cash account');
       return;
+    }
+
+    if (type === 'expense' && selectedAccount) {
+      if (parsedAmount > availableBalance) {
+        if (selectedAccount.type === 'credit_card' || selectedAccount.type === 'paylater') {
+          setError(
+            `Sisa limit kredit tidak mencukupi (${formatIdr(availableBalance)}). Pengeluaran sebesar ${formatIdr(
+              parsedAmount
+            )} tidak dapat disubmit.`
+          );
+        } else {
+          setError(
+            `Saldo tidak mencukupi (${formatIdr(availableBalance)}). Pengeluaran sebesar ${formatIdr(
+              parsedAmount
+            )} tidak dapat disubmit.`
+          );
+        }
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -307,6 +362,20 @@ export const AddExpenseModal: React.FC = () => {
               </div>
             )}
 
+            {/* Insufficient balance warning under amount */}
+            {isInsufficientBalance && (
+              <div className="mt-1.5 flex items-center gap-1.5 p-2 rounded bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] font-mono">
+                <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                <span>
+                  Nominal melebihi saldo tersedia (kurang{' '}
+                  <strong className="text-rose-200 tabular-nums">
+                    {formatIdr(parsedNumAmount - availableBalance)}
+                  </strong>
+                  )
+                </span>
+              </div>
+            )}
+
             {/* Quick Increment Buttons */}
             <div className="flex flex-wrap gap-1 mt-2">
               {[10000, 50000, 100000, 250000, 500000, 1000000, 5000000].map((inc) => (
@@ -324,16 +393,36 @@ export const AddExpenseModal: React.FC = () => {
 
           {/* Source Account (Bank / Cash) */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-              {type === 'expense'
-                ? 'SOURCE LEDGER (DEBIT)'
-                : 'DESTINATION LEDGER (CREDIT)'}{' '}
-              <span className="text-rose-400">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                {type === 'expense'
+                  ? 'SOURCE LEDGER (DEBIT)'
+                  : 'DESTINATION LEDGER (CREDIT)'}{' '}
+                <span className="text-rose-400">*</span>
+              </label>
+              {selectedAccount && (
+                <span className="text-[10px] font-mono text-zinc-400">
+                  {selectedAccount.type === 'credit_card' || selectedAccount.type === 'paylater'
+                    ? 'SISA LIMIT: '
+                    : 'SALDO: '}
+                  <strong
+                    className={`tabular-nums ${
+                      isInsufficientBalance ? 'text-rose-400' : 'text-emerald-400'
+                    }`}
+                  >
+                    {formatIdr(availableBalance)}
+                  </strong>
+                </span>
+              )}
+            </div>
             <select
               value={accountId}
               onChange={(e) => setAccountId(e.target.value)}
-              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono"
+              className={`w-full bg-[#080a0f] border rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono ${
+                isInsufficientBalance
+                  ? 'border-rose-500/60 focus:border-rose-500'
+                  : 'border-[#1d2332] focus:border-emerald-500'
+              }`}
               required
             >
               {accounts.length === 0 && <option value="">No accounts found - add one first</option>}
@@ -434,17 +523,21 @@ export const AddExpenseModal: React.FC = () => {
           <button
             type="submit"
             form="expense-modal-form"
-            disabled={isSubmitting}
-            className={`flex items-center justify-center gap-1 px-3.5 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
-              type === 'expense'
-                ? 'bg-rose-600 hover:bg-rose-500 text-white'
-                : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'
+            disabled={isSubmitting || isInsufficientBalance}
+            className={`flex items-center justify-center gap-1 px-3.5 py-1.5 rounded text-xs font-bold transition-all ${
+              isInsufficientBalance
+                ? 'bg-rose-950/60 text-rose-400 border border-rose-500/40 cursor-not-allowed opacity-75'
+                : type === 'expense'
+                ? 'bg-rose-600 hover:bg-rose-500 text-white cursor-pointer'
+                : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer'
             } disabled:opacity-50`}
           >
             <Check className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>
               {isSubmitting
                 ? 'RECORDING...'
+                : isInsufficientBalance
+                ? 'SALDO TIDAK CUKUP'
                 : editingTransaction
                 ? 'UPDATE LOG'
                 : 'COMMIT RECORD'}

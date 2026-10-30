@@ -569,11 +569,39 @@ app.post('/api/transactions', authenticateToken, (req: AuthenticatedRequest, res
 
     const txType = type === 'income' ? 'income' : 'expense';
 
-    // Update account balance
+    // Validate available balance/credit for expense
     if (txType === 'expense') {
-      account.balance -= parsedAmount;
+      if (account.type === 'credit_card' || account.type === 'paylater') {
+        if (account.creditLimit !== undefined && account.balance + parsedAmount > account.creditLimit) {
+          const availLimit = Math.max(0, account.creditLimit - account.balance);
+          res.status(400).json({
+            error: `Insufficient credit limit. Available: ${availLimit}`,
+          });
+          return;
+        }
+      } else {
+        if (parsedAmount > account.balance) {
+          res.status(400).json({
+            error: `Insufficient balance. Available balance: ${account.balance}`,
+          });
+          return;
+        }
+      }
+    }
+
+    // Update account balance
+    if (account.type === 'credit_card' || account.type === 'paylater') {
+      if (txType === 'expense') {
+        account.balance += parsedAmount;
+      } else {
+        account.balance -= parsedAmount;
+      }
     } else {
-      account.balance += parsedAmount;
+      if (txType === 'expense') {
+        account.balance -= parsedAmount;
+      } else {
+        account.balance += parsedAmount;
+      }
     }
     account.updatedAt = new Date().toISOString();
 
@@ -611,27 +639,76 @@ app.put('/api/transactions/:id', authenticateToken, (req: AuthenticatedRequest, 
       return;
     }
 
-    // Revert old transaction effect on original account
-    const oldAccount = db.data.accounts.find(a => a.id === tx.accountId && a.userId === userId);
-    if (oldAccount) {
-      if (tx.type === 'expense') {
-        oldAccount.balance += tx.amount;
-      } else if (tx.type === 'income') {
-        oldAccount.balance -= tx.amount;
-      }
-    }
-
-    // Apply new values
     const newAmount = amount !== undefined ? Math.abs(Number(amount)) : tx.amount;
     const newType = type || tx.type;
     const targetAccountId = accountId || tx.accountId;
 
+    const oldAccount = db.data.accounts.find(a => a.id === tx.accountId && a.userId === userId);
     const targetAccount = db.data.accounts.find(a => a.id === targetAccountId && a.userId === userId);
+
+    if (!targetAccount) {
+      res.status(404).json({ error: 'Target account not found' });
+      return;
+    }
+
+    // Validate available balance/credit for updated expense
+    if (newType === 'expense') {
+      if (targetAccount.type === 'credit_card' || targetAccount.type === 'paylater') {
+        if (targetAccount.creditLimit !== undefined) {
+          let revertedDebt = targetAccount.balance;
+          if (oldAccount && oldAccount.id === targetAccount.id && tx.type === 'expense') {
+            revertedDebt = Math.max(0, revertedDebt - tx.amount);
+          }
+          if (revertedDebt + newAmount > targetAccount.creditLimit) {
+            const avail = Math.max(0, targetAccount.creditLimit - revertedDebt);
+            res.status(400).json({ error: `Insufficient credit limit. Available: ${avail}` });
+            return;
+          }
+        }
+      } else {
+        let revertedBal = targetAccount.balance;
+        if (oldAccount && oldAccount.id === targetAccount.id && tx.type === 'expense') {
+          revertedBal += tx.amount;
+        }
+        if (newAmount > revertedBal) {
+          res.status(400).json({ error: `Insufficient balance. Available: ${revertedBal}` });
+          return;
+        }
+      }
+    }
+
+    // Revert old transaction effect on original account
+    if (oldAccount) {
+      if (oldAccount.type === 'credit_card' || oldAccount.type === 'paylater') {
+        if (tx.type === 'expense') {
+          oldAccount.balance -= tx.amount;
+        } else if (tx.type === 'income') {
+          oldAccount.balance += tx.amount;
+        }
+      } else {
+        if (tx.type === 'expense') {
+          oldAccount.balance += tx.amount;
+        } else if (tx.type === 'income') {
+          oldAccount.balance -= tx.amount;
+        }
+      }
+      oldAccount.updatedAt = new Date().toISOString();
+    }
+
+    // Apply new values to target account
     if (targetAccount) {
-      if (newType === 'expense') {
-        targetAccount.balance -= newAmount;
-      } else if (newType === 'income') {
-        targetAccount.balance += newAmount;
+      if (targetAccount.type === 'credit_card' || targetAccount.type === 'paylater') {
+        if (newType === 'expense') {
+          targetAccount.balance += newAmount;
+        } else if (newType === 'income') {
+          targetAccount.balance -= newAmount;
+        }
+      } else {
+        if (newType === 'expense') {
+          targetAccount.balance -= newAmount;
+        } else if (newType === 'income') {
+          targetAccount.balance += newAmount;
+        }
       }
       targetAccount.updatedAt = new Date().toISOString();
     }
@@ -666,11 +743,20 @@ app.delete('/api/transactions/:id', authenticateToken, (req: AuthenticatedReques
     // Revert account balance
     const account = db.data.accounts.find(a => a.id === tx.accountId && a.userId === userId);
     if (account) {
-      if (tx.type === 'expense') {
-        account.balance += tx.amount;
-      } else if (tx.type === 'income') {
-        account.balance -= tx.amount;
+      if (account.type === 'credit_card' || account.type === 'paylater') {
+        if (tx.type === 'expense') {
+          account.balance -= tx.amount;
+        } else if (tx.type === 'income') {
+          account.balance += tx.amount;
+        }
+      } else {
+        if (tx.type === 'expense') {
+          account.balance += tx.amount;
+        } else if (tx.type === 'income') {
+          account.balance -= tx.amount;
+        }
       }
+      account.updatedAt = new Date().toISOString();
     }
 
     // If it was transfer to account
