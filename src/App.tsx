@@ -33,9 +33,9 @@ const MainAppContent: React.FC = () => {
     setIsFirebaseSetupOpen,
     isMobileAppModalOpen,
     setIsMobileAppModalOpen,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen,
   } = useFinance();
-
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     try {

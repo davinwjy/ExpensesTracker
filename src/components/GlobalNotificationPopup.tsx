@@ -93,6 +93,8 @@ export const GlobalNotificationPopup: React.FC = () => {
               <ArrowDownRight className="w-5 h-5 text-emerald-400" />
             ) : notification.type === 'error' ? (
               <AlertCircle className="w-5 h-5 text-rose-400" />
+            ) : notification.type === 'info' ? (
+              <Info className="w-5 h-5 text-cyan-400" />
             ) : (
               <CheckCircle2 className="w-5 h-5 text-cyan-400" />
             )}
@@ -110,10 +112,10 @@ export const GlobalNotificationPopup: React.FC = () => {
                     : 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
                 }`}
               >
-                {isExpense ? 'PENGELUARAN' : isIncome ? 'PEMASUKAN' : 'NOTIFIKASI'}
+                {isExpense ? 'PENGELUARAN' : isIncome ? 'PEMASUKAN' : notification.type === 'info' ? 'SISTEM' : 'NOTIFIKASI'}
               </span>
               <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">
-                SUCCESS
+                {notification.type === 'info' ? 'INFO' : notification.type === 'error' ? 'FAILED' : 'SUCCESS'}
               </span>
             </div>
 

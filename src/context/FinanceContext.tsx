@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { App as CapApp } from '@capacitor/app';
 import {
   Account,
   AccountType,
@@ -42,6 +43,12 @@ interface FinanceContextType {
   setTheme: (theme: 'dark' | 'light') => void;
   activeTab: 'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin';
   setActiveTab: (tab: 'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin') => void;
+  tabHistory: Array<'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin'>;
+  goBack: () => boolean;
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (v: boolean) => void;
+  isMobileQuickMenuOpen: boolean;
+  setIsMobileQuickMenuOpen: (v: boolean) => void;
   announcement: SystemAnnouncement | null;
   refreshAnnouncement: () => Promise<void>;
   refreshData: () => Promise<void>;
@@ -211,9 +218,22 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isLoading, setIsLoading] = useState(false);
   const [announcement, setAnnouncement] = useState<SystemAnnouncement | null>(null);
   const [activeTab, setActiveTabState] = useState<'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin'>('dashboard');
+  const [tabHistory, setTabHistory] = useState<Array<'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin'>>(['dashboard']);
 
   const setActiveTab = useCallback((tab: 'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin') => {
-    setActiveTabState(tab);
+    setActiveTabState((prevTab) => {
+      if (prevTab === tab) return prevTab;
+      setTabHistory((prevHist) => {
+        if (prevHist[prevHist.length - 1] === tab) return prevHist;
+        return [...prevHist, tab].slice(-30);
+      });
+      return tab;
+    });
+
+    try {
+      window.history.pushState({ tab }, '', '#' + tab);
+    } catch {}
+
     try {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       document.documentElement.scrollTop = 0;
@@ -311,6 +331,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isMobileAppModalOpen, setIsMobileAppModalOpen] = useState(false);
   const [isPayBillOpen, setIsPayBillOpen] = useState(false);
   const [payBillCard, setPayBillCard] = useState<Account | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileQuickMenuOpen, setIsMobileQuickMenuOpen] = useState(false);
 
   // Popup Notification State
   const [notification, setNotification] = useState<NotificationPopupItem | null>(null);
@@ -332,6 +354,184 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }, duration);
     return () => clearTimeout(timer);
   }, [notification]);
+
+  // Ref trackers to guarantee zero stale closure issues in hardware/gesture back handlers
+  const isMobileQuickMenuOpenRef = useRef(false);
+  const isMobileMenuOpenRef = useRef(false);
+  const isAddExpenseOpenRef = useRef(false);
+  const isTransferOpenRef = useRef(false);
+  const isAddAccountOpenRef = useRef(false);
+  const isAddInvestmentOpenRef = useRef(false);
+  const isBudgetModalOpenRef = useRef(false);
+  const isPayBillOpenRef = useRef(false);
+  const isHoldingTypesModalOpenRef = useRef(false);
+  const isFirebaseSetupOpenRef = useRef(false);
+  const isMobileAppModalOpenRef = useRef(false);
+  const activeTabRef = useRef<'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin'>('dashboard');
+  const tabHistoryRef = useRef<Array<'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin'>>(['dashboard']);
+  const lastBackPressTimeRef = useRef<number>(0);
+
+  useEffect(() => { isMobileQuickMenuOpenRef.current = isMobileQuickMenuOpen; }, [isMobileQuickMenuOpen]);
+  useEffect(() => { isMobileMenuOpenRef.current = isMobileMenuOpen; }, [isMobileMenuOpen]);
+  useEffect(() => { isAddExpenseOpenRef.current = isAddExpenseOpen; }, [isAddExpenseOpen]);
+  useEffect(() => { isTransferOpenRef.current = isTransferOpen; }, [isTransferOpen]);
+  useEffect(() => { isAddAccountOpenRef.current = isAddAccountOpen; }, [isAddAccountOpen]);
+  useEffect(() => { isAddInvestmentOpenRef.current = isAddInvestmentOpen; }, [isAddInvestmentOpen]);
+  useEffect(() => { isBudgetModalOpenRef.current = isBudgetModalOpen; }, [isBudgetModalOpen]);
+  useEffect(() => { isPayBillOpenRef.current = isPayBillOpen; }, [isPayBillOpen]);
+  useEffect(() => { isHoldingTypesModalOpenRef.current = isHoldingTypesModalOpen; }, [isHoldingTypesModalOpen]);
+  useEffect(() => { isFirebaseSetupOpenRef.current = isFirebaseSetupOpen; }, [isFirebaseSetupOpen]);
+  useEffect(() => { isMobileAppModalOpenRef.current = isMobileAppModalOpen; }, [isMobileAppModalOpen]);
+  useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
+  useEffect(() => { tabHistoryRef.current = tabHistory; }, [tabHistory]);
+
+  const goBack = useCallback((): boolean => {
+    // 1. If any modal / quick action / drawer is open, close it first
+    if (isMobileQuickMenuOpenRef.current) {
+      setIsMobileQuickMenuOpen(false);
+      return true;
+    }
+    if (isMobileMenuOpenRef.current) {
+      setIsMobileMenuOpen(false);
+      return true;
+    }
+    if (isAddExpenseOpenRef.current) {
+      setIsAddExpenseOpen(false);
+      setEditingTransaction(null);
+      return true;
+    }
+    if (isTransferOpenRef.current) {
+      setIsTransferOpen(false);
+      return true;
+    }
+    if (isAddAccountOpenRef.current) {
+      setIsAddAccountOpen(false);
+      setEditingAccount(null);
+      return true;
+    }
+    if (isAddInvestmentOpenRef.current) {
+      setIsAddInvestmentOpen(false);
+      setEditingInvestment(null);
+      return true;
+    }
+    if (isBudgetModalOpenRef.current) {
+      setIsBudgetModalOpen(false);
+      setEditingBudget(null);
+      return true;
+    }
+    if (isPayBillOpenRef.current) {
+      setIsPayBillOpen(false);
+      setPayBillCard(null);
+      return true;
+    }
+    if (isHoldingTypesModalOpenRef.current) {
+      setIsHoldingTypesModalOpen(false);
+      return true;
+    }
+    if (isFirebaseSetupOpenRef.current) {
+      setIsFirebaseSetupOpen(false);
+      return true;
+    }
+    if (isMobileAppModalOpenRef.current) {
+      setIsMobileAppModalOpen(false);
+      return true;
+    }
+
+    // 2. Check tab history stack: navigate to previous menu/page
+    const history = tabHistoryRef.current;
+    if (history.length > 1) {
+      const nextHistory = [...history];
+      nextHistory.pop(); // remove current active tab
+      const previousTab = nextHistory[nextHistory.length - 1];
+      tabHistoryRef.current = nextHistory;
+      setTabHistory(nextHistory);
+      activeTabRef.current = previousTab;
+      setActiveTabState(previousTab);
+      try {
+        window.history.replaceState({ tab: previousTab }, '', '#' + previousTab);
+      } catch {}
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      } catch {}
+      return true;
+    }
+
+    // 3. If currently not on root dashboard, return to dashboard
+    if (activeTabRef.current !== 'dashboard') {
+      tabHistoryRef.current = ['dashboard'];
+      setTabHistory(['dashboard']);
+      activeTabRef.current = 'dashboard';
+      setActiveTabState('dashboard');
+      try {
+        window.history.replaceState({ tab: 'dashboard' }, '', '#dashboard');
+      } catch {}
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      } catch {}
+      return true;
+    }
+
+    // 4. At root dashboard with nothing open to dismiss
+    return false;
+  }, []);
+
+  // Hardware Back Button and Browser Popstate Handler
+  useEffect(() => {
+    let removeCapacitorListener: (() => void) | null = null;
+
+    const handleBackEvent = async () => {
+      const handled = goBack();
+      if (handled) {
+        return;
+      }
+
+      // Root level with no open modals: Graceful double-tap exit
+      const now = Date.now();
+      if (now - lastBackPressTimeRef.current < 2000) {
+        try {
+          await CapApp.exitApp();
+        } catch (err) {
+          console.warn('exitApp error', err);
+        }
+      } else {
+        lastBackPressTimeRef.current = now;
+        showNotification({
+          title: 'Keluar Aplikasi',
+          message: 'Tekan sekali lagi untuk keluar dari aplikasi',
+          type: 'info',
+          durationMs: 2000,
+        });
+      }
+    };
+
+    // 1. Capacitor Native Android Back Button Listener (Android APK)
+    try {
+      CapApp.addListener('backButton', () => {
+        handleBackEvent();
+      }).then((handle) => {
+        removeCapacitorListener = () => {
+          handle.remove();
+        };
+      }).catch(() => {});
+    } catch {}
+
+    // 2. Browser / PWA popstate listener
+    const onPopState = () => {
+      handleBackEvent();
+    };
+    window.addEventListener('popstate', onPopState);
+
+    return () => {
+      if (removeCapacitorListener) {
+        removeCapacitorListener();
+      }
+      window.removeEventListener('popstate', onPopState);
+    };
+  }, [goBack, showNotification]);
 
   const togglePrivacyMode = () => {
     setIsPrivacyMode((prev) => {
@@ -1419,6 +1619,12 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setTheme,
         activeTab,
         setActiveTab,
+        tabHistory,
+        goBack,
+        isMobileMenuOpen,
+        setIsMobileMenuOpen,
+        isMobileQuickMenuOpen,
+        setIsMobileQuickMenuOpen,
         announcement,
         refreshAnnouncement,
         refreshData,

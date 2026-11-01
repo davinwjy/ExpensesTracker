@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.5.3",
     "@google/genai": "^2.32.0",
     "@tailwindcss/vite": "^4.3.3",

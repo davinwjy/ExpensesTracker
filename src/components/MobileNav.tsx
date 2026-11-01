@@ -21,9 +21,9 @@ export const MobileNav: React.FC = () => {
     setIsTransferOpen,
     setTransferInitialMode,
     setEditingTransaction,
+    isMobileQuickMenuOpen: isQuickMenuOpen,
+    setIsMobileQuickMenuOpen: setIsQuickMenuOpen,
   } = useFinance();
-
-  const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
 
   return (
     <>
