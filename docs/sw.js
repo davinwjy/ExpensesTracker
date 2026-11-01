@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-afac4cd2'], (function (workbox) { 'use strict';
+define(['./workbox-13942bd7'], (function (workbox) { 'use strict';
 
   self.skipWaiting();
   workbox.clientsClaim();
@@ -77,9 +77,6 @@ define(['./workbox-afac4cd2'], (function (workbox) { 'use strict';
    * See https://goo.gl/S9QRab
    */
   workbox.precacheAndRoute([{
-    "url": "registerSW.js",
-    "revision": "402b66900e731ca748771b6fc5e7a068"
-  }, {
     "url": "pwa-maskable-512x512.png",
     "revision": "e188d821623ef71ecdb362c8e64c5a1f"
   }, {
@@ -90,7 +87,7 @@ define(['./workbox-afac4cd2'], (function (workbox) { 'use strict';
     "revision": "00bb69f2f14c03fd4c1d746a0ffcfdf3"
   }, {
     "url": "index.html",
-    "revision": "ce352e25b2bc42ae60bddd2c45c621f6"
+    "revision": "691d95eb34a60369a2bdbd9fe5848eef"
   }, {
     "url": "icon.svg",
     "revision": "5623d5193c83dc630138a85b24e6ff40"
@@ -104,13 +101,16 @@ define(['./workbox-afac4cd2'], (function (workbox) { 'use strict';
     "url": "404.html",
     "revision": "252f75d07140b9adf0cb991287c434e4"
   }, {
-    "url": "assets/web-DC-ZUQmZ.js",
+    "url": "assets/workbox-window.prod.es5-Bd17z0YL.js",
     "revision": null
   }, {
-    "url": "assets/index-chd33s4R.css",
+    "url": "assets/web-fXjFpf6f.js",
     "revision": null
   }, {
-    "url": "assets/index-KQkHMJuC.js",
+    "url": "assets/index-DcAd4UHG.js",
+    "revision": null
+  }, {
+    "url": "assets/index-CuDLaP7Y.css",
     "revision": null
   }, {
     "url": "assets/aistudio/image_f7cca1cf.png",
@@ -141,7 +141,28 @@ define(['./workbox-afac4cd2'], (function (workbox) { 'use strict';
     "revision": "30f77b1e3c825d8d0c6088eee80b4ecf"
   }], {});
   workbox.cleanupOutdatedCaches();
-  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html")));
+  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
+    denylist: [/^\/api/]
+  }));
+  workbox.registerRoute(/\/api\/.*/i, new workbox.NetworkFirst({
+    "cacheName": "wealthtrack-financial-data-cache",
+    "networkTimeoutSeconds": 2.5,
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 100,
+      maxAgeSeconds: 2592000
+    }), new workbox.CacheableResponsePlugin({
+      statuses: [0, 200]
+    })]
+  }), 'GET');
+  workbox.registerRoute(/^https:\/\/.*(exchange-rate|currency|exchangerate|frankfurter|coingecko).*/i, new workbox.StaleWhileRevalidate({
+    "cacheName": "wealthtrack-rates-cache",
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 20,
+      maxAgeSeconds: 604800
+    }), new workbox.CacheableResponsePlugin({
+      statuses: [0, 200]
+    })]
+  }), 'GET');
   workbox.registerRoute(/^https:\/\/fonts\.googleapis\.com\/.*/i, new workbox.CacheFirst({
     "cacheName": "google-fonts-cache",
     plugins: [new workbox.ExpirationPlugin({

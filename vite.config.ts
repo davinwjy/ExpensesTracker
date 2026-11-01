@@ -47,7 +47,44 @@ export default defineConfig(() => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          navigateFallback: 'index.html',
+          navigateFallbackDenylist: [/^\/api/],
+          cleanupOutdatedCaches: true,
+          clientsClaim: true,
+          skipWaiting: true,
           runtimeCaching: [
+            // 1. Critical Financial API Cache (Accounts, Transactions, Investments, Budgets, Stats)
+            {
+              urlPattern: /\/api\/.*/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'wealthtrack-financial-data-cache',
+                networkTimeoutSeconds: 2.5,
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days offline retention
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            // 2. Exchange Rate & Market Currency Feeds Cache
+            {
+              urlPattern: /^https:\/\/.*(exchange-rate|currency|exchangerate|frankfurter|coingecko).*/i,
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'wealthtrack-rates-cache',
+                expiration: {
+                  maxEntries: 20,
+                  maxAgeSeconds: 60 * 60 * 24 * 7,
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            // 3. Web Fonts & Assets
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
               handler: 'CacheFirst',

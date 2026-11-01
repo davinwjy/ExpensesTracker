@@ -10,8 +10,6 @@ import {
   ShieldCheck,
   Flame,
   Sparkles,
-  Pencil,
-  RotateCcw,
 } from 'lucide-react';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { useAuth } from '../../context/AuthContext';
@@ -28,39 +26,7 @@ export const MobileAppModal: React.FC<MobileAppModalProps> = ({ isOpen, onClose 
   const [activeTab, setActiveTab] = useState<'pwa' | 'apk'>('pwa');
   const [installSuccess, setInstallSuccess] = useState(false);
 
-  const [apkDownloadUrl, setApkDownloadUrl] = useState<string>(() => {
-    try {
-      return (
-        localStorage.getItem('wealthtrack_custom_apk_url') ||
-        'https://github.com/davinwijaya1996/Expenses-Tracker-2/releases/latest/download/WealthTrack-Pro.apk'
-      );
-    } catch {
-      return 'https://github.com/davinwijaya1996/Expenses-Tracker-2/releases/latest/download/WealthTrack-Pro.apk';
-    }
-  });
-  const [isEditingUrl, setIsEditingUrl] = useState(false);
-  const [tempUrl, setTempUrl] = useState(apkDownloadUrl);
-
-  const handleSaveUrl = () => {
-    const trimmed = tempUrl.trim();
-    if (trimmed) {
-      setApkDownloadUrl(trimmed);
-      try {
-        localStorage.setItem('wealthtrack_custom_apk_url', trimmed);
-      } catch {}
-    }
-    setIsEditingUrl(false);
-  };
-
-  const handleResetUrl = () => {
-    const defaultUrl = 'https://github.com/davinwijaya1996/Expenses-Tracker-2/releases/latest/download/WealthTrack-Pro.apk';
-    setApkDownloadUrl(defaultUrl);
-    setTempUrl(defaultUrl);
-    try {
-      localStorage.removeItem('wealthtrack_custom_apk_url');
-    } catch {}
-    setIsEditingUrl(false);
-  };
+  const apkDownloadUrl = 'https://github.com/davinwjy/ExpensesTracker/releases';
 
   if (!isOpen) return null;
 
@@ -256,75 +222,22 @@ export const MobileAppModal: React.FC<MobileAppModalProps> = ({ isOpen, onClose 
                     <ExternalLink className="w-3.5 h-3.5 ml-1" />
                   </a>
 
-                  {/* Configurable APK URL Section */}
+                  {/* APK URL Section */}
                   <div className="p-2.5 rounded-lg bg-[#080a0f] border border-[#1d2332] space-y-2">
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="text-zinc-400 font-mono text-[10px] uppercase font-bold tracking-wider">
                         APK Direct Link:
                       </span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setTempUrl(apkDownloadUrl);
-                            setIsEditingUrl(!isEditingUrl);
-                          }}
-                          className="inline-flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 font-mono cursor-pointer"
-                        >
-                          <Pencil className="w-3 h-3" />
-                          <span>{isEditingUrl ? 'Batal' : 'Ubah Link'}</span>
-                        </button>
-                        {apkDownloadUrl !== 'https://github.com/davinwijaya1996/Expenses-Tracker-2/releases/latest/download/WealthTrack-Pro.apk' && (
-                          <button
-                            type="button"
-                            onClick={handleResetUrl}
-                            className="inline-flex items-center gap-1 text-[10px] text-zinc-500 hover:text-zinc-300 font-mono cursor-pointer"
-                            title="Reset ke Default Release"
-                          >
-                            <RotateCcw className="w-3 h-3" />
-                            <span>Reset</span>
-                          </button>
-                        )}
-                      </div>
                     </div>
 
-                    {!isEditingUrl ? (
-                      <div className="p-2 rounded bg-[#0d1017] border border-[#1b2230] text-[10px] font-mono text-zinc-300 break-all select-all">
-                        {apkDownloadUrl}
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <input
-                          type="url"
-                          value={tempUrl}
-                          onChange={(e) => setTempUrl(e.target.value)}
-                          placeholder="https://..."
-                          className="w-full bg-[#0d1017] border border-emerald-500/60 rounded px-2.5 py-1.5 text-xs text-zinc-100 font-mono focus:border-emerald-400 focus:outline-none"
-                          autoFocus
-                        />
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setIsEditingUrl(false)}
-                            className="px-2.5 py-1 rounded text-[11px] text-zinc-400 hover:text-white"
-                          >
-                            Batal
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleSaveUrl}
-                            className="px-3 py-1 rounded text-[11px] font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer"
-                          >
-                            Terapkan Link
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    <div className="p-2 rounded bg-[#0d1017] border border-[#1b2230] text-[10px] font-mono text-emerald-400 break-all select-all">
+                      {apkDownloadUrl}
+                    </div>
 
                     <div className="pt-1 flex items-center justify-between text-[10px] text-zinc-500 border-t border-[#161c28]">
                       <span>Repositori GitHub:</span>
                       <a
-                        href="https://github.com/davinwijaya1996/Expenses-Tracker-2/releases"
+                        href="https://github.com/davinwjy/ExpensesTracker/releases"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-zinc-400 hover:text-emerald-400 underline inline-flex items-center gap-1"

@@ -1,6 +1,14 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  getFirestore,
+  Firestore,
+  enableNetwork,
+  disableNetwork,
+} from 'firebase/firestore';
 import { defaultFirebaseConfig } from './defaultFirebaseConfig';
 
 export interface FirebaseConfig {
@@ -173,7 +181,19 @@ export function initFirebase(): { app: FirebaseApp | null; auth: Auth | null; db
       appInstance = initializeApp(config);
     }
     authInstance = getAuth(appInstance);
-    dbInstance = getFirestore(appInstance);
+
+    // Initialize Firestore with robust IndexedDB multi-tab offline cache
+    try {
+      dbInstance = initializeFirestore(appInstance, {
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        }),
+      });
+    } catch {
+      // If already initialized (e.g. fast reload), retrieve existing instance
+      dbInstance = getFirestore(appInstance);
+    }
+
     return { app: appInstance, auth: authInstance, db: dbInstance };
   } catch (err) {
     console.warn('Firebase initialization error:', err);
@@ -184,6 +204,27 @@ export function initFirebase(): { app: FirebaseApp | null; auth: Auth | null; db
 // Check if Firebase is currently active
 export function isFirebaseActive(): boolean {
   return getStoredFirebaseConfig() !== null;
+}
+
+// Explicit network controls for offline/online synchronization
+export async function syncFirestoreOnline(): Promise<void> {
+  if (dbInstance) {
+    try {
+      await enableNetwork(dbInstance);
+    } catch (err) {
+      console.warn('enableNetwork error:', err);
+    }
+  }
+}
+
+export async function setFirestoreOffline(): Promise<void> {
+  if (dbInstance) {
+    try {
+      await disableNetwork(dbInstance);
+    } catch (err) {
+      console.warn('disableNetwork error:', err);
+    }
+  }
 }
 
 // Initialize on module load

@@ -16,6 +16,7 @@ import {
   Shield,
   Smartphone,
   Layers,
+  WifiOff,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFinance } from '../context/FinanceContext';
@@ -32,6 +33,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const {
     activeTab,
     setActiveTab,
+    isOnline,
+    isSyncing,
+    pendingSyncCount,
+    triggerManualSync,
     isPrivacyMode,
     togglePrivacyMode,
     refreshData,
@@ -167,19 +172,54 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             <span className="hidden sm:inline">Android App</span>
           </button>
 
-          {/* Firebase Cloud Sync Button */}
-          <button
-            onClick={() => setIsFirebaseSetupOpen(true)}
-            title={isFirebase ? 'Cloud Sync: Active' : 'Setup Cloud Sync'}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
-              isFirebase
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400'
-                : 'bg-white dark:bg-[#10141e] border-slate-200 dark:border-[#1d2433] text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:border-slate-300 dark:hover:border-[#2a3449]'
-            }`}
-          >
-            <Flame className={`w-3.5 h-3.5 ${isFirebase ? 'text-amber-500 fill-amber-500/30' : 'text-zinc-400'}`} />
-            <span className="hidden sm:inline">{isFirebase ? 'Cloud' : 'Sync'}</span>
-          </button>
+          {/* Firebase Cloud Sync & Offline Status */}
+          {!isOnline ? (
+            <div
+              title="Perangkat Offline — Dashboard & pencatatan tetap aktif via cache lokal. Data otomatis disinkronkan ke Firebase saat online."
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-amber-500/40 bg-amber-500/10 text-amber-500 dark:text-amber-400"
+            >
+              <WifiOff className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Offline</span>
+              {pendingSyncCount > 0 && (
+                <span className="text-[10px] bg-amber-500/30 text-amber-300 px-1.5 py-0.2 rounded font-mono font-bold">
+                  {pendingSyncCount}
+                </span>
+              )}
+            </div>
+          ) : isSyncing ? (
+            <button
+              disabled
+              title="Sedang menyinkronkan data ke Firebase..."
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
+              <span className="hidden sm:inline">Syncing...</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                if (pendingSyncCount > 0) {
+                  triggerManualSync();
+                } else {
+                  setIsFirebaseSetupOpen(true);
+                }
+              }}
+              title={isFirebase ? (pendingSyncCount > 0 ? `${pendingSyncCount} data offline siap disinkronkan` : 'Cloud Sync: Active') : 'Setup Cloud Sync'}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                isFirebase
+                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400'
+                  : 'bg-white dark:bg-[#10141e] border-slate-200 dark:border-[#1d2433] text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:border-slate-300 dark:hover:border-[#2a3449]'
+              }`}
+            >
+              <Flame className={`w-3.5 h-3.5 ${isFirebase ? 'text-amber-500 fill-amber-500/30' : 'text-zinc-400'}`} />
+              <span className="hidden sm:inline">{isFirebase ? 'Cloud' : 'Sync'}</span>
+              {pendingSyncCount > 0 && (
+                <span className="text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 px-1.5 py-0.2 rounded font-mono font-bold">
+                  {pendingSyncCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {/* Top Quick Action Dropdown */}
           <div className="relative" ref={newMenuRef}>

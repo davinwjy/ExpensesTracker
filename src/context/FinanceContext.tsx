@@ -17,12 +17,19 @@ import {
 import { api } from '../lib/api';
 import { localDb, DEFAULT_HOLDING_TYPES } from '../lib/localDb';
 import { useAuth } from './AuthContext';
-import { isFirebaseActive } from '../lib/firebase';
+import { isFirebaseActive, syncFirestoreOnline } from '../lib/firebase';
 import { firestoreService } from '../lib/firestoreService';
 import { computeStats } from '../lib/statsHelper';
 import { exchangeRateService } from '../lib/exchangeRateService';
+import { offlineSyncManager } from '../lib/offlineSync';
 
 interface FinanceContextType {
+  // Offline & Synchronization Status
+  isOnline: boolean;
+  isSyncing: boolean;
+  pendingSyncCount: number;
+  triggerManualSync: () => Promise<void>;
+
   accounts: Account[];
   transactions: Transaction[];
   investments: Investment[];
@@ -198,24 +205,33 @@ const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated, isFirebase } = useAuth();
 
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [investments, setInvestments] = useState<Investment[]>([]);
-  const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [settings, setSettings] = useState<UserSettings | null>(null);
-  const [usdIdrRate, setUsdIdrRate] = useState<number>(15850);
+  // Load cached snapshot for immediate 0ms offline dashboard availability
+  const cachedSnapshot = offlineSyncManager.getSnapshot();
+
+  const [accounts, setAccounts] = useState<Account[]>(() => cachedSnapshot?.accounts || []);
+  const [transactions, setTransactions] = useState<Transaction[]>(() => cachedSnapshot?.transactions || []);
+  const [investments, setInvestments] = useState<Investment[]>(() => cachedSnapshot?.investments || []);
+  const [budgets, setBudgets] = useState<CategoryBudget[]>(() => cachedSnapshot?.budgets || []);
+  const [stats, setStats] = useState<DashboardStats | null>(() => cachedSnapshot?.stats || null);
+  const [settings, setSettings] = useState<UserSettings | null>(() => cachedSnapshot?.settings || null);
+  const [usdIdrRate, setUsdIdrRate] = useState<number>(() => cachedSnapshot?.usdIdrRate || 15850);
   const [rateSource, setRateSource] = useState<string>(() => {
-    return exchangeRateService.getLastRateInfo().source;
+    return cachedSnapshot?.rateSource || exchangeRateService.getLastRateInfo().source;
   });
   const [rateLastUpdated, setRateLastUpdated] = useState<string | null>(() => {
-    return exchangeRateService.getLastRateInfo().timestamp;
+    return cachedSnapshot?.rateLastUpdated || exchangeRateService.getLastRateInfo().timestamp;
   });
   const [isRateAutoUpdate, setIsRateAutoUpdateState] = useState<boolean>(() => {
     return exchangeRateService.getAutoUpdateEnabled();
   });
   const [isRateFetching, setIsRateFetching] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Connectivity & Background Sync Status
+  const [isOnline, setIsOnline] = useState<boolean>(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [pendingSyncCount, setPendingSyncCount] = useState<number>(() => offlineSyncManager.getPendingQueue().length);
+
   const [announcement, setAnnouncement] = useState<SystemAnnouncement | null>(null);
   const [activeTab, setActiveTabState] = useState<'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin'>('dashboard');
   const [tabHistory, setTabHistory] = useState<Array<'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin'>>(['dashboard']);
@@ -489,22 +505,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
 
-      // Root level with no open modals: Graceful double-tap exit
-      const now = Date.now();
-      if (now - lastBackPressTimeRef.current < 2000) {
-        try {
-          await CapApp.exitApp();
-        } catch (err) {
-          console.warn('exitApp error', err);
-        }
-      } else {
-        lastBackPressTimeRef.current = now;
-        showNotification({
-          title: 'Keluar Aplikasi',
-          message: 'Tekan sekali lagi untuk keluar dari aplikasi',
-          type: 'info',
-          durationMs: 2000,
-        });
+      // Root level with no open modals: Exit app directly
+      try {
+        await CapApp.exitApp();
+      } catch (err) {
+        console.warn('exitApp error', err);
       }
     };
 
@@ -570,6 +575,18 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const computed = computeStats(data.accounts, data.transactions, normalizedInvestments, rate);
       setStats(computed);
       setIsLoading(false);
+
+      // Persist snapshot to local cache for instant offline dashboard access
+      offlineSyncManager.saveSnapshot({
+        accounts: data.accounts,
+        transactions: data.transactions,
+        investments: normalizedInvestments,
+        settings: data.settings,
+        usdIdrRate: rate,
+        rateSource: data.settings?.rateSource,
+        rateLastUpdated: data.settings?.rateLastUpdated,
+        stats: computed,
+      });
     });
 
     return () => unsubscribe();
@@ -618,6 +635,18 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsRateAutoUpdateState(setRes.settings.autoUpdateRate);
         exchangeRateService.setAutoUpdateEnabled(setRes.settings.autoUpdateRate);
       }
+
+      // Persist snapshot to local cache
+      offlineSyncManager.saveSnapshot({
+        accounts: accRes.accounts,
+        transactions: txRes.transactions,
+        investments: normalizedInvestments,
+        budgets: bgtRes?.budgets,
+        holdingTypes: htRes?.holdingTypes,
+        stats: statsRes,
+        settings: setRes.settings,
+        usdIdrRate: setRes.settings?.usdIdrRate,
+      });
     } catch (err) {
       console.error('Failed to load finance data:', err);
     } finally {
@@ -651,24 +680,41 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     cardNetwork?: string;
     last4Digits?: string;
   }) => {
+    const now = new Date().toISOString();
+    const newAccount: Account = {
+      id: 'acc_' + Date.now(),
+      userId: user?.id || 'usr_local',
+      name: data.name.trim(),
+      type: data.type,
+      balance: Number(data.balance) || 0,
+      color: data.color || '#3b82f6',
+      createdAt: now,
+      updatedAt: now,
+      ...(data.accountNumber?.trim() ? { accountNumber: data.accountNumber.trim() } : {}),
+      ...(data.creditLimit !== undefined ? { creditLimit: Number(data.creditLimit) } : {}),
+      ...(data.billingDate !== undefined ? { billingDate: Number(data.billingDate) } : {}),
+      ...(data.dueDate !== undefined ? { dueDate: Number(data.dueDate) } : {}),
+      ...(data.cardNetwork?.trim() ? { cardNetwork: data.cardNetwork.trim() } : {}),
+      ...(data.last4Digits?.trim() ? { last4Digits: data.last4Digits.trim() } : {}),
+    };
+
+    setAccounts((prev) => {
+      const next = [...prev, newAccount];
+      offlineSyncManager.saveSnapshot({ accounts: next });
+      return next;
+    });
+
+    if (!isOnline) {
+      offlineSyncManager.queueItem({
+        id: newAccount.id,
+        type: 'account',
+        action: 'create',
+        data: newAccount,
+      });
+      return;
+    }
+
     if (isFirebase && user) {
-      const now = new Date().toISOString();
-      const newAccount: Account = {
-        id: 'acc_' + Date.now(),
-        userId: user.id,
-        name: data.name.trim(),
-        type: data.type,
-        balance: Number(data.balance) || 0,
-        color: data.color || '#3b82f6',
-        createdAt: now,
-        updatedAt: now,
-        ...(data.accountNumber?.trim() ? { accountNumber: data.accountNumber.trim() } : {}),
-        ...(data.creditLimit !== undefined ? { creditLimit: Number(data.creditLimit) } : {}),
-        ...(data.billingDate !== undefined ? { billingDate: Number(data.billingDate) } : {}),
-        ...(data.dueDate !== undefined ? { dueDate: Number(data.dueDate) } : {}),
-        ...(data.cardNetwork?.trim() ? { cardNetwork: data.cardNetwork.trim() } : {}),
-        ...(data.last4Digits?.trim() ? { last4Digits: data.last4Digits.trim() } : {}),
-      };
       await firestoreService.saveAccount(newAccount);
       return;
     }
@@ -678,23 +724,56 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateAccount = async (id: string, data: Partial<Account>) => {
-    if (isFirebase && user) {
-      const target = accounts.find((a) => a.id === id);
-      if (target) {
-        await firestoreService.saveAccount({
-          ...target,
-          ...data,
-          updatedAt: new Date().toISOString(),
-        });
-      }
-      return;
-    }
+    const target = accounts.find((a) => a.id === id);
+    if (target) {
+      const updated: Account = {
+        ...target,
+        ...data,
+        updatedAt: new Date().toISOString(),
+      };
+      setAccounts((prev) => {
+        const next = prev.map((a) => (a.id === id ? updated : a));
+        offlineSyncManager.saveSnapshot({ accounts: next });
+        return next;
+      });
 
-    await api.updateAccount(id, data);
-    await refreshData();
+      if (!isOnline) {
+        offlineSyncManager.queueItem({
+          id,
+          type: 'account',
+          action: 'update',
+          data: updated,
+        });
+        return;
+      }
+
+      if (isFirebase && user) {
+        await firestoreService.saveAccount(updated);
+        return;
+      }
+
+      await api.updateAccount(id, data);
+      await refreshData();
+    }
   };
 
   const deleteAccount = async (id: string) => {
+    setAccounts((prev) => {
+      const next = prev.filter((a) => a.id !== id);
+      offlineSyncManager.saveSnapshot({ accounts: next });
+      return next;
+    });
+
+    if (!isOnline) {
+      offlineSyncManager.queueItem({
+        id,
+        type: 'account',
+        action: 'delete',
+        data: { id },
+      });
+      return;
+    }
+
     if (isFirebase) {
       await firestoreService.deleteAccount(id);
       return;
@@ -767,7 +846,34 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const nextTxs = [newTx, ...transactions];
     setAccounts(updatedAccounts);
     setTransactions(nextTxs);
-    setStats(computeStats(updatedAccounts, nextTxs, investments, usdIdrRate));
+    const nextStats = computeStats(updatedAccounts, nextTxs, investments, usdIdrRate);
+    setStats(nextStats);
+
+    // Save to snapshot immediately for instant offline dashboard access
+    offlineSyncManager.saveSnapshot({
+      accounts: updatedAccounts,
+      transactions: nextTxs,
+      investments,
+      stats: nextStats,
+    });
+
+    if (!isOnline) {
+      offlineSyncManager.queueItem({
+        id: newTx.id,
+        type: 'transaction',
+        action: 'create',
+        data: newTx,
+      });
+      if (updatedAcc) {
+        offlineSyncManager.queueItem({
+          id: updatedAcc.id,
+          type: 'account',
+          action: 'update',
+          data: updatedAcc,
+        });
+      }
+      return;
+    }
 
     if (isFirebase && user) {
       const promises: Promise<any>[] = [firestoreService.saveTransaction(newTx)];
@@ -998,7 +1104,33 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const nextTxs = transactions.filter((t) => t.id !== id);
     setAccounts(updatedAccounts);
     setTransactions(nextTxs);
-    setStats(computeStats(updatedAccounts, nextTxs, investments, usdIdrRate));
+    const nextStats = computeStats(updatedAccounts, nextTxs, investments, usdIdrRate);
+    setStats(nextStats);
+
+    offlineSyncManager.saveSnapshot({
+      accounts: updatedAccounts,
+      transactions: nextTxs,
+      investments,
+      stats: nextStats,
+    });
+
+    if (!isOnline) {
+      offlineSyncManager.queueItem({
+        id,
+        type: 'transaction',
+        action: 'delete',
+        data: { id },
+      });
+      if (modAcc) {
+        offlineSyncManager.queueItem({
+          id: modAcc.id,
+          type: 'account',
+          action: 'update',
+          data: modAcc,
+        });
+      }
+      return;
+    }
 
     if (isFirebase && user) {
       const promises: Promise<any>[] = [firestoreService.deleteTransaction(id)];
@@ -1324,27 +1456,81 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // ---------------- BUDGETING OPERATIONS ----------------
   const saveBudget = async (category: string, monthlyLimit: number, month?: string, id?: string) => {
-    const res = await api.saveBudget({ id, category, monthlyLimit, month });
-    if (isFirebase && user) {
-      await firestoreService.saveBudget(res.budget);
-    }
+    const budgetId = id || 'bgt_' + Date.now();
+    const now = new Date().toISOString();
+    const budgetItem: CategoryBudget = {
+      id: budgetId,
+      userId: user?.id || 'usr_local',
+      category: category.trim(),
+      monthlyLimit: Number(monthlyLimit) || 0,
+      month: month || undefined,
+      createdAt: now,
+      updatedAt: now,
+    };
+
     setBudgets((prev) => {
-      const idx = prev.findIndex((b) => b.id === res.budget.id);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = res.budget;
-        return next;
-      }
-      return [...prev, res.budget];
+      const idx = prev.findIndex((b) => b.id === budgetId);
+      const next = idx >= 0 ? [...prev] : [...prev, budgetItem];
+      if (idx >= 0) next[idx] = budgetItem;
+      offlineSyncManager.saveSnapshot({ budgets: next });
+      return next;
     });
+
+    if (!isOnline) {
+      offlineSyncManager.queueItem({
+        id: budgetId,
+        type: 'budget',
+        action: 'create',
+        data: budgetItem,
+      });
+      return;
+    }
+
+    try {
+      const res = await api.saveBudget({ id, category, monthlyLimit, month });
+      if (isFirebase && user) {
+        await firestoreService.saveBudget(res.budget);
+      }
+    } catch {
+      offlineSyncManager.queueItem({
+        id: budgetId,
+        type: 'budget',
+        action: 'create',
+        data: budgetItem,
+      });
+    }
   };
 
   const deleteBudget = async (id: string) => {
-    await api.deleteBudget(id);
-    if (isFirebase && user) {
-      await firestoreService.deleteBudget(id);
+    setBudgets((prev) => {
+      const next = prev.filter((b) => b.id !== id);
+      offlineSyncManager.saveSnapshot({ budgets: next });
+      return next;
+    });
+
+    if (!isOnline) {
+      offlineSyncManager.queueItem({
+        id,
+        type: 'budget',
+        action: 'delete',
+        data: { id },
+      });
+      return;
     }
-    setBudgets((prev) => prev.filter((b) => b.id !== id));
+
+    try {
+      await api.deleteBudget(id);
+      if (isFirebase && user) {
+        await firestoreService.deleteBudget(id);
+      }
+    } catch {
+      offlineSyncManager.queueItem({
+        id,
+        type: 'budget',
+        action: 'delete',
+        data: { id },
+      });
+    }
   };
 
   const getBudgetProgressForMonth = useCallback(
@@ -1596,6 +1782,82 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     await refreshData();
   };
 
+  // ---------------- AUTOMATIC OFFLINE TO FIREBASE SYNCHRONIZATION ----------------
+  const triggerManualSync = useCallback(async () => {
+    if (!user || isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const res = await offlineSyncManager.syncPendingToFirebase();
+      setPendingSyncCount(offlineSyncManager.getPendingQueue().length);
+      if (res.syncedCount > 0) {
+        showNotification({
+          title: 'Sinkronisasi Berhasil',
+          message: `${res.syncedCount} data perubahan offline berhasil disinkronkan ke Firebase.`,
+          type: 'success',
+          durationMs: 4000,
+        });
+      }
+      if (isFirebase) {
+        fetchLatestRate({ silent: true }).catch(() => {});
+      }
+    } catch (err) {
+      console.warn('Manual sync failed:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [user, isSyncing, isFirebase, fetchLatestRate, showNotification]);
+
+  useEffect(() => {
+    const handleOnline = async () => {
+      setIsOnline(true);
+      await syncFirestoreOnline();
+
+      // Automatically sync offline queued mutations to Firebase once the device is online
+      if (user && isFirebase) {
+        setIsSyncing(true);
+        try {
+          const res = await offlineSyncManager.syncPendingToFirebase();
+          setPendingSyncCount(offlineSyncManager.getPendingQueue().length);
+          if (res.syncedCount > 0) {
+            showNotification({
+              title: 'Online Kembali',
+              message: `${res.syncedCount} data offline otomatis tersinkronisasi ke Firebase.`,
+              type: 'info',
+              durationMs: 4000,
+            });
+          }
+          fetchLatestRate({ silent: true }).catch(() => {});
+        } catch (err) {
+          console.warn('Automatic online sync error:', err);
+        } finally {
+          setIsSyncing(false);
+        }
+      }
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    const handlePendingChange = (e: any) => {
+      if (e?.detail?.count !== undefined) {
+        setPendingSyncCount(e.detail.count);
+      } else {
+        setPendingSyncCount(offlineSyncManager.getPendingQueue().length);
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('wealthtrack:pending_sync_change', handlePendingChange);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('wealthtrack:pending_sync_change', handlePendingChange);
+    };
+  }, [user, isFirebase, fetchLatestRate, showNotification]);
+
   return (
     <FinanceContext.Provider
       value={{
@@ -1617,6 +1879,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         theme,
         toggleTheme,
         setTheme,
+        isOnline,
+        isSyncing,
+        pendingSyncCount,
+        triggerManualSync,
         activeTab,
         setActiveTab,
         tabHistory,
