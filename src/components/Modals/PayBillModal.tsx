@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, CreditCard, RotateCcw, AlertCircle, ArrowRightLeft } from 'lucide-react';
+import { X, Check, CreditCard, RotateCcw, AlertCircle, ArrowRightLeft, Loader2 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
 import { formatIdr } from '../../lib/formatters';
 
@@ -11,6 +11,7 @@ export const PayBillModal: React.FC = () => {
     setPayBillCard,
     accounts,
     payCreditCardBill,
+    showNotification,
   } = useFinance();
 
   const creditCards = accounts.filter((a) => a.type === 'credit_card' || a.type === 'paylater');
@@ -77,6 +78,7 @@ export const PayBillModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError('');
 
     const parsedAmount = Number(amountIdr);
@@ -111,10 +113,21 @@ export const PayBillModal: React.FC = () => {
         notes: notes.trim() || undefined,
       });
 
+      const targetCard = accounts.find((a) => a.id === creditCardAccountId);
+      showNotification({
+        type: 'success',
+        txType: 'bill_pay',
+        title: 'Pembayaran Tagihan Berhasil',
+        message: targetCard ? `Tagihan ${targetCard.name} telah dibayarkan` : undefined,
+        amount: parsedAmount,
+        category: 'Tagihan Kartu Kredit',
+        accountName: targetCard?.name || 'Kartu Kredit',
+        date,
+      });
+
       handleClose();
     } catch (err: any) {
       setError(err?.message || 'Failed to pay credit card bill');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -189,16 +202,19 @@ export const PayBillModal: React.FC = () => {
               required
             >
               {creditCards.length === 0 && <option value="">No credit cards found - create one in Accounts</option>}
-              {creditCards.map((card) => (
-                <option key={card.id} value={card.id}>
-                  {card.name} ({card.cardNetwork || 'CC'}) — Outstanding Debt: {formatIdr(card.balance)}
-                </option>
-              ))}
+              {creditCards.map((card) => {
+                const avail = Math.max(0, (card.creditLimit || 0) - card.balance);
+                return (
+                  <option key={card.id} value={card.id}>
+                    {card.name} ({card.cardNetwork || 'CC'}) — Tagihan: {formatIdr(card.balance)} (Sisa Limit: {formatIdr(avail)})
+                  </option>
+                );
+              })}
             </select>
             {selectedCard && (
               <div className="mt-1 flex items-center justify-between text-[10px] text-zinc-500 px-1 font-mono">
-                <span>CREDIT LIMIT: {formatIdr(selectedCard.creditLimit || 0)}</span>
-                <span className="text-amber-400 font-bold">CURRENT DEBT: {formatIdr(selectedCard.balance)}</span>
+                <span>SISA LIMIT: <strong className="text-emerald-400">{formatIdr(Math.max(0, (selectedCard.creditLimit || 0) - selectedCard.balance))}</strong></span>
+                <span className="text-amber-400 font-bold">TAGIHAN: {formatIdr(selectedCard.balance)}</span>
               </div>
             )}
           </div>
@@ -309,10 +325,23 @@ export const PayBillModal: React.FC = () => {
             type="submit"
             form="pay-bill-form"
             disabled={isSubmitting}
-            className="flex items-center gap-1 px-3.5 py-1.5 rounded text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 cursor-pointer disabled:opacity-50"
+            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded text-xs font-bold transition-all shadow-md select-none ${
+              isSubmitting
+                ? 'bg-zinc-800 text-zinc-400 border border-zinc-700 cursor-not-allowed opacity-60 pointer-events-none'
+                : 'bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 cursor-pointer hover:shadow-amber-500/20'
+            }`}
           >
-            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>{isSubmitting ? 'PROCESSING...' : 'SETTLE BILL'}</span>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>MEMPROSES PEMBAYARAN...</span>
+              </>
+            ) : (
+              <>
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>BAYAR TAGIHAN</span>
+              </>
+            )}
           </button>
         </div>
       </div>

@@ -9,6 +9,9 @@ import {
   SystemAnnouncement,
   HoldingType,
   InvestmentCategory,
+  CategoryBudget,
+  BudgetProgress,
+  NotificationPopupItem,
 } from '../types';
 import { api } from '../lib/api';
 import { localDb, DEFAULT_HOLDING_TYPES } from '../lib/localDb';
@@ -37,8 +40,8 @@ interface FinanceContextType {
   theme: 'dark' | 'light';
   toggleTheme: () => void;
   setTheme: (theme: 'dark' | 'light') => void;
-  activeTab: 'dashboard' | 'expenses' | 'accounts' | 'investments' | 'stats' | 'admin';
-  setActiveTab: (tab: 'dashboard' | 'expenses' | 'accounts' | 'investments' | 'stats' | 'admin') => void;
+  activeTab: 'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin';
+  setActiveTab: (tab: 'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin') => void;
   announcement: SystemAnnouncement | null;
   refreshAnnouncement: () => Promise<void>;
   refreshData: () => Promise<void>;
@@ -157,6 +160,30 @@ interface FinanceContextType {
   setIsPayBillOpen: (v: boolean) => void;
   payBillCard: Account | null;
   setPayBillCard: (a: Account | null) => void;
+
+  // Budgeting Operations
+  budgets: CategoryBudget[];
+  saveBudget: (category: string, monthlyLimit: number, month?: string, id?: string) => Promise<void>;
+  deleteBudget: (id: string) => Promise<void>;
+  isBudgetModalOpen: boolean;
+  setIsBudgetModalOpen: (v: boolean) => void;
+  editingBudget: CategoryBudget | null;
+  setEditingBudget: (b: CategoryBudget | null) => void;
+  getBudgetProgressForMonth: (targetMonthStr?: string) => {
+    items: BudgetProgress[];
+    unbudgetedItems: Array<{ category: string; actualSpent: number; transactionCount: number }>;
+    totalBudgeted: number;
+    totalSpent: number;
+    totalRemaining: number;
+    overallPercent: number;
+    isOverBudget: boolean;
+    overBudgetCount: number;
+  };
+
+  // Popup Notification
+  notification: NotificationPopupItem | null;
+  showNotification: (item: Omit<NotificationPopupItem, 'id'>) => void;
+  closeNotification: () => void;
 }
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
@@ -167,6 +194,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [usdIdrRate, setUsdIdrRate] = useState<number>(15850);
@@ -181,8 +209,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
   const [isRateFetching, setIsRateFetching] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'accounts' | 'investments' | 'stats' | 'admin'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin'>('dashboard');
   const [announcement, setAnnouncement] = useState<SystemAnnouncement | null>(null);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<CategoryBudget | null>(null);
 
   const refreshAnnouncement = useCallback(async () => {
     try {
@@ -273,6 +303,27 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isPayBillOpen, setIsPayBillOpen] = useState(false);
   const [payBillCard, setPayBillCard] = useState<Account | null>(null);
 
+  // Popup Notification State
+  const [notification, setNotification] = useState<NotificationPopupItem | null>(null);
+
+  const showNotification = useCallback((item: Omit<NotificationPopupItem, 'id'>) => {
+    const id = 'notif_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    setNotification({ ...item, id });
+  }, []);
+
+  const closeNotification = useCallback(() => {
+    setNotification(null);
+  }, []);
+
+  useEffect(() => {
+    if (!notification) return;
+    const duration = notification.durationMs || 4500;
+    const timer = setTimeout(() => {
+      setNotification(null);
+    }, duration);
+    return () => clearTimeout(timer);
+  }, [notification]);
+
   const togglePrivacyMode = () => {
     setIsPrivacyMode((prev) => {
       const next = !prev;
@@ -322,13 +373,14 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setIsLoading(true);
     try {
-      const [accRes, txRes, invRes, statsRes, setRes, htRes] = await Promise.all([
+      const [accRes, txRes, invRes, statsRes, setRes, htRes, bgtRes] = await Promise.all([
         api.getAccounts(),
         api.getTransactions(),
         api.getInvestments(),
         api.getDashboardStats(),
         api.getSettings(),
         api.getHoldingTypes(),
+        api.getBudgets(),
       ]);
 
       const normalizedInvestments = invRes.investments.map((inv) =>
@@ -342,6 +394,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setInvestments(normalizedInvestments);
       if (htRes?.holdingTypes && htRes.holdingTypes.length > 0) {
         setHoldingTypes(htRes.holdingTypes);
+      }
+      if (bgtRes?.budgets) {
+        setBudgets(bgtRes.budgets);
       }
       setStats(statsRes);
       setSettings(setRes.settings);
@@ -1058,6 +1113,144 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     await refreshData();
   };
 
+  // ---------------- BUDGETING OPERATIONS ----------------
+  const saveBudget = async (category: string, monthlyLimit: number, month?: string, id?: string) => {
+    const res = await api.saveBudget({ id, category, monthlyLimit, month });
+    if (isFirebase && user) {
+      await firestoreService.saveBudget(res.budget);
+    }
+    setBudgets((prev) => {
+      const idx = prev.findIndex((b) => b.id === res.budget.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = res.budget;
+        return next;
+      }
+      return [...prev, res.budget];
+    });
+  };
+
+  const deleteBudget = async (id: string) => {
+    await api.deleteBudget(id);
+    if (isFirebase && user) {
+      await firestoreService.deleteBudget(id);
+    }
+    setBudgets((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  const getBudgetProgressForMonth = useCallback(
+    (targetMonthStr?: string) => {
+      const now = new Date();
+      const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const month = targetMonthStr || defaultMonth;
+
+      // Group actual expenses for this month by category
+      const monthlyExpenses = transactions.filter(
+        (tx) => tx.type === 'expense' && tx.date && tx.date.startsWith(month)
+      );
+
+      const spentByCat: Record<string, { total: number; count: number }> = {};
+      monthlyExpenses.forEach((tx) => {
+        const cat = tx.category || 'Other Expense';
+        if (!spentByCat[cat]) spentByCat[cat] = { total: 0, count: 0 };
+        spentByCat[cat].total += tx.amount;
+        spentByCat[cat].count += 1;
+      });
+
+      // Filter budgets that apply to this month
+      const activeBudgets: CategoryBudget[] = [];
+      const categorySeen = new Set<string>();
+
+      // Month-specific budgets first
+      budgets
+        .filter((b) => b.month === month)
+        .forEach((b) => {
+          activeBudgets.push(b);
+          categorySeen.add(b.category.toLowerCase());
+        });
+
+      // Generic recurring budgets if not overridden for this month
+      budgets
+        .filter((b) => !b.month)
+        .forEach((b) => {
+          if (!categorySeen.has(b.category.toLowerCase())) {
+            activeBudgets.push(b);
+            categorySeen.add(b.category.toLowerCase());
+          }
+        });
+
+      let totalBudgeted = 0;
+      let totalSpent = 0;
+      let overBudgetCount = 0;
+
+      const items: BudgetProgress[] = activeBudgets.map((b) => {
+        const catData = spentByCat[b.category] || { total: 0, count: 0 };
+        const spent = catData.total;
+        const limit = b.monthlyLimit;
+        const remaining = limit - spent;
+        const percentUsed = limit > 0 ? (spent / limit) * 100 : 0;
+        const status: 'safe' | 'warning' | 'danger' =
+          spent > limit ? 'danger' : percentUsed >= 75 ? 'warning' : 'safe';
+
+        if (status === 'danger') {
+          overBudgetCount++;
+        }
+
+        totalBudgeted += limit;
+        totalSpent += spent;
+
+        return {
+          category: b.category,
+          budgetId: b.id,
+          monthlyLimit: limit,
+          actualSpent: spent,
+          remaining,
+          percentUsed,
+          status,
+          transactionCount: catData.count,
+        };
+      });
+
+      // Any categories with expenses that do not have a budget limit configured
+      const unbudgetedItems: Array<{ category: string; actualSpent: number; transactionCount: number }> = [];
+      Object.entries(spentByCat).forEach(([cat, data]) => {
+        if (!categorySeen.has(cat.toLowerCase())) {
+          unbudgetedItems.push({
+            category: cat,
+            actualSpent: data.total,
+            transactionCount: data.count,
+          });
+          totalSpent += data.total;
+        }
+      });
+
+      // Sort items: danger first, then warning, then highest percentage
+      items.sort((a, b) => {
+        const order = { danger: 0, warning: 1, safe: 2 };
+        if (order[a.status] !== order[b.status]) {
+          return order[a.status] - order[b.status];
+        }
+        return b.percentUsed - a.percentUsed;
+      });
+
+      const totalRemaining = Math.max(0, totalBudgeted - totalSpent);
+      const overallPercent = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
+      const isOverBudget = totalSpent > totalBudgeted;
+
+      return {
+        items,
+        unbudgetedItems,
+        totalBudgeted,
+        totalSpent,
+        totalRemaining,
+        overallPercent,
+        isOverBudget,
+        overBudgetCount,
+      };
+    },
+    [budgets, transactions]
+  );
+
   // Fetch latest rate from Google Finance / market feeds
   const fetchLatestRate = useCallback(async (options?: { silent?: boolean }) => {
     if (!options?.silent) {
@@ -1268,6 +1461,21 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsPayBillOpen,
         payBillCard,
         setPayBillCard,
+
+        // Budgeting
+        budgets,
+        saveBudget,
+        deleteBudget,
+        isBudgetModalOpen,
+        setIsBudgetModalOpen,
+        editingBudget,
+        setEditingBudget,
+        getBudgetProgressForMonth,
+
+        // Popup Notification
+        notification,
+        showNotification,
+        closeNotification,
       }}
     >
       {children}

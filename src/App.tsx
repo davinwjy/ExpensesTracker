@@ -8,6 +8,7 @@ import { DashboardView } from './components/DashboardView';
 import { ExpensesView } from './components/ExpensesView';
 import { AccountsView } from './components/AccountsView';
 import { InvestmentsView } from './components/InvestmentsView';
+import { BudgetingView } from './components/BudgetingView';
 import { StatsView } from './components/StatsView';
 import { AdminView } from './components/AdminView';
 import { GlobalAnnouncementBanner } from './components/GlobalAnnouncementBanner';
@@ -17,9 +18,11 @@ import { AccountModal } from './components/Modals/AccountModal';
 import { InvestmentModal } from './components/Modals/InvestmentModal';
 import { HoldingTypesModal } from './components/Modals/HoldingTypesModal';
 import { PayBillModal } from './components/Modals/PayBillModal';
+import { BudgetModal } from './components/Modals/BudgetModal';
 import { FirebaseSetupModal } from './components/Modals/FirebaseSetupModal';
 import { MobileAppModal } from './components/Modals/MobileAppModal';
 import { AuthModal } from './components/AuthModal';
+import { GlobalNotificationPopup } from './components/GlobalNotificationPopup';
 import { Wallet, Loader2 } from 'lucide-react';
 
 const MainAppContent: React.FC = () => {
@@ -92,6 +95,7 @@ const MainAppContent: React.FC = () => {
           <main className="flex-1 max-w-[1520px] w-full mx-auto px-3 sm:px-5 lg:px-6 py-5 pb-24 lg:pb-10">
             {activeTab === 'dashboard' && <DashboardView />}
             {activeTab === 'expenses' && <ExpensesView />}
+            {activeTab === 'budgeting' && <BudgetingView />}
             {activeTab === 'accounts' && <AccountsView />}
             {activeTab === 'investments' && <InvestmentsView />}
             {activeTab === 'stats' && <StatsView />}
@@ -110,6 +114,7 @@ const MainAppContent: React.FC = () => {
       <InvestmentModal />
       <HoldingTypesModal />
       <PayBillModal />
+      <BudgetModal />
       <FirebaseSetupModal
         isOpen={isFirebaseSetupOpen}
         onClose={() => setIsFirebaseSetupOpen(false)}
@@ -118,6 +123,9 @@ const MainAppContent: React.FC = () => {
         isOpen={isMobileAppModalOpen}
         onClose={() => setIsMobileAppModalOpen(false)}
       />
+
+      {/* Global Success & Toast Popup Notification */}
+      <GlobalNotificationPopup />
     </div>
   );
 };

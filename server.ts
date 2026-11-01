@@ -1185,6 +1185,84 @@ app.delete('/api/holding-types/:id', authenticateToken, (req: AuthenticatedReque
 });
 
 // -------------------------------------------------------------
+// BUDGETS (Monthly Category Spending Limits)
+// -------------------------------------------------------------
+
+app.get('/api/budgets', authenticateToken, (req: AuthenticatedRequest, res: Response): void => {
+  const userId = req.user!.id;
+  if (!db.data.budgets) db.data.budgets = [];
+  const budgets = db.data.budgets.filter(b => b.userId === userId);
+  res.json({ budgets });
+});
+
+app.post('/api/budgets', authenticateToken, (req: AuthenticatedRequest, res: Response): void => {
+  try {
+    const userId = req.user!.id;
+    const { id, category, monthlyLimit, month } = req.body;
+
+    if (!category || !String(category).trim()) {
+      res.status(400).json({ error: 'Category name is required' });
+      return;
+    }
+
+    if (!db.data.budgets) db.data.budgets = [];
+
+    const cleanCategory = String(category).trim();
+    const cleanLimit = Math.max(0, Number(monthlyLimit) || 0);
+    const cleanMonth = month ? String(month).trim() : undefined;
+
+    let existingIdx = -1;
+    if (id) {
+      existingIdx = db.data.budgets.findIndex(b => b.id === id && b.userId === userId);
+    } else {
+      existingIdx = db.data.budgets.findIndex(
+        b => b.userId === userId && b.category.toLowerCase() === cleanCategory.toLowerCase() && (b.month || '') === (cleanMonth || '')
+      );
+    }
+
+    if (existingIdx >= 0) {
+      const current = db.data.budgets[existingIdx];
+      current.category = cleanCategory;
+      current.monthlyLimit = cleanLimit;
+      current.month = cleanMonth;
+      current.updatedAt = new Date().toISOString();
+      db.save();
+      res.json({ budget: current });
+      return;
+    }
+
+    const newBudget = {
+      id: id || 'bgt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      userId,
+      category: cleanCategory,
+      monthlyLimit: cleanLimit,
+      month: cleanMonth,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    db.data.budgets.push(newBudget);
+    db.save();
+    res.status(201).json({ budget: newBudget });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || 'Failed to save budget' });
+  }
+});
+
+app.delete('/api/budgets/:id', authenticateToken, (req: AuthenticatedRequest, res: Response): void => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+    if (!db.data.budgets) db.data.budgets = [];
+    db.data.budgets = db.data.budgets.filter(b => !(b.id === id && b.userId === userId));
+    db.save();
+    res.json({ success: true, message: 'Budget removed' });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || 'Failed to delete budget' });
+  }
+});
+
+// -------------------------------------------------------------
 // SETTINGS (USD/IDR exchange rate, etc.)
 // -------------------------------------------------------------
 
@@ -1771,7 +1849,7 @@ async function startServer() {
       server: {
         middlewareMode: true,
         host: '0.0.0.0',
-        hmr: isHmrDisabled ? false : undefined,
+        hmr: false,
       },
       appType: 'spa',
     });

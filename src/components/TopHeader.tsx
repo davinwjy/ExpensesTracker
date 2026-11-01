@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFinance } from '../context/FinanceContext';
-import { formatIdr } from '../lib/formatters';
 import { isUserAdmin } from '../lib/admin';
 
 interface TopHeaderProps {
@@ -35,7 +34,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     setActiveTab,
     isPrivacyMode,
     togglePrivacyMode,
-    usdIdrRate,
     refreshData,
     isLoading,
     setIsAddExpenseOpen,
@@ -79,6 +77,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       title: 'Transactions',
       subtitle: 'Expense, Income & Transfer Logs',
       tag: 'Cash Flow',
+    },
+    budgeting: {
+      title: 'Budgeting & Spending Limits',
+      subtitle: 'Monthly Category Ceilings & Live Runway Tracking',
+      tag: 'Controls',
     },
     accounts: {
       title: 'Accounts & Wallets',
@@ -131,15 +134,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </div>
         </div>
 
-        {/* Right Action Suite: Currency Pill + Privacy + Cloud + Quick Action + Profile */}
+        {/* Right Action Suite: Privacy + Cloud + Quick Action + Profile */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* USD/IDR Currency Rate Indicator */}
-          {usdIdrRate > 0 && (
-            <div className="hidden xl:flex items-center gap-1.5 px-2 py-1 rounded bg-slate-100 dark:bg-[#10141e] border border-slate-200 dark:border-[#1d2433] text-[10px] font-mono tabular-nums text-slate-700 dark:text-zinc-300">
-              <span className="text-zinc-500 text-[9px] uppercase">FX:</span>
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">{formatIdr(usdIdrRate)}</span>
-            </div>
-          )}
 
           {/* Privacy Shield Toggle */}
           <button

@@ -11,6 +11,7 @@ import {
   SystemAnnouncement,
   HoldingType,
   InvestmentCategory,
+  CategoryBudget,
 } from '../types';
 import { localDb } from './localDb';
 
@@ -471,6 +472,53 @@ export const api = {
       }
     }
     return localDb.deleteHoldingType(id);
+  },
+
+  // Budgets
+  async getBudgets(): Promise<{ budgets: CategoryBudget[] }> {
+    const hasServer = await checkServer();
+    if (hasServer) {
+      try {
+        return await request<{ budgets: CategoryBudget[] }>('/api/budgets');
+      } catch (err) {
+        isServerAvailable = false;
+      }
+    }
+    return localDb.getBudgets();
+  },
+
+  async saveBudget(data: {
+    id?: string;
+    category: string;
+    monthlyLimit: number;
+    month?: string;
+  }): Promise<{ budget: CategoryBudget }> {
+    const hasServer = await checkServer();
+    if (hasServer) {
+      try {
+        return await request<{ budget: CategoryBudget }>('/api/budgets', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+      } catch (err) {
+        isServerAvailable = false;
+      }
+    }
+    return localDb.saveBudget(data);
+  },
+
+  async deleteBudget(id: string): Promise<{ success: boolean }> {
+    const hasServer = await checkServer();
+    if (hasServer) {
+      try {
+        return await request<{ success: boolean }>(`/api/budgets/${id}`, {
+          method: 'DELETE',
+        });
+      } catch (err) {
+        isServerAvailable = false;
+      }
+    }
+    return localDb.deleteBudget(id);
   },
 
   // Settings

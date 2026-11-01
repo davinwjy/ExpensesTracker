@@ -140,3 +140,40 @@ export interface DashboardStats {
   expenseByAccount: Record<string, { name: string; amount: number; type: string }>;
   incomeByCategory?: Record<string, number>;
 }
+
+export interface CategoryBudget {
+  id: string;
+  userId: string;
+  category: string;
+  monthlyLimit: number; // in IDR
+  month?: string; // Optional target month e.g. "2026-11". If omitted, applies as default recurring limit
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BudgetProgress {
+  category: string;
+  budgetId?: string;
+  monthlyLimit: number;
+  actualSpent: number;
+  remaining: number;
+  percentUsed: number;
+  status: 'safe' | 'warning' | 'danger'; // safe (<75%), warning (75-99%), danger (>=100%)
+  transactionCount: number;
+  color?: string;
+}
+
+export type ActiveTab = 'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin';
+
+export interface NotificationPopupItem {
+  id: string;
+  type: 'success' | 'info' | 'warning' | 'error';
+  title: string;
+  message?: string;
+  amount?: number;
+  txType?: 'expense' | 'income' | 'transfer' | 'bill_pay';
+  category?: string;
+  accountName?: string;
+  date?: string;
+  durationMs?: number;
+}

@@ -114,6 +114,16 @@ export interface SystemSettings {
   defaultUsdIdrRate: number;
 }
 
+export interface CategoryBudget {
+  id: string;
+  userId: string;
+  category: string;
+  monthlyLimit: number;
+  month?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DatabaseSchema {
   users: User[];
   accounts: Account[];
@@ -121,6 +131,7 @@ export interface DatabaseSchema {
   investments: Investment[];
   settings: UserSettings[];
   holdingTypes?: HoldingType[];
+  budgets?: CategoryBudget[];
   systemSettings?: SystemSettings;
 }
 
@@ -132,6 +143,7 @@ let dbData: DatabaseSchema = {
   investments: [],
   settings: [],
   holdingTypes: [...DEFAULT_HOLDING_TYPES],
+  budgets: [],
   systemSettings: {
     announcement: {
       id: 'ann_default',

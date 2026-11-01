@@ -10,7 +10,6 @@ import {
   ArrowDownRight,
   LogOut,
   User as UserIcon,
-  RefreshCw,
   ChevronDown,
   Flame,
   Eye,
@@ -24,6 +23,7 @@ import {
   Coins,
   Smartphone,
   Layers,
+  Target,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFinance } from '../context/FinanceContext';
@@ -50,12 +50,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     accounts,
     transactions,
     investments,
+    budgets,
     stats,
     usdIdrRate,
     isPrivacyMode,
     togglePrivacyMode,
-    refreshData,
-    isLoading,
     setIsAddExpenseOpen,
     setTransactionInitialType,
     setIsTransferOpen,
@@ -106,6 +105,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       description: 'Income & expenses',
     },
     {
+      id: 'budgeting' as const,
+      label: 'Budgeting',
+      icon: Target,
+      badge: budgets.length > 0 ? budgets.length : null,
+      description: 'Limits & tracking',
+    },
+    {
       id: 'accounts' as const,
       label: 'Accounts',
       icon: WalletCards,
@@ -142,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const netWorthIdr = stats?.totalNetWorthIdr || 0;
   const netWorthUsd = usdIdrRate > 0 ? netWorthIdr / usdIdrRate : 0;
 
-  const handleSelectNav = (tabId: 'dashboard' | 'expenses' | 'accounts' | 'investments' | 'stats' | 'admin') => {
+  const handleSelectNav = (tabId: 'dashboard' | 'expenses' | 'accounts' | 'investments' | 'budgeting' | 'stats' | 'admin') => {
     setActiveTab(tabId);
     onCloseMobile();
   };
@@ -386,64 +392,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           );
         })}
-
-        {/* CLOUD & SHORTCUT SECTION */}
-        <div className="pt-3 px-2">
-          {!isCollapsed && (
-            <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">
-              INTEGRATIONS & SYSTEM
-            </span>
-          )}
-        </div>
-
-        {/* Real-time Firebase Cloud button */}
-        <button
-          onClick={() => {
-            setIsFirebaseSetupOpen(true);
-            onCloseMobile();
-          }}
-          className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-xs font-medium transition-all cursor-pointer ${
-            isFirebase
-              ? 'bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
-              : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#11141e]'
-          } ${isCollapsed ? 'justify-center px-1.5' : ''}`}
-          title={isFirebase ? 'Firebase Real-Time Cloud: Connected' : 'Setup Firebase Sync'}
-        >
-          <Flame
-            className={`w-3.5 h-3.5 shrink-0 ${
-              isFirebase ? 'text-amber-400 fill-amber-400/30' : 'text-zinc-400'
-            }`}
-          />
-          {!isCollapsed && (
-            <div className="flex-1 text-left flex items-center justify-between">
-              <span className="text-[11px]">Cloud Sync</span>
-              <span
-                className={`text-[9px] font-mono font-bold px-1 py-0.2 rounded ${
-                  isFirebase
-                    ? 'bg-emerald-500/20 text-emerald-300'
-                    : 'bg-[#151924] text-zinc-500'
-                }`}
-              >
-                {isFirebase ? 'ACTIVE' : 'SETUP'}
-              </span>
-            </div>
-          )}
-        </button>
-
-        {/* Refresh data button */}
-        <button
-          onClick={() => refreshData()}
-          disabled={isLoading}
-          className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#11141e] transition-all cursor-pointer ${
-            isCollapsed ? 'justify-center px-1.5' : ''
-          }`}
-          title="Refresh Data from Cloud"
-        >
-          <RefreshCw
-            className={`w-3.5 h-3.5 shrink-0 ${isLoading ? 'animate-spin text-emerald-400' : ''}`}
-          />
-          {!isCollapsed && <span className="flex-1 text-left text-[11px]">Sync Now</span>}
-        </button>
       </div>
 
       {/* 5. FOOTER: USER PROFILE */}

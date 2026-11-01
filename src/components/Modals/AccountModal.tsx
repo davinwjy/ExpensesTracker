@@ -356,9 +356,19 @@ export const AccountModal: React.FC = () => {
 
           {/* Balance / Current Debt */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-              {type === 'credit_card' || type === 'paylater' ? 'CURRENT OUTSTANDING DEBT (IDR)' : 'CURRENT BALANCE (IDR)'} <span className="text-rose-400">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                {type === 'credit_card' || type === 'paylater'
+                  ? 'DANA TERPAKAI / TAGIHAN BERJALAN (IDR)'
+                  : 'CURRENT BALANCE (IDR)'}{' '}
+                <span className="text-rose-400">*</span>
+              </label>
+              {(type === 'credit_card' || type === 'paylater') && (
+                <span className="text-[9px] font-mono text-zinc-500">
+                  (Isi 0 jika belum terpakai)
+                </span>
+              )}
+            </div>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-500">
                 Rp
@@ -374,11 +384,30 @@ export const AccountModal: React.FC = () => {
               />
             </div>
             {balance && !isNaN(Number(balance)) && (
-              <div className="mt-1 flex items-center justify-between px-1 text-[11px] font-mono">
-                <span className="text-zinc-500">FORMATTED VALUE:</span>
-                <span className={`font-bold tabular-nums ${(type === 'credit_card' || type === 'paylater') ? 'text-amber-400' : 'text-emerald-400'}`}>
-                  {formatIdr(Number(balance))}
-                </span>
+              <div className="mt-1.5 p-2 rounded bg-[#080a0f] border border-[#1d2332] space-y-1 text-[11px] font-mono">
+                {type === 'credit_card' || type === 'paylater' ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-500">SISA LIMIT TERSEDIA:</span>
+                      <span className="font-bold tabular-nums text-emerald-400">
+                        {formatIdr(Math.max(0, Number(creditLimit || 0) - Number(balance)))}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-zinc-500">DANA TERPAKAI (DEBT):</span>
+                      <span className="font-bold tabular-nums text-amber-400">
+                        {formatIdr(Number(balance))}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500">FORMATTED VALUE:</span>
+                    <span className="font-bold tabular-nums text-emerald-400">
+                      {formatIdr(Number(balance))}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>

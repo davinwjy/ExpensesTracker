@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, RotateCcw, AlertCircle, ArrowDownRight, Receipt } from 'lucide-react';
+import { X, Check, RotateCcw, AlertCircle, ArrowDownRight, Receipt, Loader2 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
 import { formatIdr, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../lib/formatters';
 
@@ -21,6 +21,7 @@ export const AddExpenseModal: React.FC = () => {
     editingTransaction,
     setEditingTransaction,
     updateTransaction,
+    showNotification,
   } = useFinance();
 
   const [type, setType] = useState<'expense' | 'income'>('expense');
@@ -31,17 +32,6 @@ export const AddExpenseModal: React.FC = () => {
   const [notes, setNotes] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const categorySuggestions = React.useMemo(() => {
-    if (!category) return [];
-    const set = new Set<string>();
-    transactions.forEach((tx) => {
-      if (tx.type === type && tx.category === category && tx.notes && tx.notes.trim()) {
-        set.add(tx.notes.trim());
-      }
-    });
-    return Array.from(set).slice(-6).reverse();
-  }, [transactions, type, category]);
 
   // Clean form every time modal opens or resets
   useEffect(() => {
@@ -146,6 +136,7 @@ export const AddExpenseModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError('');
 
     const parsedAmount = Number(amount);
@@ -200,10 +191,25 @@ export const AddExpenseModal: React.FC = () => {
         });
       }
 
+      // Trigger sleek success popup notification
+      const targetAcc = accounts.find((a) => a.id === accountId);
+      const accName = targetAcc ? targetAcc.name : 'Akun';
+      showNotification({
+        type: 'success',
+        txType: type,
+        title: editingTransaction
+          ? (type === 'expense' ? 'Pengeluaran Berhasil Diperbarui' : 'Pemasukan Berhasil Diperbarui')
+          : (type === 'expense' ? 'Pengeluaran Berhasil Dicatat' : 'Pemasukan Berhasil Dicatat'),
+        message: notes?.trim() ? notes.trim() : undefined,
+        amount: parsedAmount,
+        category,
+        accountName: accName,
+        date,
+      });
+
       handleClose();
     } catch (err: any) {
       setError(err?.message || 'Failed to save transaction');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -268,15 +274,17 @@ export const AddExpenseModal: React.FC = () => {
             <button
               type="button"
               onClick={resetForm}
+              disabled={isSubmitting}
               title="Reset fields"
-              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
+              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={handleClose}
-              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
+              disabled={isSubmitting}
+              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <X className="w-4 h-4" />
             </button>
@@ -304,8 +312,9 @@ export const AddExpenseModal: React.FC = () => {
             <div className="grid grid-cols-2 p-0.5 bg-[#080a0f] rounded border border-[#1d2332] text-xs font-semibold">
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => handleTypeChange('expense')}
-                className={`py-1.5 rounded transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`py-1.5 rounded transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                   type === 'expense'
                     ? 'bg-rose-600 text-white font-bold'
                     : 'text-zinc-400 hover:text-zinc-200'
@@ -316,8 +325,9 @@ export const AddExpenseModal: React.FC = () => {
               </button>
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => handleTypeChange('income')}
-                className={`py-1.5 rounded transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`py-1.5 rounded transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                   type === 'income'
                     ? 'bg-emerald-500 text-slate-950 font-bold'
                     : 'text-zinc-400 hover:text-zinc-200'
@@ -343,10 +353,11 @@ export const AddExpenseModal: React.FC = () => {
                 type="number"
                 min="0"
                 step="any"
+                disabled={isSubmitting}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="50,000"
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded pl-9 pr-3 py-2 text-sm font-bold text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
+                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded pl-9 pr-3 py-2 text-sm font-bold text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono tabular-nums disabled:opacity-60 disabled:cursor-not-allowed"
                 required
                 autoFocus
               />
@@ -382,8 +393,9 @@ export const AddExpenseModal: React.FC = () => {
                 <button
                   key={inc}
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => handleQuickAdd(inc)}
-                  className="px-2 py-1 rounded bg-[#080a0f] hover:bg-[#161a25] active:bg-[#1f2637] text-[10px] font-medium text-zinc-300 border border-[#1d2332] hover:border-zinc-500 transition-colors cursor-pointer font-mono tabular-nums"
+                  className="px-2 py-1 rounded bg-[#080a0f] hover:bg-[#161a25] active:bg-[#1f2637] text-[10px] font-medium text-zinc-300 border border-[#1d2332] hover:border-zinc-500 transition-colors cursor-pointer font-mono tabular-nums disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   +{inc >= 1000000 ? `${inc / 1000000}M` : `${inc / 1000}k`}
                 </button>
@@ -417,8 +429,9 @@ export const AddExpenseModal: React.FC = () => {
             </div>
             <select
               value={accountId}
+              disabled={isSubmitting}
               onChange={(e) => setAccountId(e.target.value)}
-              className={`w-full bg-[#080a0f] border rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono ${
+              className={`w-full bg-[#080a0f] border rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed ${
                 isInsufficientBalance
                   ? 'border-rose-500/60 focus:border-rose-500'
                   : 'border-[#1d2332] focus:border-emerald-500'
@@ -426,11 +439,15 @@ export const AddExpenseModal: React.FC = () => {
               required
             >
               {accounts.length === 0 && <option value="">No accounts found - add one first</option>}
-              {accounts.map((acc) => (
-                <option key={acc.id} value={acc.id}>
-                  {acc.name} ({acc.type.toUpperCase()}) — Balance: {formatIdr(acc.balance)}
-                </option>
-              ))}
+              {accounts.map((acc) => {
+                const isCredit = acc.type === 'credit_card' || acc.type === 'paylater';
+                const avail = isCredit ? Math.max(0, (acc.creditLimit || 0) - acc.balance) : acc.balance;
+                return (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.name} ({acc.type.toUpperCase()}) — {isCredit ? `Sisa Limit: ${formatIdr(avail)} (Terpakai: ${formatIdr(acc.balance)})` : `Balance: ${formatIdr(acc.balance)}`}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -452,8 +469,9 @@ export const AddExpenseModal: React.FC = () => {
             </div>
             <select
               value={category}
+              disabled={isSubmitting}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono"
+              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {categoryOptions.map((cat) => (
                 <option key={cat} value={cat}>
@@ -472,8 +490,9 @@ export const AddExpenseModal: React.FC = () => {
               <input
                 type="date"
                 value={date}
+                disabled={isSubmitting}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono"
+                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed"
                 required
               />
             </div>
@@ -484,29 +503,15 @@ export const AddExpenseModal: React.FC = () => {
               <input
                 type="text"
                 value={notes}
+                disabled={isSubmitting}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={
                   type === 'income'
                     ? 'e.g. Monthly salary, bonus...'
                     : 'e.g. Lunch with team, taxi...'
                 }
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono"
+                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed"
               />
-              {categorySuggestions.length > 0 && (
-                <div className="mt-1.5 flex flex-wrap items-center gap-1">
-                  <span className="text-[9px] text-zinc-500 font-bold uppercase">Suggestions:</span>
-                  {categorySuggestions.map((sug) => (
-                    <button
-                      key={sug}
-                      type="button"
-                      onClick={() => setNotes(sug)}
-                      className="px-2 py-0.5 rounded bg-[#131722] hover:bg-[#1a202c] text-[10px] text-zinc-300 border border-[#212838] hover:border-emerald-500/50 transition-colors cursor-pointer"
-                    >
-                      {sug}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </form>
@@ -516,7 +521,8 @@ export const AddExpenseModal: React.FC = () => {
           <button
             type="button"
             onClick={handleClose}
-            className="px-3 py-1.5 rounded text-xs font-semibold text-zinc-400 hover:text-white hover:bg-[#161a25] transition-colors cursor-pointer"
+            disabled={isSubmitting}
+            className="px-3 py-1.5 rounded text-xs font-semibold text-zinc-400 hover:text-white hover:bg-[#161a25] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             DISCARD
           </button>
@@ -524,24 +530,37 @@ export const AddExpenseModal: React.FC = () => {
             type="submit"
             form="expense-modal-form"
             disabled={isSubmitting || isInsufficientBalance}
-            className={`flex items-center justify-center gap-1 px-3.5 py-1.5 rounded text-xs font-bold transition-all ${
-              isInsufficientBalance
+            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded text-xs font-bold transition-all shadow-md select-none ${
+              isSubmitting
+                ? 'bg-zinc-800 text-zinc-400 border border-zinc-700 cursor-not-allowed opacity-60 pointer-events-none'
+                : isInsufficientBalance
                 ? 'bg-rose-950/60 text-rose-400 border border-rose-500/40 cursor-not-allowed opacity-75'
                 : type === 'expense'
-                ? 'bg-rose-600 hover:bg-rose-500 text-white cursor-pointer'
-                : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer'
-            } disabled:opacity-50`}
+                ? 'bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white cursor-pointer hover:shadow-rose-600/20'
+                : 'bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 cursor-pointer hover:shadow-emerald-500/20'
+            }`}
           >
-            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>
-              {isSubmitting
-                ? 'RECORDING...'
-                : isInsufficientBalance
-                ? 'SALDO TIDAK CUKUP'
-                : editingTransaction
-                ? 'UPDATE LOG'
-                : 'COMMIT RECORD'}
-            </span>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>
+                  {type === 'expense' ? 'MENYIMPAN PENGELUARAN...' : 'MENYIMPAN PEMASUKAN...'}
+                </span>
+              </>
+            ) : (
+              <>
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>
+                  {isInsufficientBalance
+                    ? 'SALDO TIDAK CUKUP'
+                    : editingTransaction
+                    ? 'SIMPAN PERUBAHAN'
+                    : type === 'expense'
+                    ? 'SIMPAN PENGELUARAN'
+                    : 'SIMPAN PEMASUKAN'}
+                </span>
+              </>
+            )}
           </button>
         </div>
       </div>

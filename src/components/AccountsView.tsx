@@ -195,18 +195,26 @@ export const AccountsView: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Balance / Debt & Limit */}
-                  <div className="grid grid-cols-2 gap-2 mb-3 p-2.5 rounded bg-[#080a0f] border border-[#1d2332] font-mono">
+                  {/* Primary Hero: Sisa Limit Tersedia */}
+                  <div className="space-y-0.5 mb-3 font-mono">
+                    <span className="text-[10px] text-zinc-500 uppercase">SISA LIMIT TERSEDIA</span>
+                    <p className="text-xl sm:text-2xl font-bold text-emerald-400 tabular-nums">
+                      {formatMasked(available, 'IDR', isPrivacyMode)}
+                    </p>
+                  </div>
+
+                  {/* Sub Details: Dana Terpakai (Debt) & Total Limit */}
+                  <div className="grid grid-cols-2 gap-2 mb-3 p-2 rounded bg-[#080a0f] border border-[#1d2332] font-mono">
                     <div>
-                      <span className="text-[9px] text-zinc-500 uppercase">OUTSTANDING DEBT</span>
-                      <p className="text-sm sm:text-base font-bold text-amber-400 tabular-nums">
+                      <span className="text-[9px] text-zinc-500 uppercase">DANA TERPAKAI</span>
+                      <p className="text-xs sm:text-sm font-bold text-amber-400 tabular-nums">
                         {formatMasked(debt, 'IDR', isPrivacyMode)}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[9px] text-zinc-500 uppercase">AVAILABLE LIMIT</span>
-                      <p className="text-sm sm:text-base font-bold text-emerald-400 tabular-nums">
-                        {formatMasked(available, 'IDR', isPrivacyMode)}
+                      <span className="text-[9px] text-zinc-500 uppercase">TOTAL LIMIT</span>
+                      <p className="text-xs sm:text-sm font-bold text-zinc-200 tabular-nums">
+                        {formatMasked(limit, 'IDR', isPrivacyMode)}
                       </p>
                     </div>
                   </div>
@@ -317,18 +325,26 @@ export const AccountsView: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Balance / Debt & Limit */}
-                  <div className="grid grid-cols-2 gap-2 mb-3 p-2.5 rounded bg-[#080a0f] border border-[#1d2332] font-mono">
+                  {/* Primary Hero: Sisa Limit Tersedia */}
+                  <div className="space-y-0.5 mb-3 font-mono">
+                    <span className="text-[10px] text-zinc-500 uppercase">SISA LIMIT TERSEDIA</span>
+                    <p className="text-xl sm:text-2xl font-bold text-emerald-400 tabular-nums">
+                      {formatMasked(available, 'IDR', isPrivacyMode)}
+                    </p>
+                  </div>
+
+                  {/* Sub Details: Dana Terpakai (Debt) & Total Limit */}
+                  <div className="grid grid-cols-2 gap-2 mb-3 p-2 rounded bg-[#080a0f] border border-[#1d2332] font-mono">
                     <div>
-                      <span className="text-[9px] text-zinc-500 uppercase">OUTSTANDING DEBT</span>
-                      <p className="text-sm sm:text-base font-bold text-amber-400 tabular-nums">
+                      <span className="text-[9px] text-zinc-500 uppercase">DANA TERPAKAI</span>
+                      <p className="text-xs sm:text-sm font-bold text-amber-400 tabular-nums">
                         {formatMasked(debt, 'IDR', isPrivacyMode)}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[9px] text-zinc-500 uppercase">AVAILABLE LIMIT</span>
-                      <p className="text-sm sm:text-base font-bold text-emerald-400 tabular-nums">
-                        {formatMasked(available, 'IDR', isPrivacyMode)}
+                      <span className="text-[9px] text-zinc-500 uppercase">TOTAL LIMIT</span>
+                      <p className="text-xs sm:text-sm font-bold text-zinc-200 tabular-nums">
+                        {formatMasked(limit, 'IDR', isPrivacyMode)}
                       </p>
                     </div>
                   </div>

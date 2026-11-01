@@ -27,6 +27,7 @@ import { Investment, InvestmentCategory } from '../types';
 export const InvestmentsView: React.FC = () => {
   const {
     investments,
+    stats,
     holdingTypes,
     isPrivacyMode,
     usdIdrRate,
@@ -41,6 +42,8 @@ export const InvestmentsView: React.FC = () => {
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all');
   const [selectedAsset, setSelectedAsset] = useState<Investment | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const categoryAllocations = stats?.categoryAllocations || {};
 
   const filteredInvestments = investments.filter((inv) => {
     if (activeCategoryFilter === 'all') return true;
@@ -175,6 +178,150 @@ export const InvestmentsView: React.FC = () => {
             {totalPnlPercent >= 0 ? '+' : ''}
             {totalPnlPercent.toFixed(2)}% ROI
           </span>
+        </div>
+      </div>
+
+      {/* HOLDINGS MATRIX (Relocated from Dashboard to Portfolio) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-300">
+              HOLDINGS MATRIX
+            </span>
+            <span className="text-[10px] font-mono text-zinc-500">
+              ({investments.length} Assets tracked)
+            </span>
+          </div>
+          {activeCategoryFilter !== 'all' && (
+            <button
+              onClick={() => setActiveCategoryFilter('all')}
+              className="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 underline cursor-pointer"
+            >
+              SHOW ALL ASSETS
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+          {/* Saham */}
+          <div
+            onClick={() => setActiveCategoryFilter(activeCategoryFilter === 'Saham' ? 'all' : 'Saham')}
+            className={`p-3 rounded bg-[#0d1017] border transition-all cursor-pointer ${
+              activeCategoryFilter === 'Saham'
+                ? 'border-blue-500 bg-blue-500/10 shadow-sm shadow-blue-500/20'
+                : 'border-[#1b212e] hover:border-blue-500/50'
+            }`}
+          >
+            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
+              <span className="font-bold text-blue-400 flex items-center gap-1">
+                <Building className="w-3 h-3" />
+                SAHAM
+              </span>
+              <span>IDR</span>
+            </div>
+            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
+              {formatMasked(categoryAllocations['Saham']?.idrValue || 0, 'IDR', isPrivacyMode)}
+            </p>
+            <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
+              {categoryAllocations['Saham']?.count || 0} holding(s)
+            </p>
+          </div>
+
+          {/* RDPU */}
+          <div
+            onClick={() => setActiveCategoryFilter(activeCategoryFilter === 'RDPU' ? 'all' : 'RDPU')}
+            className={`p-3 rounded bg-[#0d1017] border transition-all cursor-pointer ${
+              activeCategoryFilter === 'RDPU'
+                ? 'border-teal-500 bg-teal-500/10 shadow-sm shadow-teal-500/20'
+                : 'border-[#1b212e] hover:border-teal-500/50'
+            }`}
+          >
+            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
+              <span className="font-bold text-teal-400 flex items-center gap-1">
+                <Landmark className="w-3 h-3" />
+                RDPU
+              </span>
+              <span>IDR</span>
+            </div>
+            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
+              {formatMasked(categoryAllocations['RDPU']?.idrValue || 0, 'IDR', isPrivacyMode)}
+            </p>
+            <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
+              {categoryAllocations['RDPU']?.count || 0} holding(s)
+            </p>
+          </div>
+
+          {/* Bitcoin */}
+          <div
+            onClick={() => setActiveCategoryFilter(activeCategoryFilter === 'Bitcoin' ? 'all' : 'Bitcoin')}
+            className={`p-3 rounded bg-[#0d1017] border transition-all cursor-pointer ${
+              activeCategoryFilter === 'Bitcoin'
+                ? 'border-amber-500 bg-amber-500/10 shadow-sm shadow-amber-500/20'
+                : 'border-[#1b212e] hover:border-amber-500/50'
+            }`}
+          >
+            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
+              <span className="font-bold text-amber-400 flex items-center gap-1">
+                <Coins className="w-3 h-3" />
+                BITCOIN
+              </span>
+              <span>IDR</span>
+            </div>
+            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
+              {formatMasked(categoryAllocations['Bitcoin']?.idrValue || 0, 'IDR', isPrivacyMode)}
+            </p>
+            <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
+              {categoryAllocations['Bitcoin']?.count || 0} holding(s)
+            </p>
+          </div>
+
+          {/* ETF USA */}
+          <div
+            onClick={() => setActiveCategoryFilter(activeCategoryFilter === 'ETF USA' ? 'all' : 'ETF USA')}
+            className={`p-3 rounded bg-[#0d1017] border transition-all cursor-pointer ${
+              activeCategoryFilter === 'ETF USA'
+                ? 'border-purple-500 bg-purple-500/10 shadow-sm shadow-purple-500/20'
+                : 'border-[#1b212e] hover:border-purple-500/50'
+            }`}
+          >
+            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
+              <span className="font-bold text-purple-400 flex items-center gap-1">
+                <Globe className="w-3 h-3" />
+                ETF USA
+              </span>
+              <span>USD</span>
+            </div>
+            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
+              {formatMasked(categoryAllocations['ETF USA']?.usdValue || 0, 'USD', isPrivacyMode)}
+            </p>
+            <p className="text-[10px] font-mono tabular-nums text-zinc-500 mt-0.5">
+              ≈ {formatMasked(categoryAllocations['ETF USA']?.idrValue || 0, 'IDR', isPrivacyMode)}
+            </p>
+          </div>
+
+          {/* USD */}
+          <div
+            onClick={() => setActiveCategoryFilter(activeCategoryFilter === 'USD' ? 'all' : 'USD')}
+            className={`p-3 rounded bg-[#0d1017] border transition-all cursor-pointer ${
+              activeCategoryFilter === 'USD'
+                ? 'border-emerald-500 bg-emerald-500/10 shadow-sm shadow-emerald-500/20'
+                : 'border-[#1b212e] hover:border-emerald-500/50'
+            }`}
+          >
+            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
+              <span className="font-bold text-emerald-400 flex items-center gap-1">
+                <DollarSign className="w-3 h-3" />
+                USD CASH
+              </span>
+              <span>USD</span>
+            </div>
+            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
+              {formatMasked(categoryAllocations['USD']?.usdValue || 0, 'USD', isPrivacyMode)}
+            </p>
+            <p className="text-[10px] font-mono tabular-nums text-zinc-500 mt-0.5">
+              ≈ {formatMasked(categoryAllocations['USD']?.idrValue || 0, 'IDR', isPrivacyMode)}
+            </p>
+          </div>
         </div>
       </div>
 

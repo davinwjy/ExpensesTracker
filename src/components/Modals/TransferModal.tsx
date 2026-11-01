@@ -10,6 +10,7 @@ import {
   Layers,
   Sparkles,
   Info,
+  Loader2,
 } from 'lucide-react';
 import { useFinance } from '../../context/FinanceContext';
 import { formatIdr, formatUsd } from '../../lib/formatters';
@@ -45,6 +46,7 @@ export const TransferModal: React.FC = () => {
     setIsHoldingTypesModalOpen,
     usdIdrRate,
     transferFunds,
+    showNotification,
   } = useFinance();
 
   const [mode, setMode] = useState<'account_to_account' | 'bank_to_investment'>('bank_to_investment');
@@ -234,6 +236,7 @@ export const TransferModal: React.FC = () => {
       }
     }
 
+    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
       const numericUsd = isUsdTarget && amountUsd && !isNaN(Number(amountUsd)) ? Number(amountUsd) : undefined;
@@ -262,10 +265,27 @@ export const TransferModal: React.FC = () => {
         notes: notes.trim() || undefined,
       });
 
+      const fromAcc = accounts.find((a) => a.id === fromAccountId);
+      const toAcc = accounts.find((a) => a.id === toAccountId);
+      const toInv = investments.find((i) => i.id === toInvestmentId);
+      const targetLabel = mode === 'account_to_account'
+        ? (toAcc?.name || 'Rekening Tujuan')
+        : (targetType === 'new' ? newInvName.trim() : (toInv?.name || 'Portofolio Investasi'));
+
+      showNotification({
+        type: 'success',
+        txType: 'transfer',
+        title: mode === 'account_to_account' ? 'Transfer Antar Rekening Berhasil' : 'Top Up Investasi Berhasil',
+        message: `${fromAcc?.name || 'Akun'} ➔ ${targetLabel}`,
+        amount: numericAmount,
+        category: mode === 'account_to_account' ? 'Transfer Kas' : newInvCategory,
+        accountName: fromAcc?.name,
+        date,
+      });
+
       handleClose();
     } catch (err: any) {
       setError(err?.message || 'Failed to complete transfer');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -790,16 +810,27 @@ export const TransferModal: React.FC = () => {
             type="submit"
             form="transfer-modal-form"
             disabled={isSubmitting}
-            className="flex items-center justify-center gap-1 px-3.5 py-1.5 rounded text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all cursor-pointer disabled:opacity-50"
+            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded text-xs font-bold transition-all shadow-md select-none ${
+              isSubmitting
+                ? 'bg-zinc-800 text-zinc-400 border border-zinc-700 cursor-not-allowed opacity-60 pointer-events-none'
+                : 'bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 cursor-pointer hover:shadow-emerald-500/20'
+            }`}
           >
-            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>
-              {isSubmitting
-                ? 'PROCESSING...'
-                : mode === 'bank_to_investment' && targetType === 'new'
-                ? 'INITIALIZE & FUND ASSET'
-                : 'EXECUTE TRANSFER'}
-            </span>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>MEMPROSES TRANSFER...</span>
+              </>
+            ) : (
+              <>
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>
+                  {mode === 'bank_to_investment' && targetType === 'new'
+                    ? 'INITIALIZE & FUND ASSET'
+                    : 'EXECUTE TRANSFER'}
+                </span>
+              </>
+            )}
           </button>
         </div>
       </div>

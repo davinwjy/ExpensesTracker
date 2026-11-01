@@ -272,6 +272,16 @@ export const firestoreService = {
     await deleteDoc(doc(firestoreDb, 'investments', investmentId));
   },
 
+  async saveBudget(budget: any): Promise<void> {
+    if (!firestoreDb) throw new Error('Firestore not ready');
+    await setDoc(doc(firestoreDb, 'budgets', budget.id), sanitizeForFirestore(budget));
+  },
+
+  async deleteBudget(budgetId: string): Promise<void> {
+    if (!firestoreDb) throw new Error('Firestore not ready');
+    await deleteDoc(doc(firestoreDb, 'budgets', budgetId));
+  },
+
   async saveSettings(settings: UserSettings): Promise<void> {
     if (!firestoreDb) throw new Error('Firestore not ready');
     await setDoc(doc(firestoreDb, 'settings', settings.userId), sanitizeForFirestore(settings));

@@ -11,7 +11,17 @@ import {
   SystemAnnouncement,
   HoldingType,
   InvestmentCategory,
+  CategoryBudget,
 } from '../types';
+
+export const DEFAULT_BUDGETS: Array<{ category: string; monthlyLimit: number }> = [
+  { category: 'Food & Dining', monthlyLimit: 3000000 },
+  { category: 'Groceries', monthlyLimit: 2500000 },
+  { category: 'Transportation', monthlyLimit: 1500000 },
+  { category: 'Bills & Utilities', monthlyLimit: 1200000 },
+  { category: 'Shopping', monthlyLimit: 1000000 },
+  { category: 'Entertainment', monthlyLimit: 800000 },
+];
 
 export const DEFAULT_HOLDING_TYPES: HoldingType[] = [
   { id: 'Saham', label: 'Saham (ID Stocks)', defaultCurrency: 'IDR', example: 'e.g. BBCA, BBRI, ASII', badgeColor: 'blue', isSystem: true },
@@ -28,6 +38,7 @@ interface LocalStorageSchema {
   investments: Investment[];
   settings: UserSettings[];
   holdingTypes?: HoldingType[];
+  budgets?: CategoryBudget[];
   currentUserId: string | null;
 }
 
@@ -52,6 +63,18 @@ function getStore(): LocalStorageSchema {
       });
       if (!data.holdingTypes || data.holdingTypes.length === 0) {
         data.holdingTypes = [...DEFAULT_HOLDING_TYPES];
+        modified = true;
+      }
+      if (!data.budgets || data.budgets.length === 0) {
+        const targetUserId = data.currentUserId || 'usr_default';
+        data.budgets = DEFAULT_BUDGETS.map((b, idx) => ({
+          id: `bgt_default_${idx + 1}`,
+          userId: targetUserId,
+          category: b.category,
+          monthlyLimit: b.monthlyLimit,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }));
         modified = true;
       }
       if (modified) {
@@ -223,6 +246,15 @@ function getStore(): LocalStorageSchema {
     theme: 'dark',
   };
 
+  const initialBudgets: CategoryBudget[] = DEFAULT_BUDGETS.map((b, idx) => ({
+    id: `bgt_default_${idx + 1}`,
+    userId: defaultUser.id,
+    category: b.category,
+    monthlyLimit: b.monthlyLimit,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }));
+
   const initialData: LocalStorageSchema = {
     users: [{ ...defaultUser, password: 'password123' }],
     accounts: initialAccounts,
@@ -230,6 +262,7 @@ function getStore(): LocalStorageSchema {
     investments: initialInvestments,
     settings: [initialSettings],
     holdingTypes: [...DEFAULT_HOLDING_TYPES],
+    budgets: initialBudgets,
     currentUserId: defaultUser.id,
   };
 
@@ -921,6 +954,73 @@ export const localDb = {
 
     store.holdingTypes.splice(idx, 1);
     saveStore(store);
+    return { success: true };
+  },
+
+  // Budgets
+  getBudgets(userIdOverride?: string): { budgets: CategoryBudget[] } {
+    const store = getStore();
+    const userId = userIdOverride || this.getUserId();
+    const list = (store.budgets || []).filter(b => b.userId === userId);
+    return { budgets: list };
+  },
+
+  saveBudget(data: {
+    id?: string;
+    category: string;
+    monthlyLimit: number;
+    month?: string;
+  }): { budget: CategoryBudget } {
+    const store = getStore();
+    const userId = this.getUserId();
+    if (!store.budgets) store.budgets = [];
+
+    const category = data.category.trim();
+    if (!category) throw new Error('Category is required');
+    const monthlyLimit = Math.max(0, Number(data.monthlyLimit) || 0);
+
+    let existingIndex = -1;
+    if (data.id) {
+      existingIndex = store.budgets.findIndex(b => b.id === data.id && b.userId === userId);
+    } else {
+      existingIndex = store.budgets.findIndex(
+        b => b.userId === userId && b.category.toLowerCase() === category.toLowerCase() && (b.month || '') === (data.month || '')
+      );
+    }
+
+    if (existingIndex >= 0) {
+      const b = store.budgets[existingIndex];
+      b.category = category;
+      b.monthlyLimit = monthlyLimit;
+      b.month = data.month?.trim() || undefined;
+      b.updatedAt = new Date().toISOString();
+      saveStore(store);
+      return { budget: b };
+    } else {
+      const newBudget: CategoryBudget = {
+        id: data.id || 'bgt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        userId,
+        category,
+        monthlyLimit,
+        month: data.month?.trim() || undefined,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      store.budgets.push(newBudget);
+      saveStore(store);
+      return { budget: newBudget };
+    }
+  },
+
+  deleteBudget(id: string): { success: boolean } {
+    const store = getStore();
+    const userId = this.getUserId();
+    if (!store.budgets) return { success: true };
+    const idx = store.budgets.findIndex(b => b.id === id && b.userId === userId);
+    if (idx !== -1) {
+      store.budgets.splice(idx, 1);
+      saveStore(store);
+    }
     return { success: true };
   },
 

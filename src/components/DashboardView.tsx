@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Wallet,
   TrendingUp,
@@ -8,14 +8,13 @@ import {
   EyeOff,
   Plus,
   ArrowDownRight,
-  Coins,
-  Building,
-  Landmark,
-  Globe,
-  DollarSign,
+  Target,
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
-import { formatIdr, formatUsd, formatMasked, formatDate } from '../lib/formatters';
+import { formatIdr, formatUsd, formatMasked, formatDate, CATEGORY_COLORS } from '../lib/formatters';
 
 export const DashboardView: React.FC = () => {
   const {
@@ -23,6 +22,7 @@ export const DashboardView: React.FC = () => {
     accounts,
     transactions,
     investments,
+    budgets,
     isPrivacyMode,
     togglePrivacyMode,
     usdIdrRate,
@@ -33,6 +33,9 @@ export const DashboardView: React.FC = () => {
     setTransferInitialMode,
     setIsAddAccountOpen,
     setEditingTransaction,
+    setIsBudgetModalOpen,
+    setEditingBudget,
+    getBudgetProgressForMonth,
   } = useFinance();
 
   const netWorthIdr = stats?.totalNetWorthIdr || 0;
@@ -48,8 +51,19 @@ export const DashboardView: React.FC = () => {
 
   const recentTransactions = transactions.slice(0, 7);
 
-  // Group investments by category for quick overview
-  const categoryAllocations = stats?.categoryAllocations || {};
+  const currentMonthStr = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }, []);
+
+  const currentMonthDisplay = useMemo(() => {
+    const now = new Date();
+    return now.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  }, []);
+
+  const budgetSummary = useMemo(() => {
+    return getBudgetProgressForMonth(currentMonthStr);
+  }, [getBudgetProgressForMonth, currentMonthStr]);
 
   return (
     <div className="space-y-4 animate-in fade-in pb-10">
@@ -249,113 +263,183 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* PORTFOLIO ASSET ALLOCATION MATRIX (THE 5 ASSET CATEGORIES) */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
+      {/* MONTHLY BUDGET TRACKER & RUNWAY */}
+      <div className="p-4 rounded bg-[#0d1017] border border-[#1b212e] space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[#1b212e] gap-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-300">
-              HOLDINGS MATRIX
-            </span>
-            <span className="text-[10px] font-mono text-zinc-500">
-              ({investments.length} Assets tracked)
-            </span>
+            <div className="w-7 h-7 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+              <Target className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-100">
+                  MONTHLY BUDGET PROGRESS // {currentMonthDisplay.toUpperCase()}
+                </h3>
+                <span
+                  className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                    budgetSummary.isOverBudget
+                      ? 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+                      : budgetSummary.overallPercent >= 75
+                      ? 'bg-amber-500/15 border-amber-500/40 text-amber-300'
+                      : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                  }`}
+                >
+                  {budgetSummary.isOverBudget
+                    ? `${budgetSummary.overBudgetCount} OVER LIMIT`
+                    : budgetSummary.overallPercent >= 75
+                    ? 'APPROACHING LIMIT'
+                    : 'ON TRACK'}
+                </span>
+              </div>
+              <p className="text-[10px] font-mono text-zinc-500">
+                Live category spending consumption vs planned monthly ceiling
+              </p>
+            </div>
           </div>
+
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setActiveTab('investments')}
-              className="text-[11px] font-mono text-zinc-400 hover:text-zinc-200 underline cursor-pointer"
+              onClick={() => {
+                setEditingBudget(null);
+                setIsBudgetModalOpen(true);
+              }}
+              className="text-[10px] font-mono flex items-center gap-1 px-2.5 py-1 rounded bg-[#131722] hover:bg-[#1a2030] text-emerald-400 border border-[#21293a] transition-all cursor-pointer"
             >
-              VIEW ALL
+              <Plus className="w-3 h-3" />
+              <span>SET LIMIT</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('budgeting')}
+              className="text-[10px] font-mono text-zinc-400 hover:text-zinc-200 underline cursor-pointer"
+            >
+              FULL BUDGETS →
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-          {/* Saham */}
-          <div className="p-3 rounded bg-[#0d1017] border border-[#1b212e] hover:border-blue-500/40 transition-colors">
-            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
-              <span className="font-bold text-blue-400 flex items-center gap-1">
-                <Building className="w-3 h-3" />
-                SAHAM
+        {/* Macro Gauge Banner */}
+        <div className="bg-[#10141e] border border-[#1c2333] rounded p-3 space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-mono gap-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-zinc-400 text-[11px]">MONTHLY SPENT:</span>
+              <strong className="text-zinc-100 font-bold tabular-nums">
+                {formatMasked(budgetSummary.totalSpent, 'IDR', isPrivacyMode)}
+              </strong>
+              <span className="text-zinc-600">/</span>
+              <span className="text-zinc-400 tabular-nums">
+                {formatMasked(budgetSummary.totalBudgeted, 'IDR', isPrivacyMode)}
               </span>
-              <span>IDR</span>
             </div>
-            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
-              {formatMasked(categoryAllocations['Saham']?.idrValue || 0, 'IDR', isPrivacyMode)}
-            </p>
-            <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-              {categoryAllocations['Saham']?.count || 0} holding(s)
-            </p>
+
+            <div className="flex items-center gap-2 text-[11px]">
+              <span
+                className={`font-bold tabular-nums ${
+                  budgetSummary.isOverBudget ? 'text-rose-400' : 'text-emerald-400'
+                }`}
+              >
+                {budgetSummary.isOverBudget
+                  ? `Over Budget by ${formatIdr(budgetSummary.totalSpent - budgetSummary.totalBudgeted)}`
+                  : `${formatIdr(budgetSummary.totalRemaining)} remaining`}
+              </span>
+              <span className="text-zinc-500">·</span>
+              <span className="text-zinc-300 font-bold">
+                {budgetSummary.overallPercent.toFixed(1)}%
+              </span>
+            </div>
           </div>
 
-          {/* RDPU */}
-          <div className="p-3 rounded bg-[#0d1017] border border-[#1b212e] hover:border-teal-500/40 transition-colors">
-            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
-              <span className="font-bold text-teal-400 flex items-center gap-1">
-                <Landmark className="w-3 h-3" />
-                RDPU
-              </span>
-              <span>IDR</span>
-            </div>
-            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
-              {formatMasked(categoryAllocations['RDPU']?.idrValue || 0, 'IDR', isPrivacyMode)}
-            </p>
-            <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-              {categoryAllocations['RDPU']?.count || 0} holding(s)
-            </p>
-          </div>
-
-          {/* Bitcoin */}
-          <div className="p-3 rounded bg-[#0d1017] border border-[#1b212e] hover:border-amber-500/40 transition-colors">
-            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
-              <span className="font-bold text-amber-400 flex items-center gap-1">
-                <Coins className="w-3 h-3" />
-                BITCOIN
-              </span>
-              <span>IDR</span>
-            </div>
-            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
-              {formatMasked(categoryAllocations['Bitcoin']?.idrValue || 0, 'IDR', isPrivacyMode)}
-            </p>
-            <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-              {categoryAllocations['Bitcoin']?.count || 0} holding(s)
-            </p>
-          </div>
-
-          {/* ETF USA */}
-          <div className="p-3 rounded bg-[#0d1017] border border-[#1b212e] hover:border-purple-500/40 transition-colors">
-            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
-              <span className="font-bold text-purple-400 flex items-center gap-1">
-                <Globe className="w-3 h-3" />
-                ETF USA
-              </span>
-              <span>USD</span>
-            </div>
-            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
-              {formatMasked(categoryAllocations['ETF USA']?.usdValue || 0, 'USD', isPrivacyMode)}
-            </p>
-            <p className="text-[10px] font-mono tabular-nums text-zinc-500 mt-0.5">
-              ≈ {formatMasked(categoryAllocations['ETF USA']?.idrValue || 0, 'IDR', isPrivacyMode)}
-            </p>
-          </div>
-
-          {/* USD */}
-          <div className="p-3 rounded bg-[#0d1017] border border-[#1b212e] hover:border-emerald-500/40 transition-colors">
-            <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1">
-              <span className="font-bold text-emerald-400 flex items-center gap-1">
-                <DollarSign className="w-3 h-3" />
-                USD CASH
-              </span>
-              <span>USD</span>
-            </div>
-            <p className="text-sm sm:text-base font-bold text-zinc-100 font-mono tabular-nums">
-              {formatMasked(categoryAllocations['USD']?.usdValue || 0, 'USD', isPrivacyMode)}
-            </p>
-            <p className="text-[10px] font-mono tabular-nums text-zinc-500 mt-0.5">
-              ≈ {formatMasked(categoryAllocations['USD']?.idrValue || 0, 'IDR', isPrivacyMode)}
-            </p>
+          {/* Visual indicator progress bar */}
+          <div className="w-full h-2 rounded-full bg-[#151a26] overflow-hidden relative border border-[#222b3e]">
+            <div
+              style={{ width: `${Math.min(100, budgetSummary.overallPercent)}%` }}
+              className={`h-full transition-all duration-300 ${
+                budgetSummary.isOverBudget
+                  ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]'
+                  : budgetSummary.overallPercent >= 75
+                  ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]'
+                  : 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]'
+              }`}
+            />
           </div>
         </div>
+
+        {/* Category Visual Indicators Grid */}
+        {budgetSummary.items.length === 0 ? (
+          <div className="p-4 text-center text-xs font-mono text-zinc-500">
+            No category spending limits configured yet. Click "+ SET LIMIT" to establish spending ceilings.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+            {budgetSummary.items.slice(0, 6).map((item) => {
+              const tagColor = CATEGORY_COLORS[item.category] || '#10b981';
+              return (
+                <div
+                  key={item.category}
+                  onClick={() => setActiveTab('budgeting')}
+                  className="p-2.5 rounded bg-[#10141e] border border-[#1d2332] hover:border-[#2a3449] transition-all cursor-pointer space-y-2 group"
+                >
+                  <div className="flex items-center justify-between gap-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: tagColor }}
+                      />
+                      <span className="text-xs font-medium text-zinc-200 truncate group-hover:text-white">
+                        {item.category}
+                      </span>
+                    </div>
+
+                    <span
+                      className={`text-[9px] font-mono font-bold px-1 py-0.2 rounded shrink-0 ${
+                        item.status === 'danger'
+                          ? 'bg-rose-500/20 text-rose-300'
+                          : item.status === 'warning'
+                          ? 'bg-amber-500/20 text-amber-300'
+                          : 'bg-emerald-500/20 text-emerald-300'
+                      }`}
+                    >
+                      {item.percentUsed.toFixed(0)}%
+                    </span>
+                  </div>
+
+                  {/* Visual Indicator Bar */}
+                  <div className="w-full h-1.5 rounded-full bg-[#151a26] overflow-hidden">
+                    <div
+                      style={{ width: `${Math.min(100, item.percentUsed)}%` }}
+                      className={`h-full transition-all duration-300 ${
+                        item.status === 'danger'
+                          ? 'bg-rose-500'
+                          : item.status === 'warning'
+                          ? 'bg-amber-400'
+                          : 'bg-emerald-400'
+                      }`}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
+                    <span className="tabular-nums">
+                      {formatMasked(item.actualSpent, 'IDR', isPrivacyMode)}
+                    </span>
+                    <span className="text-zinc-500 tabular-nums">
+                      / {formatMasked(item.monthlyLimit, 'IDR', isPrivacyMode)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {budgetSummary.items.length > 6 && (
+          <div className="text-center pt-1">
+            <button
+              onClick={() => setActiveTab('budgeting')}
+              className="text-[11px] font-mono text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer"
+            >
+              + {budgetSummary.items.length - 6} more category budgets in Budgeting module →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* DUAL WORKSPACE: LIQUIDITY ACCOUNTS & RECENT LEDGER ENTRIES */}
@@ -413,9 +497,20 @@ export const DashboardView: React.FC = () => {
                 </div>
 
                 <div className="text-right">
-                  <span className="text-xs sm:text-sm font-bold text-emerald-400 font-mono tabular-nums">
-                    {formatMasked(acc.balance, 'IDR', isPrivacyMode)}
-                  </span>
+                  {acc.type === 'credit_card' || acc.type === 'paylater' ? (
+                    <div>
+                      <span className="text-xs sm:text-sm font-bold text-emerald-400 font-mono tabular-nums">
+                        {formatMasked(Math.max(0, (acc.creditLimit || 0) - acc.balance), 'IDR', isPrivacyMode)}
+                      </span>
+                      <p className="text-[9px] text-zinc-500 font-mono tabular-nums">
+                        Sisa Limit (Terpakai: {formatMasked(acc.balance, 'IDR', isPrivacyMode)})
+                      </p>
+                    </div>
+                  ) : (
+                    <span className="text-xs sm:text-sm font-bold text-emerald-400 font-mono tabular-nums">
+                      {formatMasked(acc.balance, 'IDR', isPrivacyMode)}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
