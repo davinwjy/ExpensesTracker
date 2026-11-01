@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 import { Sidebar } from './components/Sidebar';
@@ -57,6 +57,35 @@ const MainAppContent: React.FC = () => {
     });
   };
 
+  const mainRef = useRef<HTMLElement | null>(null);
+
+  // Automatically scroll viewport and container to top whenever menu/page changes
+  useEffect(() => {
+    // 1. Immediate scroll
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      if (mainRef.current) {
+        mainRef.current.scrollTop = 0;
+      }
+    } catch {}
+
+    // 2. Post-render frame tick to guarantee top position after React DOM replacement
+    const rafId = requestAnimationFrame(() => {
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        if (mainRef.current) {
+          mainRef.current.scrollTop = 0;
+        }
+      } catch {}
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [activeTab]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-3">
@@ -92,7 +121,7 @@ const MainAppContent: React.FC = () => {
             onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           />
 
-          <main className="flex-1 max-w-[1520px] w-full mx-auto px-3 sm:px-5 lg:px-6 py-5 pb-24 lg:pb-10">
+          <main ref={mainRef} className="flex-1 max-w-[1520px] w-full mx-auto px-3 sm:px-5 lg:px-6 py-5 pb-24 lg:pb-10">
             {activeTab === 'dashboard' && <DashboardView />}
             {activeTab === 'expenses' && <ExpensesView />}
             {activeTab === 'budgeting' && <BudgetingView />}

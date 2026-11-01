@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   Flame,
   Sparkles,
+  Pencil,
+  RotateCcw,
 } from 'lucide-react';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { useAuth } from '../../context/AuthContext';
@@ -25,6 +27,40 @@ export const MobileAppModal: React.FC<MobileAppModalProps> = ({ isOpen, onClose 
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'pwa' | 'apk'>('pwa');
   const [installSuccess, setInstallSuccess] = useState(false);
+
+  const [apkDownloadUrl, setApkDownloadUrl] = useState<string>(() => {
+    try {
+      return (
+        localStorage.getItem('wealthtrack_custom_apk_url') ||
+        'https://github.com/davinwijaya1996/Expenses-Tracker-2/releases/latest/download/WealthTrack-Pro.apk'
+      );
+    } catch {
+      return 'https://github.com/davinwijaya1996/Expenses-Tracker-2/releases/latest/download/WealthTrack-Pro.apk';
+    }
+  });
+  const [isEditingUrl, setIsEditingUrl] = useState(false);
+  const [tempUrl, setTempUrl] = useState(apkDownloadUrl);
+
+  const handleSaveUrl = () => {
+    const trimmed = tempUrl.trim();
+    if (trimmed) {
+      setApkDownloadUrl(trimmed);
+      try {
+        localStorage.setItem('wealthtrack_custom_apk_url', trimmed);
+      } catch {}
+    }
+    setIsEditingUrl(false);
+  };
+
+  const handleResetUrl = () => {
+    const defaultUrl = 'https://github.com/davinwijaya1996/Expenses-Tracker-2/releases/latest/download/WealthTrack-Pro.apk';
+    setApkDownloadUrl(defaultUrl);
+    setTempUrl(defaultUrl);
+    try {
+      localStorage.removeItem('wealthtrack_custom_apk_url');
+    } catch {}
+    setIsEditingUrl(false);
+  };
 
   if (!isOpen) return null;
 
@@ -207,24 +243,96 @@ export const MobileAppModal: React.FC<MobileAppModalProps> = ({ isOpen, onClose 
                   </div>
                 </div>
 
-                <div className="space-y-2 pt-1">
+                <div className="space-y-3 pt-1">
+                  {/* Direct APK Download Button */}
                   <a
-                    href="https://github.com/davinwijaya1996/Expenses-Tracker-2/releases"
+                    href={apkDownloadUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/15 transition-all cursor-pointer"
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
                   >
-                    <Download className="w-4 h-4" />
-                    <span>Download APK di GitHub Releases</span>
+                    <Download className="w-4 h-4 stroke-[2.5]" />
+                    <span>Download File APK Standalone</span>
                     <ExternalLink className="w-3.5 h-3.5 ml-1" />
                   </a>
 
-                  <div className="text-[11px] text-slate-400 leading-relaxed space-y-1 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
-                    <p className="font-semibold text-slate-300">Cara Install File APK di HP:</p>
-                    <p>1. Unduh file <strong>WealthTrack-Pro.apk</strong>.</p>
-                    <p>2. Buka file yang diunduh lalu ketuk <strong>Install</strong>.</p>
-                    <p>3. Jika muncul konfirmasi keamanan, pilih <strong>Izinkan dari sumber ini</strong>.</p>
-                    <p>4. Buka aplikasi dan login dengan akun: <strong className="text-white">{user?.email || 'email Anda'}</strong>.</p>
+                  {/* Configurable APK URL Section */}
+                  <div className="p-2.5 rounded-lg bg-[#080a0f] border border-[#1d2332] space-y-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-zinc-400 font-mono text-[10px] uppercase font-bold tracking-wider">
+                        APK Direct Link:
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTempUrl(apkDownloadUrl);
+                            setIsEditingUrl(!isEditingUrl);
+                          }}
+                          className="inline-flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 font-mono cursor-pointer"
+                        >
+                          <Pencil className="w-3 h-3" />
+                          <span>{isEditingUrl ? 'Batal' : 'Ubah Link'}</span>
+                        </button>
+                        {apkDownloadUrl !== 'https://github.com/davinwijaya1996/Expenses-Tracker-2/releases/latest/download/WealthTrack-Pro.apk' && (
+                          <button
+                            type="button"
+                            onClick={handleResetUrl}
+                            className="inline-flex items-center gap-1 text-[10px] text-zinc-500 hover:text-zinc-300 font-mono cursor-pointer"
+                            title="Reset ke Default Release"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            <span>Reset</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {!isEditingUrl ? (
+                      <div className="p-2 rounded bg-[#0d1017] border border-[#1b2230] text-[10px] font-mono text-zinc-300 break-all select-all">
+                        {apkDownloadUrl}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <input
+                          type="url"
+                          value={tempUrl}
+                          onChange={(e) => setTempUrl(e.target.value)}
+                          placeholder="https://..."
+                          className="w-full bg-[#0d1017] border border-emerald-500/60 rounded px-2.5 py-1.5 text-xs text-zinc-100 font-mono focus:border-emerald-400 focus:outline-none"
+                          autoFocus
+                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingUrl(false)}
+                            className="px-2.5 py-1 rounded text-[11px] text-zinc-400 hover:text-white"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleSaveUrl}
+                            className="px-3 py-1 rounded text-[11px] font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer"
+                          >
+                            Terapkan Link
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-1 flex items-center justify-between text-[10px] text-zinc-500 border-t border-[#161c28]">
+                      <span>Repositori GitHub:</span>
+                      <a
+                        href="https://github.com/davinwijaya1996/Expenses-Tracker-2/releases"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-zinc-400 hover:text-emerald-400 underline inline-flex items-center gap-1"
+                      >
+                        <span>Halaman Releases</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>

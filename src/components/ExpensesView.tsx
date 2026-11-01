@@ -240,14 +240,14 @@ export const ExpensesView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-100 font-mono">
-              TRANSACTIONS & CASH FLOW LEDGER
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+              Transactions
             </h2>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#161a25] border border-[#232b3d] text-zinc-400">
-              {filteredTransactions.length} LOGS
+            <span className="text-xs text-slate-400 dark:text-zinc-500">
+              · {filteredTransactions.length} entries
             </span>
           </div>
-          <p className="text-[11px] font-mono text-zinc-500">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
             Daily income, expenses, and inter-account liquidity movements
           </p>
         </div>
@@ -259,10 +259,10 @@ export const ExpensesView: React.FC = () => {
               setTransactionInitialType('expense');
               setIsAddExpenseOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-mono text-xs font-bold transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium transition-colors cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 stroke-[2.8]" />
-            <span>RECORD EXPENSE</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Expense</span>
           </button>
 
           <button
@@ -271,31 +271,31 @@ export const ExpensesView: React.FC = () => {
               setTransactionInitialType('income');
               setIsAddExpenseOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono text-xs font-bold transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition-colors cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 stroke-[2.8]" />
-            <span>RECORD INCOME</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Income</span>
           </button>
         </div>
       </div>
 
       {/* FILTER & CONTROL PANEL */}
-      <div className="p-3.5 rounded bg-[#0d1017] border border-[#1b212e] space-y-3 font-mono">
+      <div className="p-4 rounded-xl bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1b212e] space-y-3 shadow-sm">
         {/* Search & Dropdown Primary Filters */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search memo / notes..."
-              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded pl-8 pr-7 py-1.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none"
+              placeholder="Search memo or notes..."
+              className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded-lg pl-8 pr-7 py-1.5 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-white cursor-pointer"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -306,12 +306,12 @@ export const ExpensesView: React.FC = () => {
             <select
               value={selectedAccountFilter}
               onChange={(e) => setSelectedAccountFilter(e.target.value)}
-              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none cursor-pointer"
+              className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 dark:text-zinc-200 focus:outline-none cursor-pointer"
             >
-              <option value="all">ALL ACCOUNTS</option>
+              <option value="all">All Accounts</option>
               {accounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
-                  {acc.name} ({acc.type.toUpperCase()})
+                  {acc.name} ({acc.type.replace('_', ' ')})
                 </option>
               ))}
             </select>
@@ -324,13 +324,13 @@ export const ExpensesView: React.FC = () => {
                 setSelectedTypeFilter(e.target.value);
                 setSelectedCategoryFilter('all');
               }}
-              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none cursor-pointer"
+              className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 dark:text-zinc-200 focus:outline-none cursor-pointer"
             >
-              <option value="all">ALL TRANSACTION TYPES</option>
-              <option value="expense">EXPENSES (-)</option>
-              <option value="income">INFLOWS (+)</option>
-              <option value="transfer">BANK ↔ CASH TRANSFERS</option>
-              <option value="bank_to_investment">BANK → INVESTMENTS</option>
+              <option value="all">All Types</option>
+              <option value="expense">Expenses (-)</option>
+              <option value="income">Income (+)</option>
+              <option value="transfer">Account Transfers</option>
+              <option value="bank_to_investment">Investment Funding</option>
             </select>
           </div>
 
@@ -338,14 +338,14 @@ export const ExpensesView: React.FC = () => {
             <select
               value={selectedCategoryFilter}
               onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none cursor-pointer"
+              className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 dark:text-zinc-200 focus:outline-none cursor-pointer"
             >
               <option value="all">
                 {selectedTypeFilter === 'income'
-                  ? 'ALL INCOME CATEGORIES'
+                  ? 'All Income Categories'
                   : selectedTypeFilter === 'expense'
-                  ? 'ALL EXPENSE CATEGORIES'
-                  : 'ALL CATEGORIES'}
+                  ? 'All Expense Categories'
+                  : 'All Categories'}
               </option>
               {availableCategories.map((cat) => (
                 <option key={cat} value={cat}>

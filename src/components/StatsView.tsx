@@ -102,11 +102,11 @@ export const StatsView: React.FC = () => {
     <div className="space-y-4 animate-in fade-in pb-12">
       {/* Header */}
       <div>
-        <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-100 font-mono">
-          FINANCIAL ANALYTICS & CAPITAL DEPLOYMENT
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+          Analytics & Reports
         </h2>
-        <p className="text-[11px] font-mono text-zinc-500">
-          In-depth asset allocation weights, income vs investment timelines, and FX conversion rates
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
+          Asset allocation weights, income vs investment timelines, and FX conversion rates
         </p>
       </div>
 
@@ -114,19 +114,19 @@ export const StatsView: React.FC = () => {
       <IncomeInvestmentTracker />
 
       {/* ASSET ALLOCATION MATRIX */}
-      <div className="p-3.5 sm:p-4 rounded bg-[#0d1017] border border-[#1b212e] space-y-3 font-mono">
+      <div className="p-4 sm:p-5 rounded-xl bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1b212e] space-y-3.5 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-zinc-100 text-xs uppercase tracking-wider flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-emerald-400" />
-              <span>ASSET ALLOCATION WEIGHT MATRIX</span>
+            <h3 className="font-semibold text-slate-900 dark:text-zinc-100 text-sm flex items-center gap-2">
+              <Layers className="w-4 h-4 text-emerald-500" />
+              <span>Asset Allocation Matrix</span>
             </h3>
-            <p className="text-[10px] text-zinc-500">
-              Distribution of aggregate net worth across liquid and capital markets
+            <p className="text-xs text-slate-500 dark:text-zinc-400">
+              Distribution of aggregate net worth across liquid and invested assets
             </p>
           </div>
-          <span className="text-xs font-bold text-zinc-200 tabular-nums">
-            TOTAL: {formatMasked(netWorth, 'IDR', isPrivacyMode)}
+          <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200 tabular-nums">
+            Total: {formatMasked(netWorth, 'IDR', isPrivacyMode)}
           </span>
         </div>
 

@@ -167,14 +167,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {!isCollapsed && (
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-xs tracking-wider uppercase text-zinc-100 group-hover:text-emerald-400 transition-colors">
-                  WealthTrack
-                </span>
-                <span className="text-[9px] font-mono font-bold px-1 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                  TERM
+                <span className="font-bold text-sm tracking-tight text-zinc-100 group-hover:text-emerald-400 transition-colors">
+                  WealthTrack Pro
                 </span>
               </div>
-              <p className="text-[10px] font-mono text-zinc-500 truncate">Portfolio & Ledger</p>
+              <p className="text-xs text-zinc-400 truncate">Personal Finance</p>
             </div>
           )}
         </button>
@@ -201,12 +198,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {!isCollapsed && (
         <div className="px-3 py-2.5 border-b border-[#1a1f2c] bg-[#0c0f16]">
           <div className="p-2.5 rounded bg-[#10141e] border border-[#1d2332]">
-            <div className="flex items-center justify-between text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">
-              <span className="font-mono">NET WORTH (IDR)</span>
+            <div className="flex items-center justify-between text-xs text-zinc-400 mb-1">
+              <span className="font-medium">Net Worth</span>
               <button
                 onClick={togglePrivacyMode}
                 className="text-zinc-400 hover:text-zinc-200 p-0.5 rounded cursor-pointer"
-                title={isPrivacyMode ? 'Show nominal' : 'Hide nominal'}
+                title={isPrivacyMode ? 'Show values' : 'Hide values'}
               >
                 {isPrivacyMode ? (
                   <EyeOff className="w-3.5 h-3.5 text-amber-400" />
@@ -215,11 +212,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </button>
             </div>
-            <div className="font-mono tabular-nums font-bold text-sm text-zinc-100 truncate">
+            <div className="font-semibold text-base text-zinc-100 truncate tabular-nums">
               {formatMasked(netWorthIdr, 'IDR', isPrivacyMode)}
             </div>
             {!isPrivacyMode && (
-              <div className="text-[10px] font-mono tabular-nums text-zinc-400 truncate mt-0.5">
+              <div className="text-xs text-zinc-400 truncate mt-0.5 tabular-nums">
                 ≈ {formatUsd(netWorthUsd)}
               </div>
             )}
@@ -227,21 +224,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       )}
 
-      {/* 3. PRIMARY ACTION: '+ NEW' BUTTON */}
+      {/* 3. PRIMARY ACTION BUTTON */}
       <div className="p-2.5 relative" ref={newMenuRef}>
         <button
           onClick={() => setIsNewMenuOpen(!isNewMenuOpen)}
-          className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs tracking-wide shadow-none active:scale-98 transition-all cursor-pointer ${
+          className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-sm transition-colors cursor-pointer ${
             isCollapsed ? 'p-2' : ''
           }`}
-          title="Create New Transaction / Asset"
+          title="Create New Transaction"
         >
-          <Plus className="w-4 h-4 stroke-[2.8]" />
+          <Plus className="w-4 h-4" />
           {!isCollapsed && (
             <>
-              <span className="flex-1 text-left uppercase text-[11px] font-mono">Record Action</span>
+              <span className="flex-1 text-left text-xs font-medium">New Transaction</span>
               <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                className={`w-3.5 h-3.5 text-emerald-200 transition-transform duration-200 ${
                   isNewMenuOpen ? 'rotate-180' : ''
                 }`}
               />
@@ -256,11 +253,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               isCollapsed ? 'left-16 top-0 w-64' : 'left-2.5 right-2.5 top-12'
             }`}
           >
-            <div className="px-3 py-1.5 border-b border-[#1c2231] bg-[#0b0e15] flex items-center justify-between">
-              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400">
-                QUICK RECORD
+            <div className="px-3 py-2 border-b border-[#1c2231] bg-[#0b0e15] flex items-center justify-between">
+              <span className="text-xs font-semibold text-zinc-300">
+                Quick Actions
               </span>
-              <span className="text-[9px] font-mono text-zinc-500">ACTIONS</span>
             </div>
 
             <div className="p-1 space-y-0.5">
@@ -278,7 +274,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <Receipt className="w-3 h-3" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs font-semibold text-zinc-200">Record Expense</div>
+                  <div className="text-xs font-medium text-zinc-200">Add Expense</div>
                   <div className="text-[10px] text-zinc-500 truncate">Deduct from cash or bank</div>
                 </div>
               </button>
@@ -297,7 +293,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <ArrowDownRight className="w-3 h-3" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs font-semibold text-zinc-200">Record Income</div>
+                  <div className="text-xs font-medium text-zinc-200">Add Income</div>
                   <div className="text-[10px] text-zinc-500 truncate">Salary, selling items, bonus</div>
                 </div>
               </button>

@@ -2,37 +2,35 @@ import React, { useState, useMemo } from 'react';
 import {
   Target,
   Plus,
-  AlertTriangle,
-  CheckCircle2,
   AlertCircle,
-  TrendingUp,
   Receipt,
   ChevronLeft,
   ChevronRight,
-  Filter,
   Search,
-  Sliders,
-  Calendar,
-  Layers,
-  ArrowDownRight,
-  Sparkles,
   ChevronDown,
   ChevronUp,
+  X,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { useFinance } from '../context/FinanceContext';
-import { formatIdr, formatMasked, formatDate, CATEGORY_COLORS, EXPENSE_CATEGORIES } from '../lib/formatters';
+import { formatIdr, formatMasked, formatDate, CATEGORY_COLORS } from '../lib/formatters';
 import { BudgetProgress } from '../types';
 
 export const BudgetingView: React.FC = () => {
   const {
     budgets,
     transactions,
-    accounts,
     isPrivacyMode,
     setIsBudgetModalOpen,
     setEditingBudget,
+    setEditingTransaction,
     saveBudget,
+    deleteBudget,
     getBudgetProgressForMonth,
+    setIsAddExpenseOpen,
+    setTransactionInitialType,
+    showNotification,
   } = useFinance();
 
   // Month navigation: default to current month YYYY-MM
@@ -91,10 +89,8 @@ export const BudgetingView: React.FC = () => {
     overBudgetCount,
   } = getBudgetProgressForMonth(selectedMonth);
 
-  // Warning count
-  const warningCount = useMemo(() => {
-    return items.filter((i) => i.status === 'warning').length;
-  }, [items]);
+  const warningCount = useMemo(() => items.filter((i) => i.status === 'warning').length, [items]);
+  const safeCount = useMemo(() => items.filter((i) => i.status === 'safe').length, [items]);
 
   // Filtered items
   const filteredItems = useMemo(() => {
@@ -124,7 +120,6 @@ export const BudgetingView: React.FC = () => {
     if (found) {
       setEditingBudget(found);
     } else {
-      // Synthesize budget for category
       setEditingBudget({
         id: '',
         userId: '',
@@ -138,45 +133,62 @@ export const BudgetingView: React.FC = () => {
   };
 
   const handleQuickAddUnbudgeted = (categoryName: string, defaultLimit: number = 2000000) => {
-    saveBudget(categoryName, defaultLimit);
+    saveBudget(categoryName, defaultLimit, selectedMonth);
+    showNotification({
+      type: 'success',
+      title: 'Budget Limit Set',
+      message: `${categoryName}: limit set to ${formatIdr(defaultLimit)}/month`,
+      amount: defaultLimit,
+      category: categoryName,
+    });
+  };
+
+  const handleDeleteBudget = async (id: string, categoryName: string) => {
+    if (!window.confirm(`Delete budget limit for ${categoryName}?`)) return;
+    try {
+      await deleteBudget(id);
+      showNotification({
+        type: 'info',
+        title: 'Budget Limit Removed',
+        message: `Limit for ${categoryName} has been removed`,
+      });
+    } catch (err: any) {
+      console.error('Failed to delete budget:', err);
+    }
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in pb-12">
-      {/* 1. TOP HEADER & TELEMETRY DESK */}
-      <div className="bg-[#0d1017] border border-[#1b212e] rounded p-4 sm:p-5">
+    <div className="space-y-5 animate-in fade-in pb-12">
+      {/* 1. HEADER & OVERVIEW */}
+      <div className="bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1b212e] rounded-xl p-5 sm:p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500">
-              <Target className="w-3.5 h-3.5 text-emerald-400" />
-              <span>MONTHLY SPENDING CEILINGS // BUDGET CONTROL</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-100 font-mono">
-              Category Budgets & Progress
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+              Budgeting & Spending Limits
             </h2>
-            <p className="text-xs text-zinc-400 font-mono">
-              Enforce spending limits by category and monitor live runway consumption.
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
+              Set monthly category spending ceilings and track remaining runway in real time.
             </p>
           </div>
 
           {/* Month Navigation & Action */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center bg-[#131722] border border-[#21293a] rounded p-1">
+            <div className="flex items-center bg-slate-100 dark:bg-[#131722] border border-slate-200 dark:border-[#21293a] rounded-lg p-1">
               <button
                 onClick={handlePrevMonth}
-                className="p-1 rounded text-zinc-400 hover:text-white hover:bg-[#1a2030] transition-colors cursor-pointer"
+                className="p-1 rounded text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#1a2030] transition-colors cursor-pointer"
                 title="Previous month"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
 
-              <div className="px-3 py-0.5 text-xs font-mono font-bold text-zinc-200 min-w-[130px] text-center">
+              <div className="px-3 py-0.5 text-xs font-semibold text-slate-800 dark:text-zinc-200 min-w-[130px] text-center">
                 {monthDisplay}
               </div>
 
               <button
                 onClick={handleNextMonth}
-                className="p-1 rounded text-zinc-400 hover:text-white hover:bg-[#1a2030] transition-colors cursor-pointer"
+                className="p-1 rounded text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#1a2030] transition-colors cursor-pointer"
                 title="Next month"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -186,7 +198,7 @@ export const BudgetingView: React.FC = () => {
             {!isCurrentMonth && (
               <button
                 onClick={handleResetCurrentMonth}
-                className="px-2.5 py-1.5 rounded bg-[#131722] hover:bg-[#1a2030] text-zinc-300 font-mono text-xs border border-[#21293a] cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-[#131722] hover:bg-slate-200 dark:hover:bg-[#1a2030] text-slate-600 dark:text-zinc-300 text-xs font-medium border border-slate-200 dark:border-[#21293a] cursor-pointer transition-colors"
               >
                 Current Month
               </button>
@@ -197,437 +209,397 @@ export const BudgetingView: React.FC = () => {
                 setEditingBudget(null);
                 setIsBudgetModalOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs font-mono shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-sm transition-colors cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5 stroke-[3]" />
-              <span>+ SET LIMIT</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>Set Limit</span>
             </button>
           </div>
         </div>
 
         {/* 2. OVERALL MACRO CONSUMPTION BAR */}
-        <div className="mt-5 pt-4 border-t border-[#1b212e] space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono">
-            <div className="flex items-center gap-2">
-              <span className="text-zinc-400">TOTAL MONTHLY SPENT:</span>
-              <strong className="text-zinc-100 font-bold tabular-nums">
+        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-[#1b212e] space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-slate-500 dark:text-zinc-400 font-medium">Spent This Month:</span>
+              <strong className="text-slate-900 dark:text-zinc-100 font-semibold tabular-nums">
                 {formatMasked(totalSpent, 'IDR', isPrivacyMode)}
               </strong>
-              <span className="text-zinc-500">/</span>
-              <span className="text-zinc-400">
-                {formatMasked(totalBudgeted, 'IDR', isPrivacyMode)}
+              <span className="text-slate-300 dark:text-zinc-600">/</span>
+              <span className="text-slate-500 dark:text-zinc-400 tabular-nums">
+                {formatMasked(totalBudgeted, 'IDR', isPrivacyMode)} limit
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <span
-                className={`font-mono font-bold px-1.5 py-0.5 rounded text-[11px] ${
+                className={`text-xs font-semibold tabular-nums ${
                   isOverBudget
-                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                    ? 'text-rose-600 dark:text-rose-400'
                     : overallPercent >= 75
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-emerald-600 dark:text-emerald-400'
                 }`}
               >
-                {overallPercent.toFixed(1)}% USED
+                {overallPercent.toFixed(1)}% Used
               </span>
             </div>
           </div>
 
           {/* Master visual indicator bar */}
-          <div className="relative w-full h-3 rounded-full bg-[#141a27] border border-[#212a40] overflow-hidden">
+          <div className="relative w-full h-2.5 rounded-full bg-slate-100 dark:bg-[#141a27] border border-slate-200/80 dark:border-[#212a40] overflow-hidden">
             <div
               style={{ width: `${Math.min(100, overallPercent)}%` }}
-              className={`h-full transition-all duration-500 ${
+              className={`h-full transition-all duration-300 ${
                 isOverBudget
-                  ? 'bg-gradient-to-r from-rose-600 to-rose-400'
+                  ? 'bg-rose-500'
                   : overallPercent >= 75
-                  ? 'bg-gradient-to-r from-amber-600 to-amber-400'
-                  : 'bg-gradient-to-r from-emerald-600 to-emerald-400'
+                  ? 'bg-amber-400'
+                  : 'bg-emerald-500'
               }`}
             />
-            {/* 75% threshold marker */}
-            <div
-              className="absolute top-0 bottom-0 w-0.5 bg-zinc-600/60 z-10"
-              style={{ left: '75%' }}
-              title="75% Warning Threshold"
-            />
           </div>
 
-          <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500">
-            <span>0%</span>
-            <span>50%</span>
-            <span>75% WARNING</span>
-            <span>100% CEILING</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. FOUR TELEMETRY CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Total Budgeted */}
-        <div className="p-3.5 rounded bg-[#0d1017] border border-[#1b212e]">
-          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-zinc-500 mb-1">
-            <span>TOTAL BUDGETED</span>
-            <Target className="w-3.5 h-3.5 text-zinc-400" />
-          </div>
-          <p className="text-xl font-bold text-zinc-100 font-mono tabular-nums">
-            {formatMasked(totalBudgeted, 'IDR', isPrivacyMode)}
-          </p>
-          <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-            Across {items.length} active categories
-          </p>
-        </div>
-
-        {/* Actual Spent */}
-        <div className="p-3.5 rounded bg-[#0d1017] border border-[#1b212e]">
-          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-zinc-500 mb-1">
-            <span>ACTUAL SPENT</span>
-            <Receipt className="w-3.5 h-3.5 text-rose-400" />
-          </div>
-          <p className="text-xl font-bold text-rose-400 font-mono tabular-nums">
-            {formatMasked(totalSpent, 'IDR', isPrivacyMode)}
-          </p>
-          <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-            {overallPercent.toFixed(1)}% of planned ceiling
-          </p>
-        </div>
-
-        {/* Remaining Runway */}
-        <div className="p-3.5 rounded bg-[#0d1017] border border-[#1b212e]">
-          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-zinc-500 mb-1">
-            <span>REMAINING RUNWAY</span>
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-          </div>
-          <p
-            className={`text-xl font-bold font-mono tabular-nums ${
-              isOverBudget ? 'text-rose-400' : 'text-emerald-400'
-            }`}
-          >
-            {isOverBudget ? '-' : ''}
-            {formatMasked(isOverBudget ? totalSpent - totalBudgeted : totalRemaining, 'IDR', isPrivacyMode)}
-          </p>
-          <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-            {isOverBudget ? 'Exceeded by ' + formatIdr(totalSpent - totalBudgeted) : 'Available to spend safely'}
-          </p>
-        </div>
-
-        {/* Health Status */}
-        <div className="p-3.5 rounded bg-[#0d1017] border border-[#1b212e]">
-          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-zinc-500 mb-1">
-            <span>BUDGET HEALTH</span>
-            {isOverBudget ? (
-              <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
-            ) : warningCount > 0 ? (
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-            ) : (
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 mt-0.5">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400">
+            <span>Rp 0</span>
             <span
-              className={`text-base font-bold font-mono ${
-                isOverBudget
-                  ? 'text-rose-400'
-                  : warningCount > 0
-                  ? 'text-amber-400'
-                  : 'text-emerald-400'
+              className={`font-medium tabular-nums ${
+                isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
               }`}
             >
               {isOverBudget
-                ? `${overBudgetCount} OVER LIMIT`
-                : warningCount > 0
-                ? `${warningCount} NEAR LIMIT`
-                : 'ALL ON TRACK'}
+                ? `Over budget by ${formatIdr(totalSpent - totalBudgeted)}`
+                : `${formatIdr(totalRemaining)} remaining buffer`}
             </span>
+            <span>Total Limit: {formatMasked(totalBudgeted, 'IDR', isPrivacyMode)}</span>
           </div>
-          <p className="text-[10px] font-mono text-zinc-500 mt-1">
-            {isOverBudget
-              ? 'Immediate attention recommended'
-              : warningCount > 0
-              ? 'Approaching 75% threshold'
-              : 'Disciplined spending pace'}
-          </p>
+        </div>
+
+        {/* Macro Telemetry Cards */}
+        <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5 pt-3 border-t border-slate-100 dark:border-[#161d2b]">
+          <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#090c12] border border-slate-200/70 dark:border-[#1b2230]">
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Active Categories</span>
+            <p className="text-sm font-semibold text-slate-900 dark:text-zinc-200 mt-0.5">{items.length} Budgeted</p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#090c12] border border-slate-200/70 dark:border-[#1b2230]">
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Monthly Ceiling</span>
+            <p className="text-sm font-semibold text-slate-900 dark:text-zinc-200 tabular-nums mt-0.5">
+              {formatMasked(totalBudgeted, 'IDR', isPrivacyMode)}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#090c12] border border-slate-200/70 dark:border-[#1b2230]">
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Total Spent</span>
+            <p className="text-sm font-semibold text-rose-600 dark:text-rose-400 tabular-nums mt-0.5">
+              {formatMasked(totalSpent, 'IDR', isPrivacyMode)}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#090c12] border border-slate-200/70 dark:border-[#1b2230]">
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Remaining Buffer</span>
+            <p
+              className={`text-sm font-semibold tabular-nums mt-0.5 ${
+                isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
+              }`}
+            >
+              {isOverBudget
+                ? `-${formatIdr(totalSpent - totalBudgeted)}`
+                : formatMasked(totalRemaining, 'IDR', isPrivacyMode)}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* 4. FILTER & SEARCH CONTROLS */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-          <button
-            onClick={() => setFilterStatus('all')}
-            className={`px-2.5 py-1 rounded text-xs font-mono font-medium border transition-all cursor-pointer ${
-              filterStatus === 'all'
-                ? 'bg-[#1b2234] border-emerald-500/40 text-emerald-300'
-                : 'bg-[#10141e] border-[#1d2332] text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            All ({items.length})
-          </button>
-          <button
-            onClick={() => setFilterStatus('danger')}
-            className={`px-2.5 py-1 rounded text-xs font-mono font-medium border transition-all cursor-pointer ${
-              filterStatus === 'danger'
-                ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 font-bold'
-                : 'bg-[#10141e] border-[#1d2332] text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Exceeded ({overBudgetCount})
-          </button>
-          <button
-            onClick={() => setFilterStatus('warning')}
-            className={`px-2.5 py-1 rounded text-xs font-mono font-medium border transition-all cursor-pointer ${
-              filterStatus === 'warning'
-                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 font-bold'
-                : 'bg-[#10141e] border-[#1d2332] text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Near Limit ({warningCount})
-          </button>
-          <button
-            onClick={() => setFilterStatus('safe')}
-            className={`px-2.5 py-1 rounded text-xs font-mono font-medium border transition-all cursor-pointer ${
-              filterStatus === 'safe'
-                ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 font-bold'
-                : 'bg-[#10141e] border-[#1d2332] text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Safe ({items.filter((i) => i.status === 'safe').length})
-          </button>
+      {/* 3. FILTER & SEARCH STRIP */}
+      <div className="p-3 rounded-xl bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1b212e] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {(
+            [
+              { id: 'all', label: `All (${items.length})` },
+              { id: 'safe', label: `On Track (${safeCount})` },
+              { id: 'warning', label: `Warning (${warningCount})` },
+              { id: 'danger', label: `Over Limit (${overBudgetCount})` },
+            ] as const
+          ).map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setFilterStatus(s.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                filterStatus === s.id
+                  ? 'bg-slate-900 text-white dark:bg-emerald-500/15 dark:text-emerald-400 border border-transparent dark:border-emerald-500/30'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-[#161c29]'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
 
-        <div className="relative min-w-[200px]">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-zinc-500" />
+        <div className="relative min-w-[220px]">
+          <Search className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search category..."
-            className="w-full bg-[#10141e] border border-[#1d2332] rounded pl-8 pr-3 py-1.5 text-xs font-mono text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/50"
+            placeholder="Search categories..."
+            className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded-lg pl-8 pr-7 py-1.5 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none"
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-white cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 5. CATEGORY BUDGET LIST WITH VISUAL PROGRESS INDICATORS */}
-      <div className="space-y-2">
-        {filteredItems.length === 0 ? (
-          <div className="p-8 rounded bg-[#0d1017] border border-[#1b212e] text-center space-y-3">
-            <Target className="w-8 h-8 text-zinc-600 mx-auto" />
-            <p className="text-xs font-mono text-zinc-400">
-              No categories match the selected filter.
-            </p>
+      {/* 4. CATEGORY BUDGET CARDS GRID */}
+      {filteredItems.length === 0 ? (
+        <div className="p-10 text-center rounded-xl bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1b212e] space-y-3 shadow-sm">
+          <Target className="w-10 h-10 text-slate-400 dark:text-zinc-600 mx-auto" />
+          <h3 className="text-sm font-semibold text-slate-800 dark:text-zinc-200">
+            {items.length === 0
+              ? 'No Category Budgets Configured'
+              : 'No Budgets Match the Current Filter'}
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mx-auto">
+            {items.length === 0
+              ? 'Set monthly spending limits for categories to monitor runway consumption and receive over-limit alerts.'
+              : 'Try clearing your search query or selecting a different status filter.'}
+          </p>
+          {items.length === 0 && (
             <button
               onClick={() => {
                 setEditingBudget(null);
                 setIsBudgetModalOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-emerald-500 text-zinc-950 font-bold text-xs font-mono cursor-pointer"
+              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow transition-colors cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Create New Category Budget</span>
+              Set First Budget Limit
             </button>
-          </div>
-        ) : (
-          filteredItems.map((item) => {
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {filteredItems.map((item) => {
             const isExpanded = expandedCategory === item.category;
             const catTransactions = isExpanded ? getCategoryTransactions(item.category) : [];
-            const tagColor = CATEGORY_COLORS[item.category] || '#10b981';
 
             return (
               <div
                 key={item.category}
-                className="bg-[#0d1017] border border-[#1b212e] hover:border-[#273248] rounded transition-all overflow-hidden"
+                className={`p-5 rounded-xl bg-white dark:bg-[#0d1017] border transition-all space-y-3.5 shadow-sm ${
+                  item.status === 'danger'
+                    ? 'border-rose-300 dark:border-rose-500/40'
+                    : item.status === 'warning'
+                    ? 'border-amber-300 dark:border-amber-500/40'
+                    : 'border-slate-200 dark:border-[#1b212e] hover:border-slate-300 dark:hover:border-[#273248]'
+                }`}
               >
-                {/* Main Card Row */}
-                <div className="p-3.5 sm:p-4 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    {/* Category Title & Badge */}
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div
-                        className="w-2.5 h-8 rounded-sm shrink-0"
-                        style={{ backgroundColor: tagColor }}
-                      />
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold text-sm text-zinc-100 truncate">
-                            {item.category}
-                          </h4>
-                          <span
-                            className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
-                              item.status === 'danger'
-                                ? 'bg-rose-500/15 border-rose-500/40 text-rose-300'
-                                : item.status === 'warning'
-                                ? 'bg-amber-500/15 border-amber-500/40 text-amber-300'
-                                : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
-                            }`}
-                          >
-                            {item.status === 'danger'
-                              ? 'EXCEEDED'
-                              : item.status === 'warning'
-                              ? 'WARNING (≥75%)'
-                              : 'ON TRACK'}
-                          </span>
-                        </div>
-                        <p className="text-[10px] font-mono text-zinc-500">
-                          {item.transactionCount} transactions recorded in {monthDisplay}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Numeric Figures & Quick Edit */}
-                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                      <div className="text-right">
-                        <div className="flex items-baseline gap-1.5 justify-end">
-                          <span className="text-xs sm:text-sm font-bold font-mono tabular-nums text-zinc-100">
-                            {formatMasked(item.actualSpent, 'IDR', isPrivacyMode)}
-                          </span>
-                          <span className="text-xs font-mono text-zinc-500">/</span>
-                          <span className="text-xs font-mono text-zinc-400 tabular-nums">
-                            {formatMasked(item.monthlyLimit, 'IDR', isPrivacyMode)}
-                          </span>
-                        </div>
-                        <p
-                          className={`text-[10px] font-mono tabular-nums ${
-                            item.remaining < 0 ? 'text-rose-400 font-bold' : 'text-zinc-500'
-                          }`}
-                        >
-                          {item.remaining < 0
-                            ? `Over budget by ${formatIdr(Math.abs(item.remaining))}`
-                            : `${formatIdr(item.remaining)} remaining`}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-1 pl-2 border-l border-[#1f2637]">
-                        <button
-                          onClick={() => handleEditBudget(item)}
-                          className="px-2 py-1 rounded bg-[#131722] hover:bg-[#1a2030] text-zinc-300 hover:text-white font-mono text-[11px] border border-[#21293a] transition-colors cursor-pointer"
-                          title="Modify Limit"
-                        >
-                          EDIT
-                        </button>
-
-                        <button
-                          onClick={() =>
-                            setExpandedCategory(isExpanded ? null : item.category)
-                          }
-                          className="p-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-[#131722] transition-colors cursor-pointer"
-                          title={isExpanded ? 'Hide transactions' : 'View transactions'}
-                        >
-                          {isExpanded ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
+                {/* Card Header: Category & Status */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{
+                        backgroundColor:
+                          CATEGORY_COLORS[item.category] ||
+                          (item.status === 'danger'
+                            ? '#f43f5e'
+                            : item.status === 'warning'
+                            ? '#f59e0b'
+                            : '#10b981'),
+                      }}
+                    />
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-900 dark:text-zinc-100">
+                        {item.category}
+                      </h4>
+                      <span className="text-xs text-slate-400 dark:text-zinc-500">
+                        {item.transactionCount} transactions this month
+                      </span>
                     </div>
                   </div>
 
-                  {/* VISUAL INDICATOR PROGRESS BAR */}
-                  <div className="space-y-1">
-                    <div className="w-full h-2 rounded-full bg-[#131722] border border-[#1f2637] overflow-hidden relative">
-                      <div
-                        style={{ width: `${Math.min(100, item.percentUsed)}%` }}
-                        className={`h-full transition-all duration-300 ${
-                          item.status === 'danger'
-                            ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'
-                            : item.status === 'warning'
-                            ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]'
-                            : 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.4)]'
-                        }`}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500">
-                      <span>{item.percentUsed.toFixed(1)}% consumed</span>
-                      <span>
-                        Limit: {formatMasked(item.monthlyLimit, 'IDR', isPrivacyMode)}
-                      </span>
-                    </div>
+                  <div className="text-right">
+                    <span
+                      className={`text-xs font-semibold tabular-nums ${
+                        item.status === 'danger'
+                          ? 'text-rose-600 dark:text-rose-400'
+                          : item.status === 'warning'
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-emerald-600 dark:text-emerald-400'
+                      }`}
+                    >
+                      {item.percentUsed.toFixed(0)}% used
+                    </span>
                   </div>
                 </div>
 
-                {/* EXPANDED TRANSACTIONS ACCORDION */}
-                {isExpanded && (
-                  <div className="border-t border-[#1b212e] bg-[#090c12] p-3 space-y-2 animate-in fade-in">
-                    <div className="flex items-center justify-between pb-1 border-b border-[#161c28]">
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
-                        {item.category} Transactions ({catTransactions.length})
-                      </span>
-                      <span className="text-[10px] font-mono text-zinc-500">
-                        Total: {formatIdr(item.actualSpent)}
-                      </span>
-                    </div>
+                {/* Progress Bar */}
+                <div className="space-y-1.5">
+                  <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-[#151a26] overflow-hidden">
+                    <div
+                      style={{ width: `${Math.min(100, item.percentUsed)}%` }}
+                      className={`h-full transition-all duration-300 ${
+                        item.status === 'danger'
+                          ? 'bg-rose-500'
+                          : item.status === 'warning'
+                          ? 'bg-amber-400'
+                          : 'bg-emerald-500'
+                      }`}
+                    />
+                  </div>
 
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-700 dark:text-zinc-300 font-medium tabular-nums">
+                      {formatMasked(item.actualSpent, 'IDR', isPrivacyMode)}
+                    </span>
+                    <span className="text-slate-400 dark:text-zinc-500 tabular-nums">
+                      of {formatMasked(item.monthlyLimit, 'IDR', isPrivacyMode)} limit
+                    </span>
+                  </div>
+                </div>
+
+                {/* Runway Buffer Line */}
+                <div className="pt-2 border-t border-slate-100 dark:border-[#161c29] flex items-center justify-between text-xs">
+                  <span className="text-slate-500 dark:text-zinc-400">
+                    {item.remaining < 0 ? 'Over limit by:' : 'Remaining:'}
+                  </span>
+                  <span
+                    className={`font-semibold tabular-nums ${
+                      item.remaining < 0
+                        ? 'text-rose-600 dark:text-rose-400'
+                        : 'text-emerald-600 dark:text-emerald-400'
+                    }`}
+                  >
+                    {item.remaining < 0
+                      ? formatIdr(Math.abs(item.remaining))
+                      : formatIdr(item.remaining)}
+                  </span>
+                </div>
+
+                {/* Actions & Drilldown Trigger */}
+                <div className="pt-1 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleEditBudget(item)}
+                      className="px-2.5 py-1 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-200 bg-slate-100 dark:bg-[#141a27] hover:bg-slate-200 dark:hover:bg-[#1a2336] transition-colors cursor-pointer"
+                    >
+                      Edit Limit
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setEditingTransaction(null);
+                        setTransactionInitialType('expense');
+                        setIsAddExpenseOpen(true);
+                      }}
+                      className="px-2.5 py-1 rounded-md text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors cursor-pointer"
+                    >
+                      + Expense
+                    </button>
+
+                    {item.budgetId && (
+                      <button
+                        onClick={() => item.budgetId && handleDeleteBudget(item.budgetId, item.category)}
+                        className="px-2 py-1 rounded-md text-xs text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        title="Delete budget"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      setExpandedCategory(isExpanded ? null : item.category)
+                    }
+                    className="flex items-center gap-1 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                  >
+                    <span>{isExpanded ? 'Hide Transactions' : 'View Transactions'}</span>
+                    {isExpanded ? (
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Expanded Transactions Drilldown */}
+                {isExpanded && (
+                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-[#182030] space-y-2 animate-in fade-in">
+                    <div className="text-xs font-medium text-slate-500 dark:text-zinc-400">
+                      {item.category} Transactions ({monthDisplay}):
+                    </div>
                     {catTransactions.length === 0 ? (
-                      <p className="text-xs font-mono text-zinc-500 py-2">
+                      <p className="text-xs text-slate-400 dark:text-zinc-500 italic py-1">
                         No transactions recorded for this category in {monthDisplay}.
                       </p>
                     ) : (
-                      <div className="space-y-1 max-h-48 overflow-y-auto">
-                        {catTransactions.map((tx) => {
-                          const acc = accounts.find((a) => a.id === tx.accountId);
-                          return (
-                            <div
-                              key={tx.id}
-                              className="flex items-center justify-between p-1.5 rounded bg-[#0f131e] border border-[#1c2333] text-xs font-mono"
-                            >
-                              <div className="min-w-0 pr-2">
-                                <span className="text-zinc-200 font-medium truncate block">
-                                  {tx.notes || tx.category}
-                                </span>
-                                <span className="text-[9px] text-zinc-500">
-                                  {formatDate(tx.date)} · {acc?.name || 'Account'}
-                                </span>
-                              </div>
-                              <span className="font-bold text-rose-400 tabular-nums shrink-0">
-                                -{formatIdr(tx.amount)}
+                      <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+                        {catTransactions.map((tx) => (
+                          <div
+                            key={tx.id}
+                            className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#090c12] border border-slate-200/60 dark:border-[#1b2230] text-xs"
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <span className="text-[11px] text-slate-400 dark:text-zinc-500 shrink-0">
+                                {formatDate(tx.date)}
+                              </span>
+                              <span className="truncate text-slate-800 dark:text-zinc-300 font-medium">
+                                {tx.notes || tx.category}
                               </span>
                             </div>
-                          );
-                        })}
+                            <span className="font-semibold text-rose-600 dark:text-rose-400 shrink-0 ml-2 tabular-nums">
+                              -{formatIdr(tx.amount)}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
                 )}
               </div>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
-      {/* 6. UNBUDGETED CATEGORIES WITH SPENDING THIS MONTH */}
+      {/* 5. UNBUDGETED SPENDING CATEGORIES SECTION */}
       {unbudgetedItems.length > 0 && (
-        <div className="p-4 rounded bg-[#0d1017] border border-[#1b212e] space-y-3 mt-4">
-          <div className="flex items-center justify-between pb-2 border-b border-[#1b212e]">
-            <div>
-              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                <span>UNBUDGETED ACTIVE EXPENSES</span>
-              </h3>
-              <p className="text-[10px] font-mono text-zinc-500">
-                Categories with recorded transactions in {monthDisplay} that lack a spending ceiling
-              </p>
+        <div className="mt-6 p-5 rounded-xl bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1b212e] space-y-3.5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-200">
+                  Unbudgeted Spending Detected ({unbudgetedItems.length} Categories)
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  These categories have outflow in {monthDisplay} but no spending limit assigned yet.
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
             {unbudgetedItems.map((unb) => (
               <div
                 key={unb.category}
-                className="p-3 rounded bg-[#10141e] border border-[#1d2332] flex items-center justify-between gap-2"
+                className="p-3 rounded-lg bg-slate-50 dark:bg-[#090c12] border border-slate-200/70 dark:border-[#192233] flex items-center justify-between gap-2"
               >
-                <div>
-                  <p className="text-xs font-semibold text-zinc-200">{unb.category}</p>
-                  <p className="text-[10px] font-mono text-zinc-500">
-                    Spent: <span className="text-rose-400 font-bold">{formatIdr(unb.actualSpent)}</span> ({unb.transactionCount} txs)
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-slate-900 dark:text-zinc-200 truncate">{unb.category}</p>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                    Spent: <span className="text-rose-600 dark:text-rose-400 font-semibold tabular-nums">{formatIdr(unb.actualSpent)}</span> ({unb.transactionCount} tx)
                   </p>
                 </div>
                 <button
-                  onClick={() => handleQuickAddUnbudgeted(unb.category, Math.ceil(unb.actualSpent * 1.2 / 500000) * 500000 || 1000000)}
-                  className="px-2 py-1 rounded bg-[#141a27] hover:bg-emerald-500 hover:text-zinc-950 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold transition-all cursor-pointer"
+                  onClick={() => handleQuickAddUnbudgeted(unb.category, Math.max(1000000, Math.ceil(unb.actualSpent * 1.25 / 100000) * 100000))}
+                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#131722] hover:bg-slate-100 dark:hover:bg-[#1a2233] border border-slate-200 dark:border-[#222e44] text-xs font-medium text-emerald-600 dark:text-emerald-400 transition-colors shrink-0 cursor-pointer"
                 >
-                  + SET LIMIT
+                  Set Limit
                 </button>
               </div>
             ))}

@@ -46,15 +46,15 @@ export const AccountsView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-100 font-mono">
-              ACCOUNTS & CREDIT CORRIDORS
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+              Accounts & Wallets
             </h2>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#161a25] border border-[#232b3d] text-zinc-400">
-              {accounts.length} TOTAL ACCOUNTS
+            <span className="text-xs text-slate-400 dark:text-zinc-500">
+              · {accounts.length} total accounts
             </span>
           </div>
-          <p className="text-[11px] font-mono text-zinc-500">
-            Checking ledgers, cash reserves, e-wallets, credit cards, and paylater debt facilities
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
+            Bank accounts, cash reserves, e-wallets, credit cards, and paylater facilities
           </p>
         </div>
 
@@ -64,10 +64,10 @@ export const AccountsView: React.FC = () => {
               setTransferInitialMode('bank_to_investment');
               setIsTransferOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#131722] hover:bg-[#1a2030] text-indigo-300 font-mono text-xs border border-[#252c40] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-[#131722] hover:bg-slate-50 dark:hover:bg-[#1a2030] text-indigo-600 dark:text-indigo-300 text-xs font-medium border border-slate-200 dark:border-[#252c40] transition-colors cursor-pointer"
           >
-            <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
-            <span>BANK → INVESTMENT</span>
+            <TrendingUp className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Fund Investment</span>
           </button>
 
           <button
@@ -75,10 +75,10 @@ export const AccountsView: React.FC = () => {
               setTransferInitialMode('account_to_account');
               setIsTransferOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#131722] hover:bg-[#1a2030] text-blue-300 font-mono text-xs border border-[#252c40] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-[#131722] hover:bg-slate-50 dark:hover:bg-[#1a2030] text-blue-600 dark:text-blue-300 text-xs font-medium border border-slate-200 dark:border-[#252c40] transition-colors cursor-pointer"
           >
-            <ArrowRightLeft className="w-3.5 h-3.5 text-blue-400" />
-            <span>ACCOUNT TRANSFER</span>
+            <ArrowRightLeft className="w-3.5 h-3.5 text-blue-500" />
+            <span>Transfer</span>
           </button>
 
           <button
@@ -86,10 +86,10 @@ export const AccountsView: React.FC = () => {
               setEditingAccount(null);
               setIsAddAccountOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold font-mono text-xs transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition-colors cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 stroke-[2.8]" />
-            <span>NEW ACCOUNT</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Account</span>
           </button>
         </div>
       </div>

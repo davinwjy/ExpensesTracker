@@ -94,29 +94,29 @@ export const InvestmentsView: React.FC = () => {
 
   return (
     <div className="space-y-4 animate-in fade-in pb-12">
-      {/* TERMINAL HEADER & CTAs */}
+      {/* HEADER & CTAs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-100 font-mono">
-              INVESTMENT PORTFOLIO LEDGER
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+              Investment Portfolio
             </h2>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#161a25] border border-[#232b3d] text-zinc-400">
-              {investments.length} ASSETS
+            <span className="text-xs text-slate-400 dark:text-zinc-500">
+              · {investments.length} assets
             </span>
           </div>
-          <p className="text-[11px] font-mono text-zinc-500">
-            Multi-asset positions across Saham, RDPU, Bitcoin, US ETFs and USD
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
+            Multi-asset positions across stocks, mutual funds, crypto, and precious metals
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setIsHoldingTypesModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#131722] hover:bg-[#1a2030] text-zinc-300 font-mono text-xs border border-[#252c40] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-[#131722] hover:bg-slate-50 dark:hover:bg-[#1a2030] text-slate-700 dark:text-zinc-300 text-xs font-medium border border-slate-200 dark:border-[#252c40] transition-colors cursor-pointer"
           >
-            <Layers className="w-3.5 h-3.5 text-indigo-400" />
-            <span>MASTER HOLDINGS</span>
+            <Layers className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Asset Types</span>
           </button>
 
           <button
@@ -124,10 +124,10 @@ export const InvestmentsView: React.FC = () => {
               setTransferInitialMode('bank_to_investment');
               setIsTransferOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold font-mono text-xs transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition-colors cursor-pointer shadow-sm"
           >
-            <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>FUND FROM BANK</span>
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Fund Investment</span>
           </button>
         </div>
       </div>

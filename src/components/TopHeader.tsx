@@ -110,52 +110,48 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   return (
     <header className="sticky top-0 z-20 bg-white/95 dark:bg-[#080a0f]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#1a1f2c] h-13 flex items-center px-3 sm:px-5 lg:px-6 transition-colors">
       <div className="flex items-center justify-between w-full">
-        {/* Left: Mobile Menu Trigger + Dynamic Page Breadcrumb */}
-        <div className="flex items-center gap-2.5 min-w-0">
+        {/* Left: Mobile Menu Trigger + Clean Page Title */}
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onOpenMobileMenu}
-            className="lg:hidden p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-[#121622] border border-slate-200 dark:border-[#1e2535] transition-colors cursor-pointer shrink-0"
+            className="lg:hidden p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-md hover:bg-slate-100 dark:hover:bg-[#121622] border border-slate-200 dark:border-[#1e2535] transition-colors cursor-pointer shrink-0"
             aria-label="Open navigation menu"
           >
             <Menu className="w-4 h-4" />
           </button>
 
           <div className="min-w-0 flex items-center gap-2">
-            <span className="hidden sm:inline-block font-mono text-[10px] text-zinc-500 tracking-wider">
-              WT://
-            </span>
-            <h1 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-zinc-100 truncate font-mono">
+            <h1 className="text-sm font-semibold text-slate-900 dark:text-zinc-100 truncate">
               {currentMeta.title}
             </h1>
-            <span className="text-zinc-600 hidden sm:inline">·</span>
-            <span className="hidden md:inline-block text-[10px] font-mono uppercase tracking-wider text-zinc-400">
-              {currentMeta.tag}
+            <span className="text-zinc-400 dark:text-zinc-600 hidden sm:inline" aria-hidden="true">·</span>
+            <span className="hidden md:inline-block text-xs text-slate-500 dark:text-zinc-400 truncate">
+              {currentMeta.subtitle}
             </span>
           </div>
         </div>
 
         {/* Right Action Suite: Privacy + Cloud + Quick Action + Profile */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-
+        <div className="flex items-center gap-2">
           {/* Privacy Shield Toggle */}
           <button
             onClick={togglePrivacyMode}
-            title={isPrivacyMode ? 'Privacy Mode Active: Nominals hidden' : 'Hide nominals in public'}
-            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-mono font-medium border transition-all cursor-pointer ${
+            title={isPrivacyMode ? 'Privacy Mode Active: Values hidden' : 'Hide values in public'}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
               isPrivacyMode
-                ? 'bg-amber-500/15 border-amber-500/40 text-amber-800 dark:text-amber-300 shadow-none'
-                : 'bg-slate-100 dark:bg-[#10141e] border-slate-200 dark:border-[#1d2433] text-slate-700 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400'
+                : 'bg-white dark:bg-[#10141e] border-slate-200 dark:border-[#1d2433] text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:border-slate-300 dark:hover:border-[#2a3449]'
             }`}
           >
             {isPrivacyMode ? (
               <>
                 <EyeOff className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
-                <span className="hidden sm:inline text-[10px] uppercase">Masked</span>
+                <span className="hidden sm:inline">Hidden</span>
               </>
             ) : (
               <>
                 <Eye className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline text-[10px] uppercase">Privacy</span>
+                <span className="hidden sm:inline">Privacy</span>
               </>
             )}
           </button>
@@ -163,50 +159,47 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           {/* Mobile App & APK Button */}
           <button
             onClick={() => setIsMobileAppModalOpen(true)}
-            title="Pasang di HP & Download APK"
-            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-mono font-medium border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all cursor-pointer"
+            title="Download Android APK"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/15 transition-colors cursor-pointer"
             aria-label="Download APK or Install Mobile App"
           >
-            <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden sm:inline text-[10px] uppercase">APK</span>
+            <Smartphone className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Android App</span>
           </button>
 
           {/* Firebase Cloud Sync Button */}
           <button
             onClick={() => setIsFirebaseSetupOpen(true)}
-            title={isFirebase ? 'Firebase Real-Time Cloud: Connected' : 'Setup Real-Time Cloud Sync'}
-            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-mono font-medium border transition-all cursor-pointer ${
+            title={isFirebase ? 'Cloud Sync: Active' : 'Setup Cloud Sync'}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
               isFirebase
-                ? 'bg-amber-500/15 border-amber-500/40 text-amber-800 dark:text-amber-300 hover:bg-amber-500/25'
-                : 'bg-slate-100 dark:bg-[#10141e] border-slate-200 dark:border-[#1d2433] text-slate-700 dark:text-zinc-400 hover:text-amber-300'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400'
+                : 'bg-white dark:bg-[#10141e] border-slate-200 dark:border-[#1d2433] text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:border-slate-300 dark:hover:border-[#2a3449]'
             }`}
           >
-            <Flame className={`w-3.5 h-3.5 ${isFirebase ? 'text-amber-500 fill-amber-500/30' : 'text-zinc-500'}`} />
-            <span className="hidden sm:inline text-[10px] uppercase">{isFirebase ? 'Cloud' : 'Sync'}</span>
+            <Flame className={`w-3.5 h-3.5 ${isFirebase ? 'text-amber-500 fill-amber-500/30' : 'text-zinc-400'}`} />
+            <span className="hidden sm:inline">{isFirebase ? 'Cloud' : 'Sync'}</span>
           </button>
 
           {/* Top Quick Action Dropdown */}
           <div className="relative" ref={newMenuRef}>
             <button
               onClick={() => setIsNewMenuOpen(!isNewMenuOpen)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs tracking-wide shadow-none active:scale-95 transition-all cursor-pointer font-mono"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-sm transition-colors cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5 stroke-[2.8]" />
-              <span className="hidden sm:inline uppercase text-[10px]">Action</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>New</span>
               <ChevronDown
-                className={`w-3 h-3 transition-transform duration-150 ${
+                className={`w-3 h-3 text-emerald-200 transition-transform duration-150 ${
                   isNewMenuOpen ? 'rotate-180' : ''
                 }`}
               />
             </button>
 
             {isNewMenuOpen && (
-              <div className="absolute right-0 mt-1.5 w-60 bg-[#0f131c] border border-[#1f2637] rounded shadow-2xl z-50 overflow-hidden animate-in fade-in duration-100">
-                <div className="px-3 py-1.5 border-b border-[#1c2231] bg-[#0b0e15] flex items-center justify-between">
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400">
-                    QUICK ACTION
-                  </span>
-                  <span className="text-[9px] font-mono text-zinc-500">ESC</span>
+              <div className="absolute right-0 mt-1.5 w-60 bg-white dark:bg-[#0f131c] border border-slate-200 dark:border-[#1f2637] rounded-lg shadow-xl z-50 overflow-hidden animate-in fade-in duration-100">
+                <div className="px-3 py-2 border-b border-slate-100 dark:border-[#1c2231] text-xs font-semibold text-slate-500 dark:text-zinc-400">
+                  Quick Actions
                 </div>
 
                 <div className="p-1 space-y-0.5">
@@ -223,7 +216,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                       <Receipt className="w-3 h-3" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-semibold text-zinc-200">Record Expense</div>
+                      <div className="text-xs font-medium text-zinc-200">Add Expense</div>
                       <div className="text-[10px] text-zinc-500 truncate">Deduct from cash or bank</div>
                     </div>
                   </button>
@@ -241,7 +234,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                       <ArrowDownRight className="w-3 h-3" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-semibold text-zinc-200">Record Income</div>
+                      <div className="text-xs font-medium text-zinc-200">Add Income</div>
                       <div className="text-[10px] text-zinc-500 truncate">Salary, selling items, bonus</div>
                     </div>
                   </button>
