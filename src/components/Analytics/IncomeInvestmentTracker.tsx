@@ -66,24 +66,12 @@ export interface YearlyPoint {
 
 export type ChartPoint = MonthlyPoint | YearlyPoint;
 
-// Generate smooth cubic bezier SVG path
-function generateBezierPath(points: { x: number; y: number }[]): string {
+// Generate clean linear SVG path connecting points directly without curve overshoots
+function generateLinearPath(points: { x: number; y: number }[]): string {
   if (points.length === 0) return '';
-  if (points.length === 1) return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
-
   let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i === 0 ? 0 : i - 1];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[i + 2 < points.length ? i + 2 : i + 1];
-
-    const cp1x = p1.x + (p2.x - p0.x) / 6;
-    const cp1y = p1.y + (p2.y - p0.y) / 6;
-    const cp2x = p2.x - (p3.x - p1.x) / 6;
-    const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-    d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  for (let i = 1; i < points.length; i++) {
+    d += ` L ${points[i].x.toFixed(1)} ${points[i].y.toFixed(1)}`;
   }
   return d;
 }
@@ -91,7 +79,7 @@ function generateBezierPath(points: { x: number; y: number }[]): string {
 // Generate closed area path for gradients
 function generateAreaPath(points: { x: number; y: number }[], bottomY: number): string {
   if (points.length === 0) return '';
-  const linePath = generateBezierPath(points);
+  const linePath = generateLinearPath(points);
   const first = points[0];
   const last = points[points.length - 1];
   return `${linePath} L ${last.x.toFixed(1)} ${bottomY.toFixed(1)} L ${first.x.toFixed(1)} ${bottomY.toFixed(1)} Z`;
@@ -131,9 +119,11 @@ export const IncomeInvestmentTracker: React.FC = () => {
   const [activeYearIdx, setActiveYearIdx] = useState<number | null>(null);
   const [, setIsYearHovered] = useState<boolean>(false);
 
-  // Current liquid cash balance across all accounts
+  // Current liquid cash balance across bank, cash & e-wallet accounts (excluding credit cards / paylater debt)
   const currentTotalAccountBalance = useMemo(() => {
-    return accounts.reduce((acc, a) => acc + (a.balance || 0), 0);
+    return accounts
+      .filter((a) => a.type !== 'credit_card' && a.type !== 'paylater')
+      .reduce((acc, a) => acc + (a.balance || 0), 0);
   }, [accounts]);
 
   // Detect all recorded years
@@ -314,6 +304,41 @@ export const IncomeInvestmentTracker: React.FC = () => {
       }
     });
 
+    // 4b. CUMULATIVE MONTHLY INVESTMENT RECONSTRUCTION (Carry forward to subsequent months)
+    let cumulativeInvestSum = 0;
+    const startOfSelYear = `${selectedYear}-01-01`;
+
+    transactions.forEach((tx) => {
+      if (!tx.date || tx.date >= startOfSelYear) return;
+      if (
+        tx.type === 'bank_to_investment' ||
+        ((tx.type === 'expense' || tx.type === 'transfer') &&
+          (tx.category?.toLowerCase().includes('invest') ||
+            tx.category?.toLowerCase().includes('saham') ||
+            tx.category?.toLowerCase().includes('reksadana') ||
+            tx.category?.toLowerCase().includes('crypto') ||
+            tx.toInvestmentId))
+      ) {
+        cumulativeInvestSum += (tx.amount || 0);
+      }
+    });
+
+    investments.forEach((inv) => {
+      const invDateStr = inv.createdAt ? inv.createdAt.split('T')[0] : '';
+      if (!invDateStr || invDateStr >= startOfSelYear) return;
+      const costIdr =
+        inv.currency === 'USD'
+          ? (inv.amountInvested || 0) * (usdIdrRate || 15850)
+          : inv.amountInvested || 0;
+      cumulativeInvestSum += costIdr;
+    });
+
+    months.forEach((mObj) => {
+      const thisMonthNew = mObj.investment;
+      cumulativeInvestSum += thisMonthNew;
+      mObj.investment = cumulativeInvestSum;
+    });
+
     // 5. RECONSTRUCT HISTORICAL ACCOUNT AMOUNT / LIQUID CASH TRAJECTORY
     months.forEach((mObj, idx) => {
       const lastDayOfMonth = new Date(selectedYear, idx + 1, 0);
@@ -360,6 +385,42 @@ export const IncomeInvestmentTracker: React.FC = () => {
     });
 
     const sortedYears = Object.values(yearMap).sort((a, b) => a.year - b.year);
+
+    // CUMULATIVE YEARLY INVESTMENT RECONSTRUCTION (Carry forward to subsequent years)
+    const earliestYear = sortedYears.length > 0 ? sortedYears[0].year : currentYear;
+    let cumulativeYearlyInvest = 0;
+    const startOfEarliestYear = `${earliestYear}-01-01`;
+
+    transactions.forEach((tx) => {
+      if (!tx.date || tx.date >= startOfEarliestYear) return;
+      if (
+        tx.type === 'bank_to_investment' ||
+        ((tx.type === 'expense' || tx.type === 'transfer') &&
+          (tx.category?.toLowerCase().includes('invest') ||
+            tx.category?.toLowerCase().includes('saham') ||
+            tx.category?.toLowerCase().includes('reksadana') ||
+            tx.category?.toLowerCase().includes('crypto') ||
+            tx.toInvestmentId))
+      ) {
+        cumulativeYearlyInvest += (tx.amount || 0);
+      }
+    });
+
+    investments.forEach((inv) => {
+      const invDateStr = inv.createdAt ? inv.createdAt.split('T')[0] : '';
+      if (!invDateStr || invDateStr >= startOfEarliestYear) return;
+      const costIdr =
+        inv.currency === 'USD'
+          ? (inv.amountInvested || 0) * (usdIdrRate || 15850)
+          : inv.amountInvested || 0;
+      cumulativeYearlyInvest += costIdr;
+    });
+
+    sortedYears.forEach((yObj) => {
+      const newThisYear = yObj.investment;
+      cumulativeYearlyInvest += newThisYear;
+      yObj.investment = cumulativeYearlyInvest;
+    });
 
     // Selected Year Stats
     const totalYearIncome = months.reduce((acc, m) => acc + m.income, 0);
@@ -607,7 +668,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
             </p>
             <p className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1">
               <Wallet className="w-3 h-3 text-sky-500 inline" />
-              <span>{accounts.length} Bank & Cash Accounts</span>
+              <span>Bank and Cash Accounts</span>
             </p>
           </div>
         </div>
@@ -963,7 +1024,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                 <svg
                   viewBox="0 0 800 360"
                   preserveAspectRatio="none"
-                  className="w-full h-80 sm:h-96 overflow-visible cursor-crosshair select-none block"
+                  className="w-full h-96 sm:h-[420px] overflow-visible cursor-crosshair select-none block"
                   style={{ touchAction: 'none' }}
                   onPointerDown={(e) => {
                     resolveCoordIndex(e.clientX, e.clientY, e.currentTarget, monthScale.incomeCoords, setActiveMonthIdx);
@@ -1049,7 +1110,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                       {/* LINE PATHS */}
                       {(viewMetric === 'all' || viewMetric === 'account') && (
                         <path
-                          d={generateBezierPath(monthScale.accountCoords)}
+                          d={generateLinearPath(monthScale.accountCoords)}
                           fill="none"
                           stroke="#0ea5e9"
                           strokeWidth="3.5"
@@ -1059,7 +1120,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                       )}
                       {(viewMetric === 'all' || viewMetric === 'income') && (
                         <path
-                          d={generateBezierPath(monthScale.incomeCoords)}
+                          d={generateLinearPath(monthScale.incomeCoords)}
                           fill="none"
                           stroke="#10b981"
                           strokeWidth="3.5"
@@ -1069,7 +1130,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                       )}
                       {(viewMetric === 'all' || viewMetric === 'expense') && (
                         <path
-                          d={generateBezierPath(monthScale.expenseCoords)}
+                          d={generateLinearPath(monthScale.expenseCoords)}
                           fill="none"
                           stroke="#f43f5e"
                           strokeWidth="3.5"
@@ -1079,7 +1140,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                       )}
                       {(viewMetric === 'all' || viewMetric === 'investment') && (
                         <path
-                          d={generateBezierPath(monthScale.investCoords)}
+                          d={generateLinearPath(monthScale.investCoords)}
                           fill="none"
                           stroke="#6366f1"
                           strokeWidth="3.5"
@@ -1522,7 +1583,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                 <svg
                   viewBox="0 0 800 360"
                   preserveAspectRatio="none"
-                  className="w-full h-80 sm:h-96 overflow-visible cursor-crosshair select-none block"
+                  className="w-full h-96 sm:h-[420px] overflow-visible cursor-crosshair select-none block"
                   style={{ touchAction: 'none' }}
                   onPointerDown={(e) => {
                     resolveCoordIndex(e.clientX, e.clientY, e.currentTarget, yearScale.incomeCoords, setActiveYearIdx);
@@ -1608,7 +1669,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                       {/* LINE PATHS */}
                       {(viewMetric === 'all' || viewMetric === 'account') && (
                         <path
-                          d={generateBezierPath(yearScale.accountCoords)}
+                          d={generateLinearPath(yearScale.accountCoords)}
                           fill="none"
                           stroke="#0ea5e9"
                           strokeWidth="3.5"
@@ -1618,7 +1679,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                       )}
                       {(viewMetric === 'all' || viewMetric === 'income') && (
                         <path
-                          d={generateBezierPath(yearScale.incomeCoords)}
+                          d={generateLinearPath(yearScale.incomeCoords)}
                           fill="none"
                           stroke="#10b981"
                           strokeWidth="3.5"
@@ -1628,7 +1689,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                       )}
                       {(viewMetric === 'all' || viewMetric === 'expense') && (
                         <path
-                          d={generateBezierPath(yearScale.expenseCoords)}
+                          d={generateLinearPath(yearScale.expenseCoords)}
                           fill="none"
                           stroke="#f43f5e"
                           strokeWidth="3.5"
@@ -1638,7 +1699,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                       )}
                       {(viewMetric === 'all' || viewMetric === 'investment') && (
                         <path
-                          d={generateBezierPath(yearScale.investCoords)}
+                          d={generateLinearPath(yearScale.investCoords)}
                           fill="none"
                           stroke="#6366f1"
                           strokeWidth="3.5"

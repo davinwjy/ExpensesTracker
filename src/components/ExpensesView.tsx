@@ -43,12 +43,6 @@ export const ExpensesView: React.FC = () => {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Date, Month, Year filter states
-  const [selectedYear, setSelectedYear] = useState<string>('all');
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
-  const [selectedDate, setSelectedDate] = useState<string>(''); // YYYY-MM-DD
-  const [datePreset, setDatePreset] = useState<'all' | 'today' | 'this_month' | 'this_year' | 'custom'>('all');
-
   const getTodayStr = () => {
     const d = new Date();
     const year = d.getFullYear();
@@ -56,6 +50,12 @@ export const ExpensesView: React.FC = () => {
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
+
+  // Date, Month, Year filter states - default to This Month
+  const [selectedYear, setSelectedYear] = useState<string>(() => getTodayStr().slice(0, 4));
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => getTodayStr().slice(5, 7));
+  const [selectedDate, setSelectedDate] = useState<string>(''); // YYYY-MM-DD
+  const [datePreset, setDatePreset] = useState<'all' | 'today' | 'this_month' | 'this_year' | 'custom'>('this_month');
 
   const MONTH_OPTIONS = [
     { value: '01', label: 'January' },

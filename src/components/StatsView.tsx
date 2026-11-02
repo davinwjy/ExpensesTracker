@@ -266,12 +266,10 @@ export const StatsView: React.FC = () => {
               <span
                 className={`text-xs font-bold tabular-nums ${
                   categoryTab === 'expense' ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
-                } ${isPrivacyMode ? 'privacy-blur' : ''}`}
+                }`}
               >
-                {formatMasked(
-                  categoryTab === 'expense' ? monthlyExpenses : monthlyIncomes,
-                  'IDR',
-                  isPrivacyMode
+                {formatIdr(
+                  categoryTab === 'expense' ? monthlyExpenses : monthlyIncomes
                 )}
               </span>
             </div>
@@ -294,8 +292,8 @@ export const StatsView: React.FC = () => {
                           <span className="font-sans font-medium text-slate-900 dark:text-zinc-200">{category}</span>
                           <div className="flex items-center gap-2">
                             <span className="text-slate-500 dark:text-zinc-500 tabular-nums">{pct.toFixed(1)}%</span>
-                            <span className={`font-bold text-slate-800 dark:text-zinc-300 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
-                              {formatMasked(amount, 'IDR', isPrivacyMode)}
+                            <span className="font-bold text-slate-800 dark:text-zinc-300 tabular-nums">
+                              {formatIdr(amount)}
                             </span>
                           </div>
                         </div>
@@ -327,8 +325,8 @@ export const StatsView: React.FC = () => {
                           <span className="font-sans font-medium text-slate-900 dark:text-zinc-200">{category}</span>
                           <div className="flex items-center gap-2">
                             <span className="text-slate-500 dark:text-zinc-500 tabular-nums">{pct.toFixed(1)}%</span>
-                            <span className={`font-bold text-slate-800 dark:text-zinc-300 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
-                              {formatMasked(amount, 'IDR', isPrivacyMode)}
+                            <span className="font-bold text-slate-800 dark:text-zinc-300 tabular-nums">
+                              {formatIdr(amount)}
                             </span>
                           </div>
                         </div>
@@ -372,8 +370,8 @@ export const StatsView: React.FC = () => {
                         </span>
                         <div className="flex items-center gap-2">
                           <span className="text-slate-500 dark:text-zinc-500 tabular-nums">{pct.toFixed(1)}%</span>
-                          <span className={`font-bold text-slate-800 dark:text-zinc-300 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
-                            {formatMasked(item.amount, 'IDR', isPrivacyMode)}
+                          <span className="font-bold text-slate-800 dark:text-zinc-300 tabular-nums">
+                            {formatIdr(item.amount)}
                           </span>
                         </div>
                       </div>

@@ -216,14 +216,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </button>
             </div>
-            <div className="font-bold text-base text-slate-900 dark:text-zinc-100 truncate tabular-nums">
-              {formatMasked(netWorthIdr, 'IDR', isPrivacyMode)}
+            <div className={`font-bold text-base text-slate-900 dark:text-zinc-100 truncate tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+              {formatIdr(netWorthIdr)}
             </div>
-            {!isPrivacyMode && (
-              <div className="text-xs text-slate-500 dark:text-zinc-400 truncate mt-0.5 tabular-nums">
-                ≈ {formatUsd(netWorthUsd)}
-              </div>
-            )}
+            <div className={`text-xs text-slate-500 dark:text-zinc-400 truncate mt-0.5 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+              ≈ {formatUsd(netWorthUsd)}
+            </div>
           </div>
         </div>
       )}

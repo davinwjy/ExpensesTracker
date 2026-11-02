@@ -6,10 +6,13 @@ export function computeStats(
   investments: Investment[],
   rate: number
 ): DashboardStats {
-  const totalLiquidCashIdr = accounts.reduce(
-    (sum, a) => (a.type === 'credit_card' ? sum - (Number(a.balance) || 0) : sum + (Number(a.balance) || 0)),
-    0
-  );
+  const totalLiquidCashIdr = accounts
+    .filter((a) => a.type !== 'credit_card' && a.type !== 'paylater')
+    .reduce((sum, a) => sum + (Number(a.balance) || 0), 0);
+
+  const totalCreditCardDebtIdr = accounts
+    .filter((a) => a.type === 'credit_card' || a.type === 'paylater')
+    .reduce((sum, a) => sum + (Number(a.balance) || 0), 0);
 
   let totalInvestedCostIdr = 0;
   let totalInvestmentValueIdr = 0;
@@ -51,7 +54,7 @@ export function computeStats(
     }
   });
 
-  const totalNetWorthIdr = totalLiquidCashIdr + totalInvestmentValueIdr;
+  const totalNetWorthIdr = totalLiquidCashIdr + totalInvestmentValueIdr - totalCreditCardDebtIdr;
 
   const now = new Date();
   const currentMonthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
