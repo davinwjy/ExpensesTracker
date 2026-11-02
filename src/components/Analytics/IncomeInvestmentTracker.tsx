@@ -892,134 +892,9 @@ export const IncomeInvestmentTracker: React.FC = () => {
               </div>
             </div>
 
-            {/* RESPONSIVE ACTIVE DETAIL BAR */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 sm:p-3.5 rounded-2xl bg-slate-100/90 dark:bg-slate-950/90 border border-slate-200/90 dark:border-slate-800 shadow-sm">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                  <Calendar className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">
-                      {activeMonthPoint.fullMonthName} {selectedYear}
-                    </span>
-                    {activeMonthPoint.monthIndex === currentMonthIdx && selectedYear === currentYear && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                        Current Month
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                    <MousePointer className="w-3 h-3 text-slate-400" />
-                    <span>Touch, drag, or hover graph to inspect values</span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 sm:flex sm:flex-wrap items-center gap-2 sm:gap-5 text-xs font-mono">
-                {(viewMetric === 'all' || viewMetric === 'income') && (
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider block font-sans flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                      Income
-                    </span>
-                    <strong className="text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm font-bold block truncate">
-                      {formatMasked(activeMonthPoint.income, 'IDR', isPrivacyMode)}
-                    </strong>
-                  </div>
-                )}
-
-                {(viewMetric === 'all' || viewMetric === 'expense') && (
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-rose-600 dark:text-rose-400 font-bold uppercase tracking-wider block font-sans flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
-                      Expenses
-                    </span>
-                    <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-bold block truncate">
-                      {formatMasked(activeMonthPoint.expense, 'IDR', isPrivacyMode)}
-                    </strong>
-                  </div>
-                )}
-
-                {(viewMetric === 'all' || viewMetric === 'investment') && (
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider block font-sans flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
-                      Invested
-                    </span>
-                    <strong className="text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm font-bold block truncate">
-                      {formatMasked(activeMonthPoint.investment, 'IDR', isPrivacyMode)}
-                    </strong>
-                  </div>
-                )}
-
-                {(viewMetric === 'all' || viewMetric === 'account') && (
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-sky-600 dark:text-sky-400 font-bold uppercase tracking-wider block font-sans flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
-                      Account
-                    </span>
-                    <strong className="text-sky-600 dark:text-sky-400 text-xs sm:text-sm font-bold block truncate">
-                      {formatMasked(activeMonthPoint.accountBalance, 'IDR', isPrivacyMode)}
-                    </strong>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* SVG GRAPH CONTAINER WITH MOBILE-VISIBLE POPUP */}
+            {/* SVG GRAPH CONTAINER */}
             <div className="relative w-full rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 p-2 sm:p-5 select-none">
               <div className="relative w-full overflow-visible">
-                {/* INTERACTIVE FLOATING POPUP */}
-                <div
-                  className="absolute top-2 z-30 transition-all duration-100 pointer-events-none select-none"
-                  style={getSafePopupPosition((monthScale.incomeCoords[safeMonthIdx].x / 800) * 100)}
-                >
-                  <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/95 text-white border border-slate-700/80 shadow-2xl space-y-1 text-xs font-mono min-w-[200px] sm:min-w-[220px] max-w-[calc(100vw-3rem)] backdrop-blur-md">
-                    <div className="flex items-center justify-between font-bold border-b border-slate-800 pb-1 font-sans">
-                      <span className="text-xs text-white flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>{activeMonthPoint.fullMonthName} {selectedYear}</span>
-                      </span>
-                      {activeMonthPoint.income > 0 && (
-                        <span className="text-[10px] text-emerald-400 font-mono font-bold">
-                          {((activeMonthPoint.investment / activeMonthPoint.income) * 100).toFixed(0)}% Inv.
-                        </span>
-                      )}
-                    </div>
-                    <div className="space-y-0.5 text-[11px]">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-emerald-400 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                          Income:
-                        </span>
-                        <strong className="text-emerald-300 font-bold">{formatMasked(activeMonthPoint.income, 'IDR', isPrivacyMode)}</strong>
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-rose-400 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
-                          Expenses:
-                        </span>
-                        <strong className="text-rose-300 font-bold">{formatMasked(activeMonthPoint.expense, 'IDR', isPrivacyMode)}</strong>
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-indigo-400 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                          Invested:
-                        </span>
-                        <strong className="text-indigo-300 font-bold">{formatMasked(activeMonthPoint.investment, 'IDR', isPrivacyMode)}</strong>
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-sky-400 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
-                          Account:
-                        </span>
-                        <strong className="text-sky-300 font-bold">{formatMasked(activeMonthPoint.accountBalance, 'IDR', isPrivacyMode)}</strong>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {/* SVG Canvas with Unified Touch, Pointer & Mouse support */}
                 <svg
                   viewBox="0 0 800 360"
@@ -1388,6 +1263,46 @@ export const IncomeInvestmentTracker: React.FC = () => {
               </div>
             </div>
 
+            {/* HOVER INSPECTION POPUP CARD (Placed below chart plot area so it never covers the lines) */}
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900/95 text-white border border-slate-700/80 shadow-xl space-y-2 text-xs font-mono backdrop-blur-md">
+              <div className="flex items-center justify-between font-bold border-b border-slate-800 pb-1.5 font-sans">
+                <span className="text-xs text-white flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{activeMonthPoint.fullMonthName} {selectedYear} (Inspected Point)</span>
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
+                <div className="flex flex-col">
+                  <span className="text-emerald-400 flex items-center gap-1 text-[10px] font-sans">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                    Income:
+                  </span>
+                  <strong className="text-emerald-300 font-bold text-xs sm:text-sm truncate">{formatMasked(activeMonthPoint.income, 'IDR', isPrivacyMode)}</strong>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-rose-400 flex items-center gap-1 text-[10px] font-sans">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
+                    Expenses:
+                  </span>
+                  <strong className="text-rose-300 font-bold text-xs sm:text-sm truncate">{formatMasked(activeMonthPoint.expense, 'IDR', isPrivacyMode)}</strong>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-indigo-400 flex items-center gap-1 text-[10px] font-sans">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
+                    Invested:
+                  </span>
+                  <strong className="text-indigo-300 font-bold text-xs sm:text-sm truncate">{formatMasked(activeMonthPoint.investment, 'IDR', isPrivacyMode)}</strong>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sky-400 flex items-center gap-1 text-[10px] font-sans">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+                    Account:
+                  </span>
+                  <strong className="text-sky-300 font-bold text-xs sm:text-sm truncate">{formatMasked(activeMonthPoint.accountBalance, 'IDR', isPrivacyMode)}</strong>
+                </div>
+              </div>
+            </div>
+
             {/* Quick Month Selector Chips */}
             <div className="flex items-center gap-1 overflow-x-auto pb-1 pt-1 scrollbar-thin">
               <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0 mr-1 hidden sm:inline">
@@ -1451,134 +1366,9 @@ export const IncomeInvestmentTracker: React.FC = () => {
               </div>
             </div>
 
-            {/* RESPONSIVE ACTIVE YEAR DETAIL BAR */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 sm:p-3.5 rounded-2xl bg-slate-100/90 dark:bg-slate-950/90 border border-slate-200/90 dark:border-slate-800 shadow-sm">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                  <Layers className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">
-                      Full Year {activeYearPoint.year}
-                    </span>
-                    {activeYearPoint.year === currentYear && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">
-                        Current Year
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                    <MousePointer className="w-3 h-3 text-slate-400" />
-                    <span>Touch or hover annual graph points</span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 sm:flex sm:flex-wrap items-center gap-2 sm:gap-5 text-xs font-mono">
-                {(viewMetric === 'all' || viewMetric === 'income') && (
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider block font-sans flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                      Income
-                    </span>
-                    <strong className="text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm font-bold block truncate">
-                      {formatMasked(activeYearPoint.income, 'IDR', isPrivacyMode)}
-                    </strong>
-                  </div>
-                )}
-
-                {(viewMetric === 'all' || viewMetric === 'expense') && (
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-rose-600 dark:text-rose-400 font-bold uppercase tracking-wider block font-sans flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
-                      Expenses
-                    </span>
-                    <strong className="text-rose-600 dark:text-rose-400 text-xs sm:text-sm font-bold block truncate">
-                      {formatMasked(activeYearPoint.expense, 'IDR', isPrivacyMode)}
-                    </strong>
-                  </div>
-                )}
-
-                {(viewMetric === 'all' || viewMetric === 'investment') && (
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider block font-sans flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
-                      Invested
-                    </span>
-                    <strong className="text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm font-bold block truncate">
-                      {formatMasked(activeYearPoint.investment, 'IDR', isPrivacyMode)}
-                    </strong>
-                  </div>
-                )}
-
-                {(viewMetric === 'all' || viewMetric === 'account') && (
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-sky-600 dark:text-sky-400 font-bold uppercase tracking-wider block font-sans flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
-                      Account
-                    </span>
-                    <strong className="text-sky-600 dark:text-sky-400 text-xs sm:text-sm font-bold block truncate">
-                      {formatMasked(activeYearPoint.accountBalance, 'IDR', isPrivacyMode)}
-                    </strong>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* SVG GRAPH CONTAINER WITH MOBILE-VISIBLE POPUP */}
+            {/* SVG GRAPH CONTAINER */}
             <div className="relative w-full rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 p-2 sm:p-5 select-none">
               <div className="relative w-full overflow-visible">
-                {/* INTERACTIVE FLOATING POPUP */}
-                <div
-                  className="absolute top-2 z-30 transition-all duration-100 pointer-events-none select-none"
-                  style={getSafePopupPosition((yearScale.incomeCoords[safeYearIdx].x / 800) * 100)}
-                >
-                  <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900/95 text-white border border-slate-700/80 shadow-2xl space-y-1 text-xs font-mono min-w-[200px] sm:min-w-[220px] max-w-[calc(100vw-3rem)] backdrop-blur-md">
-                    <div className="flex items-center justify-between font-bold border-b border-slate-800 pb-1 font-sans">
-                      <span className="text-xs text-white flex items-center gap-1">
-                        <Layers className="w-3.5 h-3.5 text-indigo-400" />
-                        <span>Full Year {activeYearPoint.year}</span>
-                      </span>
-                      {activeYearPoint.income > 0 && (
-                        <span className="text-[10px] text-indigo-400 font-mono font-bold">
-                          {((activeYearPoint.investment / activeYearPoint.income) * 100).toFixed(0)}% Inv.
-                        </span>
-                      )}
-                    </div>
-                    <div className="space-y-0.5 text-[11px]">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-emerald-400 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                          Income:
-                        </span>
-                        <strong className="text-emerald-300 font-bold">{formatMasked(activeYearPoint.income, 'IDR', isPrivacyMode)}</strong>
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-rose-400 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
-                          Expenses:
-                        </span>
-                        <strong className="text-rose-300 font-bold">{formatMasked(activeYearPoint.expense, 'IDR', isPrivacyMode)}</strong>
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-indigo-400 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                          Invested:
-                        </span>
-                        <strong className="text-indigo-300 font-bold">{formatMasked(activeYearPoint.investment, 'IDR', isPrivacyMode)}</strong>
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-sky-400 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
-                          Account:
-                        </span>
-                        <strong className="text-sky-300 font-bold">{formatMasked(activeYearPoint.accountBalance, 'IDR', isPrivacyMode)}</strong>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {/* SVG Canvas with Unified Touch, Pointer & Mouse support */}
                 <svg
                   viewBox="0 0 800 360"
@@ -1944,6 +1734,46 @@ export const IncomeInvestmentTracker: React.FC = () => {
                     </g>
                   )}
                 </svg>
+              </div>
+            </div>
+
+            {/* HOVER INSPECTION POPUP CARD (Placed below chart plot area so it never covers the lines) */}
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900/95 text-white border border-slate-700/80 shadow-xl space-y-2 text-xs font-mono backdrop-blur-md">
+              <div className="flex items-center justify-between font-bold border-b border-slate-800 pb-1.5 font-sans">
+                <span className="text-xs text-white flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Full Year {activeYearPoint.year} (Inspected Point)</span>
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
+                <div className="flex flex-col">
+                  <span className="text-emerald-400 flex items-center gap-1 text-[10px] font-sans">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                    Income:
+                  </span>
+                  <strong className="text-emerald-300 font-bold text-xs sm:text-sm truncate">{formatMasked(activeYearPoint.income, 'IDR', isPrivacyMode)}</strong>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-rose-400 flex items-center gap-1 text-[10px] font-sans">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
+                    Expenses:
+                  </span>
+                  <strong className="text-rose-300 font-bold text-xs sm:text-sm truncate">{formatMasked(activeYearPoint.expense, 'IDR', isPrivacyMode)}</strong>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-indigo-400 flex items-center gap-1 text-[10px] font-sans">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
+                    Invested:
+                  </span>
+                  <strong className="text-indigo-300 font-bold text-xs sm:text-sm truncate">{formatMasked(activeYearPoint.investment, 'IDR', isPrivacyMode)}</strong>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sky-400 flex items-center gap-1 text-[10px] font-sans">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+                    Account:
+                  </span>
+                  <strong className="text-sky-300 font-bold text-xs sm:text-sm truncate">{formatMasked(activeYearPoint.accountBalance, 'IDR', isPrivacyMode)}</strong>
+                </div>
               </div>
             </div>
 
