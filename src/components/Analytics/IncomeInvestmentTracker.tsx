@@ -401,7 +401,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
   }, [transactions, investments, accounts, currentTotalAccountBalance, selectedYear, availableYears, usdIdrRate, currentYear, currentMonthIdx, todayStr]);
 
   // Scaling helpers for Graph SVGs
-  const getScaleData = (points: ChartPoint[], svgWidth = 800, svgHeight = 240, padding = { top: 30, bottom: 35, left: 28, right: 28 }) => {
+  const getScaleData = (points: ChartPoint[], svgWidth = 800, svgHeight = 360, padding = { top: 35, bottom: 45, left: 28, right: 28 }) => {
     let max = 0;
     points.forEach((p) => {
       if (viewMetric === 'all') {
@@ -474,8 +474,8 @@ export const IncomeInvestmentTracker: React.FC = () => {
     };
   };
 
-  const monthScale = useMemo(() => getScaleData(monthlyData, 800, 240), [monthlyData, viewMetric]);
-  const yearScale = useMemo(() => getScaleData(yearlyData, 800, 240), [yearlyData, viewMetric]);
+  const monthScale = useMemo(() => getScaleData(monthlyData, 800, 360), [monthlyData, viewMetric]);
+  const yearScale = useMemo(() => getScaleData(yearlyData, 800, 360), [yearlyData, viewMetric]);
 
   // Unified touch, mouse, and pointer index resolver with exact SVG matrix transformation
   const resolveCoordIndex = useCallback(
@@ -961,9 +961,9 @@ export const IncomeInvestmentTracker: React.FC = () => {
 
                 {/* SVG Canvas with Unified Touch, Pointer & Mouse support */}
                 <svg
-                  viewBox="0 0 800 240"
+                  viewBox="0 0 800 360"
                   preserveAspectRatio="none"
-                  className="w-full h-56 sm:h-64 overflow-visible cursor-crosshair select-none block"
+                  className="w-full h-80 sm:h-96 overflow-visible cursor-crosshair select-none block"
                   style={{ touchAction: 'none' }}
                   onPointerDown={(e) => {
                     resolveCoordIndex(e.clientX, e.clientY, e.currentTarget, monthScale.incomeCoords, setActiveMonthIdx);
@@ -1171,7 +1171,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                               x={rectX}
                               y="0"
                               width={rectW}
-                              height="240"
+                              height="360"
                               fill="transparent"
                               className="cursor-pointer"
                               onPointerEnter={() => {
@@ -1195,7 +1195,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
 
                             <text
                               x={incPt.x}
-                              y="230"
+                              y="345"
                               textAnchor="middle"
                               className={`text-[10px] sm:text-[11px] font-mono fill-current pointer-events-none ${
                                 isActive
@@ -1254,7 +1254,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                               x={rectX}
                               y="0"
                               width={rectW}
-                              height="240"
+                              height="360"
                               fill="transparent"
                               className="cursor-pointer"
                             />
@@ -1308,7 +1308,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                             )}
                             <text
                               x={incPt.x}
-                              y="230"
+                              y="345"
                               textAnchor="middle"
                               className={`text-[10px] sm:text-[11px] font-mono fill-current pointer-events-none ${
                                 isActive
@@ -1520,9 +1520,9 @@ export const IncomeInvestmentTracker: React.FC = () => {
 
                 {/* SVG Canvas with Unified Touch, Pointer & Mouse support */}
                 <svg
-                  viewBox="0 0 800 240"
+                  viewBox="0 0 800 360"
                   preserveAspectRatio="none"
-                  className="w-full h-56 sm:h-64 overflow-visible cursor-crosshair select-none block"
+                  className="w-full h-80 sm:h-96 overflow-visible cursor-crosshair select-none block"
                   style={{ touchAction: 'none' }}
                   onPointerDown={(e) => {
                     resolveCoordIndex(e.clientX, e.clientY, e.currentTarget, yearScale.incomeCoords, setActiveYearIdx);
@@ -1730,7 +1730,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                               x={rectX}
                               y="0"
                               width={rectW}
-                              height="240"
+                              height="360"
                               fill="transparent"
                               className="cursor-pointer"
                               onPointerEnter={() => {
@@ -1754,7 +1754,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
 
                             <text
                               x={incPt.x}
-                              y="230"
+                              y="345"
                               textAnchor="middle"
                               className={`text-[11px] font-mono fill-current pointer-events-none ${
                                 isActive
@@ -1813,7 +1813,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                               x={rectX}
                               y="0"
                               width={rectW}
-                              height="240"
+                              height="360"
                               fill="transparent"
                               className="cursor-pointer"
                             />
@@ -1867,7 +1867,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
                             )}
                             <text
                               x={incPt.x}
-                              y="230"
+                              y="345"
                               textAnchor="middle"
                               className={`text-[11px] font-mono fill-current pointer-events-none ${
                                 isActive

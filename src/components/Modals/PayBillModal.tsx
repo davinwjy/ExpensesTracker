@@ -79,31 +79,35 @@ export const PayBillModal: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
+    setIsSubmitting(true);
     setError('');
 
     const parsedAmount = Number(amountIdr);
     if (!parsedAmount || parsedAmount <= 0) {
       setError('Please enter a valid payment amount greater than 0');
+      setIsSubmitting(false);
       return;
     }
 
     if (!creditCardAccountId) {
       setError('Please select a credit card to pay');
+      setIsSubmitting(false);
       return;
     }
 
     if (!sourceAccountId) {
       setError('Please select a funding source account (Bank or Cash)');
+      setIsSubmitting(false);
       return;
     }
 
     const sourceAcc = accounts.find((a) => a.id === sourceAccountId);
     if (sourceAcc && sourceAcc.balance < parsedAmount) {
       setError(`Insufficient balance in ${sourceAcc.name} (Available: ${formatIdr(sourceAcc.balance)})`);
+      setIsSubmitting(false);
       return;
     }
 
-    setIsSubmitting(true);
     try {
       await payCreditCardBill({
         creditCardAccountId,

@@ -137,16 +137,19 @@ export const AddExpenseModal: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
+    setIsSubmitting(true);
     setError('');
 
     const parsedAmount = Number(amount);
     if (!parsedAmount || parsedAmount <= 0) {
       setError('Please enter a valid amount greater than 0');
+      setIsSubmitting(false);
       return;
     }
 
     if (!accountId) {
       setError('Please select a Bank or Cash account');
+      setIsSubmitting(false);
       return;
     }
 
@@ -165,11 +168,11 @@ export const AddExpenseModal: React.FC = () => {
             )} cannot be submitted.`
           );
         }
+        setIsSubmitting(false);
         return;
       }
     }
 
-    setIsSubmitting(true);
     try {
       if (editingTransaction) {
         await updateTransaction(editingTransaction.id, {

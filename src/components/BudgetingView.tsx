@@ -159,64 +159,65 @@ export const BudgetingView: React.FC = () => {
 
   return (
     <div className="space-y-5 animate-in fade-in pb-12">
-      {/* 1. HEADER & OVERVIEW */}
-      <div className="bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1b212e] rounded-xl p-5 sm:p-6 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
-              Budgeting & Spending Limits
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
-              Set monthly category spending ceilings and track remaining runway in real time.
-            </p>
-          </div>
-
-          {/* Month Navigation & Action */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center bg-slate-100 dark:bg-[#131722] border border-slate-200 dark:border-[#21293a] rounded-lg p-1">
-              <button
-                onClick={handlePrevMonth}
-                className="p-1 rounded text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#1a2030] transition-colors cursor-pointer"
-                title="Previous month"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-
-              <div className="px-3 py-0.5 text-xs font-semibold text-slate-800 dark:text-zinc-200 min-w-[130px] text-center">
-                {monthDisplay}
-              </div>
-
-              <button
-                onClick={handleNextMonth}
-                className="p-1 rounded text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#1a2030] transition-colors cursor-pointer"
-                title="Next month"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {!isCurrentMonth && (
-              <button
-                onClick={handleResetCurrentMonth}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-[#131722] hover:bg-slate-200 dark:hover:bg-[#1a2030] text-slate-600 dark:text-zinc-300 text-xs font-medium border border-slate-200 dark:border-[#21293a] cursor-pointer transition-colors"
-              >
-                Current Month
-              </button>
-            )}
-
-            <button
-              onClick={() => {
-                setEditingBudget(null);
-                setIsBudgetModalOpen(true);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-sm transition-colors cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Set Limit</span>
-            </button>
-          </div>
+      {/* Header & Main CTAs */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+            Budgeting & Spending Limits
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
+            Set monthly category spending ceilings and track remaining runway in real time.
+          </p>
         </div>
 
+        {/* Month Navigation & Action */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center bg-white dark:bg-[#131722] border border-slate-200 dark:border-[#21293a] rounded-lg p-1 shadow-sm">
+            <button
+              onClick={handlePrevMonth}
+              className="p-1 rounded text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1a2030] transition-colors cursor-pointer"
+              title="Previous month"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <div className="px-3 py-0.5 text-xs font-semibold text-slate-800 dark:text-zinc-200 min-w-[130px] text-center">
+              {monthDisplay}
+            </div>
+
+            <button
+              onClick={handleNextMonth}
+              className="p-1 rounded text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1a2030] transition-colors cursor-pointer"
+              title="Next month"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {!isCurrentMonth && (
+            <button
+              onClick={handleResetCurrentMonth}
+              className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#131722] hover:bg-slate-100 dark:hover:bg-[#1a2030] text-slate-600 dark:text-zinc-300 text-xs font-medium border border-slate-200 dark:border-[#21293a] cursor-pointer transition-colors shadow-sm"
+            >
+              Current Month
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              setEditingBudget(null);
+              setIsBudgetModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-sm transition-colors cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Set Limit</span>
+          </button>
+        </div>
+      </div>
+
+      {/* OVERVIEW CARD */}
+      <div className="bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1b212e] rounded-xl p-5 sm:p-6 shadow-sm space-y-4">
         {/* 2. OVERALL MACRO CONSUMPTION BAR */}
         <div className="mt-5 pt-4 border-t border-slate-100 dark:border-[#1b212e] space-y-2">
           <div className="flex items-center justify-between text-xs">
