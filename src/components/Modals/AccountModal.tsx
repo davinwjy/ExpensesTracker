@@ -165,21 +165,21 @@ export const AccountModal: React.FC = () => {
         className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
       />
 
-      <div className="relative w-full max-w-md bg-[#0d1017] border-t sm:border border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono">
-        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-[#080a0f]">
-          <div className="w-8 h-1 rounded-full bg-zinc-700" />
+      <div className="relative w-full max-w-md bg-white dark:bg-[#0d1017] border-t sm:border border-slate-200 dark:border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono text-slate-900 dark:text-zinc-100">
+        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-slate-100 dark:bg-[#080a0f]">
+          <div className="w-8 h-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
         </div>
 
-        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-[#1b212e] bg-[#080a0f] shrink-0">
+        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-slate-200 dark:border-[#1b212e] bg-slate-50 dark:bg-[#080a0f] shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <CreditCard className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h3 className="font-bold text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
+              <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
                 {editingAccount ? 'EDIT ACCOUNT RECORD' : 'CREATE ACCOUNT RECORD'}
               </h3>
-              <p className="text-[10px] text-zinc-500">
+              <p className="text-[10px] text-slate-500 dark:text-zinc-500">
                 {editingAccount ? 'Update account parameters or balance' : 'Bank, E-Wallet, Cash or Credit Card'}
               </p>
             </div>
@@ -189,14 +189,14 @@ export const AccountModal: React.FC = () => {
               type="button"
               onClick={resetFields}
               title="Reset fields"
-              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
+              className="p-1 text-slate-400 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded hover:bg-slate-200 dark:hover:bg-[#161a25] transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={handleClose}
-              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
+              className="p-1 text-slate-400 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded hover:bg-slate-200 dark:hover:bg-[#161a25] transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -205,23 +205,23 @@ export const AccountModal: React.FC = () => {
 
         <form id="account-modal-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 space-y-3.5 overscroll-contain">
           {error && (
-            <div className="flex items-center gap-2 p-2.5 rounded bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <div className="flex items-center gap-2 p-2.5 rounded bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 dark:text-rose-400" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Account Type Selector */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
               ACCOUNT TYPE
             </label>
-            <div className="grid grid-cols-4 p-0.5 bg-[#080a0f] rounded border border-[#1d2332] text-xs font-semibold">
+            <div className="grid grid-cols-4 p-0.5 bg-slate-100 dark:bg-[#080a0f] rounded border border-slate-300 dark:border-[#1d2332] text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setType('bank')}
                 className={`py-1.5 rounded transition-all cursor-pointer ${
-                  type === 'bank' ? 'bg-[#1b212e] text-emerald-400 border border-[#2a3449] font-bold' : 'text-zinc-400 hover:text-zinc-200'
+                  type === 'bank' ? 'bg-white dark:bg-[#1b212e] text-emerald-600 dark:text-emerald-400 border border-slate-300 dark:border-[#2a3449] font-bold shadow-sm' : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
                 }`}
               >
                 BANK
@@ -230,7 +230,7 @@ export const AccountModal: React.FC = () => {
                 type="button"
                 onClick={() => setType('credit_card')}
                 className={`py-1.5 rounded transition-all cursor-pointer ${
-                  type === 'credit_card' ? 'bg-[#1b212e] text-amber-400 border border-[#2a3449] font-bold' : 'text-zinc-400 hover:text-zinc-200'
+                  type === 'credit_card' ? 'bg-white dark:bg-[#1b212e] text-amber-600 dark:text-amber-400 border border-slate-300 dark:border-[#2a3449] font-bold shadow-sm' : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
                 }`}
               >
                 CC
@@ -239,7 +239,7 @@ export const AccountModal: React.FC = () => {
                 type="button"
                 onClick={() => setType('paylater')}
                 className={`py-1.5 rounded transition-all cursor-pointer ${
-                  type === 'paylater' ? 'bg-[#1b212e] text-purple-400 border border-[#2a3449] font-bold' : 'text-zinc-400 hover:text-zinc-200'
+                  type === 'paylater' ? 'bg-white dark:bg-[#1b212e] text-purple-600 dark:text-purple-400 border border-slate-300 dark:border-[#2a3449] font-bold shadow-sm' : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
                 }`}
               >
                 PAYLATER
@@ -248,7 +248,7 @@ export const AccountModal: React.FC = () => {
                 type="button"
                 onClick={() => setType('cash')}
                 className={`py-1.5 rounded transition-all cursor-pointer ${
-                  type === 'cash' ? 'bg-[#1b212e] text-emerald-400 border border-[#2a3449] font-bold' : 'text-zinc-400 hover:text-zinc-200'
+                  type === 'cash' ? 'bg-white dark:bg-[#1b212e] text-emerald-600 dark:text-emerald-400 border border-slate-300 dark:border-[#2a3449] font-bold shadow-sm' : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
                 }`}
               >
                 CASH
@@ -258,15 +258,15 @@ export const AccountModal: React.FC = () => {
 
           {/* Account Name */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-              {type === 'credit_card' || type === 'paylater' ? 'FACILITY / PROVIDER NAME' : 'ACCOUNT IDENTIFIER'} <span className="text-rose-400">*</span>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
+              {type === 'credit_card' || type === 'paylater' ? 'FACILITY / PROVIDER NAME' : 'ACCOUNT IDENTIFIER'} <span className="text-rose-500 dark:text-rose-400">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder={type === 'credit_card' ? 'e.g. BCA Visa Platinum, Mandiri Card' : type === 'paylater' ? 'e.g. GoPayLater, ShopeePayLater, Kredivo' : 'e.g. BCA Main, Cash Dompet...'}
-              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none"
+              placeholder={type === 'credit_card' ? 'e.g. BCA Visa Platinum, Mandiri Card' : type === 'paylater' ? 'e.g. GoPayLater, ShopeePayLater, Kredivo' : 'e.g. BCA Main, Cash Wallet...'}
+              className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none"
               required
               autoFocus
             />
@@ -274,11 +274,11 @@ export const AccountModal: React.FC = () => {
 
           {/* Credit Card / PayLater Specific Fields */}
           {(type === 'credit_card' || type === 'paylater') && (
-            <div className="space-y-3.5 p-3 rounded bg-[#0b0e14] border border-[#1b212e]">
+            <div className="space-y-3.5 p-3 rounded bg-slate-50 dark:bg-[#0b0e14] border border-slate-200 dark:border-[#1b212e]">
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                    CREDIT LIMIT (IDR) <span className="text-rose-400">*</span>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
+                    CREDIT LIMIT (IDR) <span className="text-rose-500 dark:text-rose-400">*</span>
                   </label>
                   <input
                     type="number"
@@ -286,19 +286,19 @@ export const AccountModal: React.FC = () => {
                     value={creditLimit}
                     onChange={(e) => setCreditLimit(e.target.value)}
                     placeholder="20000000"
-                    className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-amber-500 rounded px-3 py-2 text-xs font-bold text-zinc-100 font-mono tabular-nums focus:outline-none"
+                    className="w-full bg-white dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-amber-500 rounded px-3 py-2 text-xs font-bold text-slate-900 dark:text-zinc-100 font-mono tabular-nums focus:outline-none"
                     required
                   />
                 </div>
                 {type === 'credit_card' && (
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
                       CARD NETWORK
                     </label>
                     <select
                       value={cardNetwork}
                       onChange={(e) => setCardNetwork(e.target.value)}
-                      className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-amber-500 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono"
+                      className="w-full bg-white dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-amber-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 focus:outline-none font-mono"
                     >
                       {CARD_NETWORKS.map((net) => (
                         <option key={net} value={net}>{net}</option>
@@ -311,7 +311,7 @@ export const AccountModal: React.FC = () => {
               <div className={`grid ${type === 'credit_card' ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
                 {type === 'credit_card' && (
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
                       LAST 4 DIGITS
                     </label>
                     <input
@@ -320,12 +320,12 @@ export const AccountModal: React.FC = () => {
                       value={last4Digits}
                       onChange={(e) => setLast4Digits(e.target.value)}
                       placeholder="4821"
-                      className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-amber-500 rounded px-3 py-2 text-xs text-zinc-100 font-mono focus:outline-none"
+                      className="w-full bg-white dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-amber-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 font-mono focus:outline-none"
                     />
                   </div>
                 )}
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
                     BILLING DATE
                   </label>
                   <input
@@ -334,11 +334,11 @@ export const AccountModal: React.FC = () => {
                     max="31"
                     value={billingDate}
                     onChange={(e) => setBillingDate(e.target.value)}
-                    className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-amber-500 rounded px-3 py-2 text-xs text-zinc-100 font-mono focus:outline-none"
+                    className="w-full bg-white dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-amber-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 font-mono focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
                     DUE DATE
                   </label>
                   <input
@@ -347,7 +347,7 @@ export const AccountModal: React.FC = () => {
                     max="31"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-amber-500 rounded px-3 py-2 text-xs text-zinc-100 font-mono focus:outline-none"
+                    className="w-full bg-white dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-amber-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 font-mono focus:outline-none"
                   />
                 </div>
               </div>
@@ -357,20 +357,20 @@ export const AccountModal: React.FC = () => {
           {/* Balance / Current Debt */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                 {type === 'credit_card' || type === 'paylater'
-                  ? 'DANA TERPAKAI / TAGIHAN BERJALAN (IDR)'
+                  ? 'USED CREDIT / CURRENT DEBT (IDR)'
                   : 'CURRENT BALANCE (IDR)'}{' '}
-                <span className="text-rose-400">*</span>
+                <span className="text-rose-500 dark:text-rose-400">*</span>
               </label>
               {(type === 'credit_card' || type === 'paylater') && (
-                <span className="text-[9px] font-mono text-zinc-500">
-                  (Isi 0 jika belum terpakai)
+                <span className="text-[9px] font-mono text-slate-500 dark:text-zinc-500">
+                  (Enter 0 if unused)
                 </span>
               )}
             </div>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-500">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-zinc-500">
                 Rp
               </span>
               <input
@@ -379,31 +379,31 @@ export const AccountModal: React.FC = () => {
                 value={balance}
                 onChange={(e) => setBalance(e.target.value)}
                 placeholder="0"
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded pl-9 pr-3 py-2 text-xs font-bold text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
+                className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-emerald-500 rounded pl-9 pr-3 py-2 text-xs font-bold text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
                 required
               />
             </div>
             {balance && !isNaN(Number(balance)) && (
-              <div className="mt-1.5 p-2 rounded bg-[#080a0f] border border-[#1d2332] space-y-1 text-[11px] font-mono">
+              <div className="mt-1.5 p-2 rounded bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] space-y-1 text-[11px] font-mono">
                 {type === 'credit_card' || type === 'paylater' ? (
                   <>
                     <div className="flex items-center justify-between">
-                      <span className="text-zinc-500">SISA LIMIT TERSEDIA:</span>
-                      <span className="font-bold tabular-nums text-emerald-400">
+                      <span className="text-slate-500 dark:text-zinc-500">AVAILABLE CREDIT LIMIT:</span>
+                      <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
                         {formatIdr(Math.max(0, Number(creditLimit || 0) - Number(balance)))}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[10px]">
-                      <span className="text-zinc-500">DANA TERPAKAI (DEBT):</span>
-                      <span className="font-bold tabular-nums text-amber-400">
+                      <span className="text-slate-500 dark:text-zinc-500">USED CREDIT (DEBT):</span>
+                      <span className="font-bold tabular-nums text-amber-600 dark:text-amber-400">
                         {formatIdr(Number(balance))}
                       </span>
                     </div>
                   </>
                 ) : (
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-500">FORMATTED VALUE:</span>
-                    <span className="font-bold tabular-nums text-emerald-400">
+                    <span className="text-slate-500 dark:text-zinc-500">FORMATTED VALUE:</span>
+                    <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
                       {formatIdr(Number(balance))}
                     </span>
                   </div>
@@ -415,7 +415,7 @@ export const AccountModal: React.FC = () => {
           {/* Account Number (Optional) */}
           {type !== 'credit_card' && type !== 'paylater' && type !== 'cash' && (
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
                 ACCOUNT NUMBER / MAPPING (OPTIONAL)
               </label>
               <input
@@ -423,14 +423,14 @@ export const AccountModal: React.FC = () => {
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
                 placeholder="e.g. 521098231 or •••• 4821"
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none"
               />
             </div>
           )}
 
           {/* Color Tag */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
               COLOR ACCENT
             </label>
             <div className="flex items-center gap-2 flex-wrap">
@@ -440,7 +440,7 @@ export const AccountModal: React.FC = () => {
                   type="button"
                   onClick={() => setColor(c)}
                   className={`w-6 h-6 rounded border transition-transform cursor-pointer ${
-                    color === c ? 'scale-110 border-white' : 'border-transparent opacity-75 hover:opacity-100'
+                    color === c ? 'scale-110 border-slate-900 dark:border-white ring-2 ring-emerald-500/50' : 'border-transparent opacity-75 hover:opacity-100'
                   }`}
                   style={{ backgroundColor: c }}
                 />
@@ -449,7 +449,7 @@ export const AccountModal: React.FC = () => {
           </div>
         </form>
 
-        <div className="shrink-0 p-3 bg-[#080a0f] border-t border-[#1b212e] flex items-center justify-between gap-2">
+        <div className="shrink-0 p-3 bg-slate-50 dark:bg-[#080a0f] border-t border-slate-200 dark:border-[#1b212e] flex items-center justify-between gap-2">
           {editingAccount ? (
             confirmDelete ? (
               <div className="flex items-center gap-1.5">
@@ -457,14 +457,14 @@ export const AccountModal: React.FC = () => {
                   type="button"
                   onClick={handleDelete}
                   disabled={isSubmitting}
-                  className="px-2.5 py-1.5 rounded bg-rose-600 text-xs font-bold text-white hover:bg-rose-500"
+                  className="px-2.5 py-1.5 rounded bg-rose-600 text-xs font-bold text-white hover:bg-rose-500 cursor-pointer"
                 >
                   CONFIRM PURGE
                 </button>
                 <button
                   type="button"
                   onClick={() => setConfirmDelete(false)}
-                  className="px-2 py-1.5 text-xs text-zinc-400 hover:text-white"
+                  className="px-2 py-1.5 text-xs text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white cursor-pointer"
                 >
                   CANCEL
                 </button>
@@ -473,7 +473,7 @@ export const AccountModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>DELETE</span>
@@ -485,7 +485,7 @@ export const AccountModal: React.FC = () => {
             <button
               type="button"
               onClick={handleClose}
-              className="px-3 py-1.5 rounded text-xs font-semibold text-zinc-400 hover:text-white hover:bg-[#161a25] transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-[#161a25] transition-colors cursor-pointer"
             >
               DISCARD
             </button>

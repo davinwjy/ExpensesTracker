@@ -24,7 +24,7 @@ export const DEFAULT_BUDGETS: Array<{ category: string; monthlyLimit: number }> 
 ];
 
 export const DEFAULT_HOLDING_TYPES: HoldingType[] = [
-  { id: 'Saham', label: 'Saham (ID Stocks)', defaultCurrency: 'IDR', example: 'e.g. BBCA, BBRI, ASII', badgeColor: 'blue', isSystem: true },
+  { id: 'Saham', label: 'Indonesian Stocks', defaultCurrency: 'IDR', example: 'e.g. BBCA, BBRI, ASII', badgeColor: 'blue', isSystem: true },
   { id: 'RDPU', label: 'Money Market (RDPU)', defaultCurrency: 'IDR', example: 'e.g. Sucorinvest Stable Fund', badgeColor: 'teal', isSystem: true },
   { id: 'Bitcoin', label: 'Crypto (Bitcoin)', defaultCurrency: 'IDR', example: 'e.g. BTC, Indodax, Pintu', badgeColor: 'amber', isSystem: true },
   { id: 'ETF USA', label: 'US Stocks & ETFs', defaultCurrency: 'USD', example: 'e.g. VOO, QQQ, SCHD, SPY', badgeColor: 'purple', isSystem: true },
@@ -512,11 +512,11 @@ export const localDb = {
       if (acc.type === 'credit_card' || acc.type === 'paylater') {
         if (acc.creditLimit !== undefined && acc.balance + amount > acc.creditLimit) {
           const avail = Math.max(0, acc.creditLimit - acc.balance);
-          throw new Error(`Limit kredit tidak mencukupi (${avail.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+          throw new Error(`Insufficient credit limit (${avail.toLocaleString('en-US')}). Spending cannot be submitted.`);
         }
       } else {
         if (amount > acc.balance) {
-          throw new Error(`Saldo tidak mencukupi (${acc.balance.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+          throw new Error(`Insufficient balance (${acc.balance.toLocaleString('en-US')}). Spending cannot be submitted.`);
         }
       }
     }
@@ -576,7 +576,7 @@ export const localDb = {
           }
           if (revertedDebt + newAmount > targetAcc.creditLimit) {
             const avail = Math.max(0, targetAcc.creditLimit - revertedDebt);
-            throw new Error(`Limit kredit tidak mencukupi (${avail.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+            throw new Error(`Insufficient credit limit (${avail.toLocaleString('en-US')}). Spending cannot be submitted.`);
           }
         }
       } else {
@@ -585,7 +585,7 @@ export const localDb = {
           revertedBal += tx.amount;
         }
         if (newAmount > revertedBal) {
-          throw new Error(`Saldo tidak mencukupi (${revertedBal.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+          throw new Error(`Insufficient balance (${revertedBal.toLocaleString('en-US')}). Spending cannot be submitted.`);
         }
       }
     }

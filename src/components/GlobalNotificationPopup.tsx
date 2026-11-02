@@ -112,7 +112,7 @@ export const GlobalNotificationPopup: React.FC = () => {
                     : 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300'
                 }`}
               >
-                {isExpense ? 'PENGELUARAN' : isIncome ? 'PEMASUKAN' : notification.type === 'info' ? 'SISTEM' : 'NOTIFIKASI'}
+                {isExpense ? 'EXPENSE' : isIncome ? 'INCOME' : notification.type === 'info' ? 'SYSTEM' : 'NOTIFICATION'}
               </span>
               <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">
                 {notification.type === 'info' ? 'INFO' : notification.type === 'error' ? 'FAILED' : 'SUCCESS'}
@@ -172,7 +172,7 @@ export const GlobalNotificationPopup: React.FC = () => {
             type="button"
             onClick={closeNotification}
             className="p-1 rounded text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60 transition-colors cursor-pointer shrink-0"
-            title="Tutup Notifikasi"
+            title="Dismiss Notification"
           >
             <X className="w-4 h-4" />
           </button>

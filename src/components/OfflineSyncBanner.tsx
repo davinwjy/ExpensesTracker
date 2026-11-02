@@ -24,9 +24,9 @@ export const OfflineSyncBanner: React.FC = () => {
               <WifiOff className="w-3.5 h-3.5" />
             </div>
             <div className="flex items-center gap-2 truncate">
-              <span className="font-bold text-amber-300">Mode Offline:</span>
+              <span className="font-bold text-amber-300">Offline Mode:</span>
               <span className="text-amber-200/90 truncate">
-                Dashboard & pencatatan tetap aktif. Data disimpan di cache lokal.
+                Dashboard & transaction recording active. Data saved to local cache.
               </span>
             </div>
           </div>
@@ -34,10 +34,10 @@ export const OfflineSyncBanner: React.FC = () => {
           <div className="flex items-center gap-2 shrink-0 font-mono text-[11px]">
             {pendingSyncCount > 0 && (
               <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                {pendingSyncCount} antrean sync
+                {pendingSyncCount} pending sync
               </span>
             )}
-            <span className="hidden sm:inline-block text-amber-400/80">Otomatis sinkron saat online</span>
+            <span className="hidden sm:inline-block text-amber-400/80">Auto-syncs when back online</span>
           </div>
         </div>
       ) : isSyncing ? (
@@ -45,7 +45,7 @@ export const OfflineSyncBanner: React.FC = () => {
           <div className="flex items-center gap-2 min-w-0">
             <RefreshCw className="w-3.5 h-3.5 text-emerald-400 animate-spin shrink-0" />
             <span className="font-semibold text-emerald-300">
-              Menyinkronkan data keuangan ke Firebase...
+              Syncing financial data to Firebase...
             </span>
           </div>
           <span className="text-[11px] font-mono text-emerald-400">Cloud Sync Active</span>
@@ -55,14 +55,14 @@ export const OfflineSyncBanner: React.FC = () => {
           <div className="flex items-center gap-2 min-w-0">
             <CloudUpload className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
             <span>
-              Ada <strong className="text-cyan-300">{pendingSyncCount} data</strong> perubahan offline siap disinkronkan ke Firebase.
+              <strong className="text-cyan-300">{pendingSyncCount} offline changes</strong> ready to sync to Firebase.
             </span>
           </div>
           <button
             onClick={() => triggerManualSync()}
             className="px-2.5 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-semibold cursor-pointer transition-colors"
           >
-            Sinkronkan Sekarang
+            Sync Now
           </button>
         </div>
       ) : null}

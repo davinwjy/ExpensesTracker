@@ -201,23 +201,23 @@ export const InvestmentModal: React.FC = () => {
       />
 
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-lg bg-[#0d1017] border-t sm:border border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono">
+      <div className="relative w-full max-w-lg bg-white dark:bg-[#0d1017] border-t sm:border border-slate-200 dark:border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono text-slate-900 dark:text-zinc-100">
         {/* Mobile Drag Indicator */}
-        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-[#080a0f]">
-          <div className="w-8 h-1 rounded-full bg-zinc-700" />
+        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-slate-100 dark:bg-[#080a0f]">
+          <div className="w-8 h-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
         </div>
 
         {/* Command Strip Header */}
-        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-[#1b212e] bg-[#080a0f] shrink-0">
+        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-slate-200 dark:border-[#1b212e] bg-slate-50 dark:bg-[#080a0f] shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <TrendingUp className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h3 className="font-bold text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
+              <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
                 MODIFY ASSET POSITION
               </h3>
-              <p className="text-[10px] text-zinc-500">
+              <p className="text-[10px] text-slate-500 dark:text-zinc-500">
                 Update holding valuation, broker notes, and position details
               </p>
             </div>
@@ -227,14 +227,14 @@ export const InvestmentModal: React.FC = () => {
               type="button"
               onClick={resetFields}
               title="Reset fields"
-              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
+              className="p-1 text-slate-400 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded hover:bg-slate-200 dark:hover:bg-[#161a25] transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={handleClose}
-              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
+              className="p-1 text-slate-400 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded hover:bg-slate-200 dark:hover:bg-[#161a25] transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>

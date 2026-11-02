@@ -265,40 +265,40 @@ export const BudgetingView: React.FC = () => {
             <span
               className={`font-medium tabular-nums ${
                 isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
-              }`}
+              } ${isPrivacyMode ? 'privacy-blur' : ''}`}
             >
               {isOverBudget
                 ? `Over budget by ${formatIdr(totalSpent - totalBudgeted)}`
                 : `${formatIdr(totalRemaining)} remaining buffer`}
             </span>
-            <span>Total Limit: {formatMasked(totalBudgeted, 'IDR', isPrivacyMode)}</span>
+            <span>Total Limit: <span className={isPrivacyMode ? 'privacy-blur' : ''}>{formatMasked(totalBudgeted, 'IDR', isPrivacyMode)}</span></span>
           </div>
         </div>
 
         {/* Macro Telemetry Cards */}
         <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5 pt-3 border-t border-slate-100 dark:border-[#161d2b]">
           <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#090c12] border border-slate-200/70 dark:border-[#1b2230]">
-            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Active Categories</span>
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium block">Active Categories</span>
             <p className="text-sm font-semibold text-slate-900 dark:text-zinc-200 mt-0.5">{items.length} Budgeted</p>
           </div>
           <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#090c12] border border-slate-200/70 dark:border-[#1b2230]">
-            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Monthly Ceiling</span>
-            <p className="text-sm font-semibold text-slate-900 dark:text-zinc-200 tabular-nums mt-0.5">
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium block">Monthly Ceiling</span>
+            <p className={`text-sm font-semibold text-slate-900 dark:text-zinc-200 tabular-nums mt-0.5 ${isPrivacyMode ? 'privacy-blur' : ''}`}>
               {formatMasked(totalBudgeted, 'IDR', isPrivacyMode)}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#090c12] border border-slate-200/70 dark:border-[#1b2230]">
-            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Total Spent</span>
-            <p className="text-sm font-semibold text-rose-600 dark:text-rose-400 tabular-nums mt-0.5">
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium block">Total Spent</span>
+            <p className={`text-sm font-semibold text-rose-600 dark:text-rose-400 tabular-nums mt-0.5 ${isPrivacyMode ? 'privacy-blur' : ''}`}>
               {formatMasked(totalSpent, 'IDR', isPrivacyMode)}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#090c12] border border-slate-200/70 dark:border-[#1b2230]">
-            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Remaining Buffer</span>
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium block">Remaining Buffer</span>
             <p
               className={`text-sm font-semibold tabular-nums mt-0.5 ${
                 isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
-              }`}
+              } ${isPrivacyMode ? 'privacy-blur' : ''}`}
             >
               {isOverBudget
                 ? `-${formatIdr(totalSpent - totalBudgeted)}`
@@ -452,11 +452,11 @@ export const BudgetingView: React.FC = () => {
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-700 dark:text-zinc-300 font-medium tabular-nums">
+                    <span className={`text-slate-700 dark:text-zinc-300 font-medium tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
                       {formatMasked(item.actualSpent, 'IDR', isPrivacyMode)}
                     </span>
                     <span className="text-slate-400 dark:text-zinc-500 tabular-nums">
-                      of {formatMasked(item.monthlyLimit, 'IDR', isPrivacyMode)} limit
+                      of <span className={isPrivacyMode ? 'privacy-blur' : ''}>{formatMasked(item.monthlyLimit, 'IDR', isPrivacyMode)}</span> limit
                     </span>
                   </div>
                 </div>
@@ -471,7 +471,7 @@ export const BudgetingView: React.FC = () => {
                       item.remaining < 0
                         ? 'text-rose-600 dark:text-rose-400'
                         : 'text-emerald-600 dark:text-emerald-400'
-                    }`}
+                    } ${isPrivacyMode ? 'privacy-blur' : ''}`}
                   >
                     {item.remaining < 0
                       ? formatIdr(Math.abs(item.remaining))

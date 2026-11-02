@@ -269,16 +269,16 @@ export const TransferModal: React.FC = () => {
       const toAcc = accounts.find((a) => a.id === toAccountId);
       const toInv = investments.find((i) => i.id === toInvestmentId);
       const targetLabel = mode === 'account_to_account'
-        ? (toAcc?.name || 'Rekening Tujuan')
-        : (targetType === 'new' ? newInvName.trim() : (toInv?.name || 'Portofolio Investasi'));
+        ? (toAcc?.name || 'Destination Account')
+        : (targetType === 'new' ? newInvName.trim() : (toInv?.name || 'Investment Portfolio'));
 
       showNotification({
         type: 'success',
         txType: 'transfer',
-        title: mode === 'account_to_account' ? 'Transfer Antar Rekening Berhasil' : 'Top Up Investasi Berhasil',
-        message: `${fromAcc?.name || 'Akun'} ➔ ${targetLabel}`,
+        title: mode === 'account_to_account' ? 'Inter-Account Transfer Successful' : 'Investment Top-Up Successful',
+        message: `${fromAcc?.name || 'Account'} ➔ ${targetLabel}`,
         amount: numericAmount,
-        category: mode === 'account_to_account' ? 'Transfer Kas' : newInvCategory,
+        category: mode === 'account_to_account' ? 'Cash Transfer' : newInvCategory,
         accountName: fromAcc?.name,
         date,
       });
@@ -301,20 +301,20 @@ export const TransferModal: React.FC = () => {
       />
 
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-lg bg-[#0d1017] border-t sm:border border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono">
+      <div className="relative w-full max-w-lg bg-white dark:bg-[#0d1017] border-t sm:border border-slate-200 dark:border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono text-slate-900 dark:text-zinc-100">
         {/* Mobile Drag Indicator */}
-        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-[#080a0f]">
-          <div className="w-8 h-1 rounded-full bg-zinc-700" />
+        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-slate-100 dark:bg-[#080a0f]">
+          <div className="w-8 h-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
         </div>
 
         {/* Command Strip Header */}
-        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-[#1b212e] bg-[#080a0f] shrink-0">
+        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-slate-200 dark:border-[#1b212e] bg-slate-50 dark:bg-[#080a0f] shrink-0">
           <div className="flex items-center gap-2">
             <div
               className={`w-6 h-6 rounded flex items-center justify-center shrink-0 border ${
                 mode === 'bank_to_investment'
-                  ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'
-                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400'
+                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
               }`}
             >
               {mode === 'bank_to_investment' ? (
@@ -324,10 +324,10 @@ export const TransferModal: React.FC = () => {
               )}
             </div>
             <div>
-              <h3 className="font-bold text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
+              <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
                 {mode === 'bank_to_investment' ? 'BANK TO INVESTMENT TRANSFER' : 'INTER-ACCOUNT TRANSFER'}
               </h3>
-              <p className="text-[10px] text-zinc-500">
+              <p className="text-[10px] text-slate-500 dark:text-zinc-500">
                 {mode === 'bank_to_investment'
                   ? 'Fund investment positions directly from bank or cash accounts'
                   : 'Move balances between bank accounts, wallets, or cash'}
@@ -819,7 +819,7 @@ export const TransferModal: React.FC = () => {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>MEMPROSES TRANSFER...</span>
+                <span>PROCESSING TRANSFER...</span>
               </>
             ) : (
               <>

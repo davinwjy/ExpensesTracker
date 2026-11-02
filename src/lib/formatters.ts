@@ -18,14 +18,15 @@ export function formatCurrency(amount: number, currency: 'IDR' | 'USD' = 'IDR'):
   return formatIdr(amount);
 }
 
+export function getPrivacyClass(isPrivacyMode: boolean, extraClass: string = ''): string {
+  return `${extraClass} ${isPrivacyMode ? 'privacy-blur' : ''}`.trim();
+}
+
 export function formatMasked(
   amount: number,
   currency: 'IDR' | 'USD' = 'IDR',
-  isPrivacy: boolean = false
+  _isPrivacy: boolean = false
 ): string {
-  if (isPrivacy) {
-    return currency === 'USD' ? '$ ••••••' : 'Rp ••••••••';
-  }
   return formatCurrency(amount, currency);
 }
 
@@ -83,12 +84,12 @@ export const EXPENSE_CATEGORIES = [
 ] as const;
 
 export const INCOME_CATEGORIES = [
-  'Salary / Gaji',
+  'Salary / Wage',
   'Bonus & Allowance',
   'Freelance & Side Gig',
   'Selling Items',
   'Reimbursement',
-  'Investment Return / Dividen',
+  'Investment Return / Dividends',
   'Business Profit',
   'Rental & Passive Income',
   'Gift & Grants',
@@ -114,13 +115,15 @@ export const CATEGORY_COLORS: Record<string, string> = {
   'Other': '#94a3b8',
 
   // Income Categories
-  'Salary / Gaji': '#10b981', // emerald
+  'Salary / Wage': '#10b981', // emerald
+  'Salary / Gaji': '#10b981', // backward compatibility
   'Bonus & Allowance': '#059669', // dark emerald
   'Freelance & Side Gig': '#14b8a6', // teal
   'Selling Items': '#f59e0b', // amber
   'Selling Items / Jual Barang': '#f59e0b',
   'Reimbursement': '#06b6d4', // cyan
-  'Investment Return / Dividen': '#0ea5e9', // sky
+  'Investment Return / Dividends': '#0ea5e9', // sky
+  'Investment Return / Dividen': '#0ea5e9',
   'Business Profit': '#3b82f6', // blue
   'Rental & Passive Income': '#8b5cf6', // purple
   'Gift & Grants': '#ec4899', // pink

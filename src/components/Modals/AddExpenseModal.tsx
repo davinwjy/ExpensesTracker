@@ -154,15 +154,15 @@ export const AddExpenseModal: React.FC = () => {
       if (parsedAmount > availableBalance) {
         if (selectedAccount.type === 'credit_card' || selectedAccount.type === 'paylater') {
           setError(
-            `Sisa limit kredit tidak mencukupi (${formatIdr(availableBalance)}). Pengeluaran sebesar ${formatIdr(
+            `Credit limit insufficient (${formatIdr(availableBalance)}). Expense amount ${formatIdr(
               parsedAmount
-            )} tidak dapat disubmit.`
+            )} cannot be submitted.`
           );
         } else {
           setError(
-            `Saldo tidak mencukupi (${formatIdr(availableBalance)}). Pengeluaran sebesar ${formatIdr(
+            `Insufficient balance (${formatIdr(availableBalance)}). Expense amount ${formatIdr(
               parsedAmount
-            )} tidak dapat disubmit.`
+            )} cannot be submitted.`
           );
         }
         return;
@@ -193,13 +193,13 @@ export const AddExpenseModal: React.FC = () => {
 
       // Trigger sleek success popup notification
       const targetAcc = accounts.find((a) => a.id === accountId);
-      const accName = targetAcc ? targetAcc.name : 'Akun';
+      const accName = targetAcc ? targetAcc.name : 'Account';
       showNotification({
         type: 'success',
         txType: type,
         title: editingTransaction
-          ? (type === 'expense' ? 'Pengeluaran Berhasil Diperbarui' : 'Pemasukan Berhasil Diperbarui')
-          : (type === 'expense' ? 'Pengeluaran Berhasil Dicatat' : 'Pemasukan Berhasil Dicatat'),
+          ? (type === 'expense' ? 'Expense Updated Successfully' : 'Income Updated Successfully')
+          : (type === 'expense' ? 'Expense Recorded Successfully' : 'Income Recorded Successfully'),
         message: notes?.trim() ? notes.trim() : undefined,
         amount: parsedAmount,
         category,
@@ -231,20 +231,20 @@ export const AddExpenseModal: React.FC = () => {
       />
 
       {/* Modal Dialog Card (Bottom sheet on mobile, centered modal on desktop) */}
-      <div className="relative w-full max-w-lg bg-[#0d1017] border-t sm:border border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono">
+      <div className="relative w-full max-w-lg bg-white dark:bg-[#0d1017] border-t sm:border border-slate-200 dark:border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono text-slate-900 dark:text-zinc-100">
         {/* Mobile Drag Indicator */}
-        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-[#080a0f]">
-          <div className="w-8 h-1 rounded-full bg-zinc-700" />
+        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-slate-100 dark:bg-[#080a0f]">
+          <div className="w-8 h-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
         </div>
 
         {/* Command Strip Header */}
-        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-[#1b212e] bg-[#080a0f] shrink-0">
+        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-slate-200 dark:border-[#1b212e] bg-slate-50 dark:bg-[#080a0f] shrink-0">
           <div className="flex items-center gap-2">
             <div
               className={`w-6 h-6 rounded flex items-center justify-center shrink-0 border ${
                 type === 'expense'
-                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-500 dark:text-rose-400'
+                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
               }`}
             >
               {type === 'expense' ? (
@@ -254,7 +254,7 @@ export const AddExpenseModal: React.FC = () => {
               )}
             </div>
             <div>
-              <h3 className="font-bold text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
+              <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
                 {editingTransaction
                   ? editingTransaction.type === 'income'
                     ? 'EDIT INCOME LOG'
@@ -263,7 +263,7 @@ export const AddExpenseModal: React.FC = () => {
                   ? 'RECORD CASH OUTFLOW'
                   : 'RECORD CASH INFLOW'}
               </h3>
-              <p className="text-[10px] text-zinc-500">
+              <p className="text-[10px] text-slate-500 dark:text-zinc-500">
                 {type === 'expense'
                   ? 'Immediate debit from selected account ledger'
                   : 'Immediate credit to selected account ledger'}
@@ -276,7 +276,7 @@ export const AddExpenseModal: React.FC = () => {
               onClick={resetForm}
               disabled={isSubmitting}
               title="Reset fields"
-              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className="p-1 text-slate-400 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded hover:bg-slate-200 dark:hover:bg-[#161a25] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
@@ -284,7 +284,7 @@ export const AddExpenseModal: React.FC = () => {
               type="button"
               onClick={handleClose}
               disabled={isSubmitting}
-              className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className="p-1 text-slate-400 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded hover:bg-slate-200 dark:hover:bg-[#161a25] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <X className="w-4 h-4" />
             </button>
@@ -298,18 +298,18 @@ export const AddExpenseModal: React.FC = () => {
           className="flex-1 overflow-y-auto p-4 space-y-3.5 overscroll-contain"
         >
           {error && (
-            <div className="flex items-center gap-2 p-2.5 rounded bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <div className="flex items-center gap-2 p-2.5 rounded bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 dark:text-rose-400" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Type Toggle */}
           <div>
-            <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+            <div className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-1">
               FLOW DIRECTION
             </div>
-            <div className="grid grid-cols-2 p-0.5 bg-[#080a0f] rounded border border-[#1d2332] text-xs font-semibold">
+            <div className="grid grid-cols-2 p-0.5 bg-slate-100 dark:bg-[#080a0f] rounded border border-slate-300 dark:border-[#1d2332] text-xs font-semibold">
               <button
                 type="button"
                 disabled={isSubmitting}
@@ -317,7 +317,7 @@ export const AddExpenseModal: React.FC = () => {
                 className={`py-1.5 rounded transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                   type === 'expense'
                     ? 'bg-rose-600 text-white font-bold'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
                 }`}
               >
                 <Receipt className="w-3 h-3" />
@@ -330,7 +330,7 @@ export const AddExpenseModal: React.FC = () => {
                 className={`py-1.5 rounded transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                   type === 'income'
                     ? 'bg-emerald-500 text-slate-950 font-bold'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
                 }`}
               >
                 <ArrowDownRight className="w-3 h-3" />
@@ -341,12 +341,12 @@ export const AddExpenseModal: React.FC = () => {
 
           {/* Amount in IDR */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
               {type === 'expense' ? 'OUTFLOW AMOUNT (IDR)' : 'INFLOW AMOUNT (IDR)'}{' '}
-              <span className="text-rose-400">*</span>
+              <span className="text-rose-500 dark:text-rose-400">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-500">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-zinc-500">
                 Rp
               </span>
               <input
@@ -357,7 +357,7 @@ export const AddExpenseModal: React.FC = () => {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="50,000"
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded pl-9 pr-3 py-2 text-sm font-bold text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono tabular-nums disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-emerald-500 rounded pl-9 pr-3 py-2 text-sm font-bold text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none font-mono tabular-nums disabled:opacity-60 disabled:cursor-not-allowed"
                 required
                 autoFocus
               />
@@ -366,8 +366,8 @@ export const AddExpenseModal: React.FC = () => {
             {/* Live Formatted IDR Preview */}
             {amount && !isNaN(Number(amount)) && Number(amount) > 0 && (
               <div className="mt-1 flex items-center justify-between px-1 text-[11px] font-mono">
-                <span className="text-zinc-500">FORMATTED VALUE:</span>
-                <span className={`font-bold tabular-nums ${type === 'expense' ? 'text-rose-400' : 'text-emerald-400'}`}>
+                <span className="text-slate-500 dark:text-zinc-500">FORMATTED VALUE:</span>
+                <span className={`font-bold tabular-nums ${type === 'expense' ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                   {formatIdr(Number(amount))}
                 </span>
               </div>
@@ -375,11 +375,11 @@ export const AddExpenseModal: React.FC = () => {
 
             {/* Insufficient balance warning under amount */}
             {isInsufficientBalance && (
-              <div className="mt-1.5 flex items-center gap-1.5 p-2 rounded bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] font-mono">
-                <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+              <div className="mt-1.5 flex items-center gap-1.5 p-2 rounded bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-[11px] font-mono">
+                <AlertCircle className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0" />
                 <span>
-                  Nominal melebihi saldo tersedia (kurang{' '}
-                  <strong className="text-rose-200 tabular-nums">
+                  Amount exceeds available balance (short by{' '}
+                  <strong className="text-rose-700 dark:text-rose-200 tabular-nums">
                     {formatIdr(parsedNumAmount - availableBalance)}
                   </strong>
                   )
@@ -395,7 +395,7 @@ export const AddExpenseModal: React.FC = () => {
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => handleQuickAdd(inc)}
-                  className="px-2 py-1 rounded bg-[#080a0f] hover:bg-[#161a25] active:bg-[#1f2637] text-[10px] font-medium text-zinc-300 border border-[#1d2332] hover:border-zinc-500 transition-colors cursor-pointer font-mono tabular-nums disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-[#080a0f] dark:hover:bg-[#161a25] active:bg-slate-300 dark:active:bg-[#1f2637] text-[10px] font-medium text-slate-700 dark:text-zinc-300 border border-slate-300 dark:border-[#1d2332] hover:border-slate-400 dark:hover:border-zinc-500 transition-colors cursor-pointer font-mono tabular-nums disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   +{inc >= 1000000 ? `${inc / 1000000}M` : `${inc / 1000}k`}
                 </button>
@@ -406,20 +406,20 @@ export const AddExpenseModal: React.FC = () => {
           {/* Source Account (Bank / Cash) */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                 {type === 'expense'
                   ? 'SOURCE LEDGER (DEBIT)'
                   : 'DESTINATION LEDGER (CREDIT)'}{' '}
-                <span className="text-rose-400">*</span>
+                <span className="text-rose-500 dark:text-rose-400">*</span>
               </label>
               {selectedAccount && (
-                <span className="text-[10px] font-mono text-zinc-400">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-400">
                   {selectedAccount.type === 'credit_card' || selectedAccount.type === 'paylater'
-                    ? 'SISA LIMIT: '
-                    : 'SALDO: '}
+                    ? 'AVAILABLE LIMIT: '
+                    : 'BALANCE: '}
                   <strong
                     className={`tabular-nums ${
-                      isInsufficientBalance ? 'text-rose-400' : 'text-emerald-400'
+                      isInsufficientBalance ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
                     }`}
                   >
                     {formatIdr(availableBalance)}
@@ -431,10 +431,10 @@ export const AddExpenseModal: React.FC = () => {
               value={accountId}
               disabled={isSubmitting}
               onChange={(e) => setAccountId(e.target.value)}
-              className={`w-full bg-[#080a0f] border rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed ${
+              className={`w-full bg-slate-50 dark:bg-[#080a0f] border rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed ${
                 isInsufficientBalance
                   ? 'border-rose-500/60 focus:border-rose-500'
-                  : 'border-[#1d2332] focus:border-emerald-500'
+                  : 'border-slate-300 dark:border-[#1d2332] focus:border-emerald-500'
               }`}
               required
             >
@@ -444,7 +444,7 @@ export const AddExpenseModal: React.FC = () => {
                 const avail = isCredit ? Math.max(0, (acc.creditLimit || 0) - acc.balance) : acc.balance;
                 return (
                   <option key={acc.id} value={acc.id}>
-                    {acc.name} ({acc.type.toUpperCase()}) — {isCredit ? `Sisa Limit: ${formatIdr(avail)} (Terpakai: ${formatIdr(acc.balance)})` : `Balance: ${formatIdr(acc.balance)}`}
+                    {acc.name} ({acc.type.toUpperCase()}) — {isCredit ? `Available Limit: ${formatIdr(avail)} (Used: ${formatIdr(acc.balance)})` : `Balance: ${formatIdr(acc.balance)}`}
                   </option>
                 );
               })}
@@ -454,14 +454,14 @@ export const AddExpenseModal: React.FC = () => {
           {/* Category - Specific to Expense or Income */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                CLASSIFICATION / CATEGORY <span className="text-rose-400">*</span>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+                CLASSIFICATION / CATEGORY <span className="text-rose-500 dark:text-rose-400">*</span>
               </label>
               <span
                 className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded ${
                   type === 'income'
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25'
-                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/25'
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25'
+                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/25'
                 }`}
               >
                 {type === 'income' ? 'INCOME TAXONOMY' : 'EXPENSE TAXONOMY'}
@@ -471,7 +471,7 @@ export const AddExpenseModal: React.FC = () => {
               value={category}
               disabled={isSubmitting}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {categoryOptions.map((cat) => (
                 <option key={cat} value={cat}>
@@ -484,7 +484,7 @@ export const AddExpenseModal: React.FC = () => {
           {/* Date & Notes */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
                 VALUE DATE
               </label>
               <input
@@ -492,12 +492,12 @@ export const AddExpenseModal: React.FC = () => {
                 value={date}
                 disabled={isSubmitting}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed"
                 required
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
                 MEMO / DESCRIPTOR
               </label>
               <input
@@ -510,19 +510,19 @@ export const AddExpenseModal: React.FC = () => {
                     ? 'e.g. Monthly salary, bonus...'
                     : 'e.g. Lunch with team, taxi...'
                 }
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none font-mono disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
           </div>
         </form>
 
         {/* Command Strip Footer */}
-        <div className="shrink-0 p-3 bg-[#080a0f] border-t border-[#1b212e] flex items-center justify-end gap-2">
+        <div className="shrink-0 p-3 bg-slate-50 dark:bg-[#080a0f] border-t border-slate-200 dark:border-[#1b212e] flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="px-3 py-1.5 rounded text-xs font-semibold text-zinc-400 hover:text-white hover:bg-[#161a25] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 rounded text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-[#161a25] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             DISCARD
           </button>
@@ -532,9 +532,9 @@ export const AddExpenseModal: React.FC = () => {
             disabled={isSubmitting || isInsufficientBalance}
             className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded text-xs font-bold transition-all shadow-md select-none ${
               isSubmitting
-                ? 'bg-zinc-800 text-zinc-400 border border-zinc-700 cursor-not-allowed opacity-60 pointer-events-none'
+                ? 'bg-slate-300 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 border border-slate-400 dark:border-zinc-700 cursor-not-allowed opacity-60 pointer-events-none'
                 : isInsufficientBalance
-                ? 'bg-rose-950/60 text-rose-400 border border-rose-500/40 cursor-not-allowed opacity-75'
+                ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-300 dark:border-rose-500/40 cursor-not-allowed opacity-75'
                 : type === 'expense'
                 ? 'bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white cursor-pointer hover:shadow-rose-600/20'
                 : 'bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 cursor-pointer hover:shadow-emerald-500/20'
@@ -544,7 +544,7 @@ export const AddExpenseModal: React.FC = () => {
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 <span>
-                  {type === 'expense' ? 'MENYIMPAN PENGELUARAN...' : 'MENYIMPAN PEMASUKAN...'}
+                  {type === 'expense' ? 'SAVING EXPENSE...' : 'SAVING INCOME...'}
                 </span>
               </>
             ) : (
@@ -552,12 +552,12 @@ export const AddExpenseModal: React.FC = () => {
                 <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>
                   {isInsufficientBalance
-                    ? 'SALDO TIDAK CUKUP'
+                    ? 'INSUFFICIENT BALANCE'
                     : editingTransaction
-                    ? 'SIMPAN PERUBAHAN'
+                    ? 'SAVE CHANGES'
                     : type === 'expense'
-                    ? 'SIMPAN PENGELUARAN'
-                    : 'SIMPAN PEMASUKAN'}
+                    ? 'SAVE EXPENSE'
+                    : 'SAVE INCOME'}
                 </span>
               </>
             )}

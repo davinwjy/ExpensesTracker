@@ -106,29 +106,27 @@ export const DashboardView: React.FC = () => {
 
             {/* Big Net Worth Nominal */}
             <div className="flex flex-wrap items-baseline gap-3">
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums">
-                {formatMasked(netWorthIdr, 'IDR', isPrivacyMode)}
+              <h2 className={`text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-zinc-100 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+                {formatIdr(netWorthIdr)}
               </h2>
-              {!isPrivacyMode && (
-                <span className="text-sm font-medium text-slate-500 dark:text-zinc-400 tabular-nums">
-                  ≈ {formatUsd(netWorthUsd)}
-                </span>
-              )}
+              <span className={`text-sm font-medium text-slate-500 dark:text-zinc-400 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+                ≈ {formatUsd(netWorthUsd)}
+              </span>
             </div>
 
             {/* Metric Ledger Line */}
             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-zinc-400 pt-1">
               <span>
                 Liquid Cash:{' '}
-                <strong className="text-slate-900 dark:text-zinc-200 tabular-nums font-semibold">
-                  {formatMasked(liquidCashIdr, 'IDR', isPrivacyMode)}
+                <strong className={`text-slate-900 dark:text-zinc-200 tabular-nums font-semibold ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+                  {formatIdr(liquidCashIdr)}
                 </strong>
               </span>
               <span className="text-slate-300 dark:text-zinc-700" aria-hidden="true">·</span>
               <span>
                 Investments:{' '}
-                <strong className="text-slate-900 dark:text-zinc-200 tabular-nums font-semibold">
-                  {formatMasked(investmentValueIdr, 'IDR', isPrivacyMode)}
+                <strong className={`text-slate-900 dark:text-zinc-200 tabular-nums font-semibold ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+                  {formatIdr(investmentValueIdr)}
                 </strong>
               </span>
               <span className="text-slate-300 dark:text-zinc-700" aria-hidden="true">·</span>
@@ -233,8 +231,8 @@ export const DashboardView: React.FC = () => {
             <span>Monthly Expenses</span>
             <Receipt className="w-4 h-4 text-rose-500" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tabular-nums">
-            {formatMasked(monthlyExpenses, 'IDR', isPrivacyMode)}
+          <p className={`text-xl sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+            {formatIdr(monthlyExpenses)}
           </p>
           <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">Deducted from bank & cash wallets</p>
         </div>
@@ -245,8 +243,8 @@ export const DashboardView: React.FC = () => {
             <span>Monthly Inflow</span>
             <ArrowDownRight className="w-4 h-4 text-emerald-500" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-            {formatMasked(monthlyIncomes, 'IDR', isPrivacyMode)}
+          <p className={`text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+            {formatIdr(monthlyIncomes)}
           </p>
           <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">Salary, dividends & deposits</p>
         </div>
@@ -257,8 +255,8 @@ export const DashboardView: React.FC = () => {
             <span>Invested This Month</span>
             <TrendingUp className="w-4 h-4 text-indigo-500" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
-            {formatMasked(monthlyTransfersToInv, 'IDR', isPrivacyMode)}
+          <p className={`text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+            {formatIdr(monthlyTransfersToInv)}
           </p>
           <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">Directly funded from bank accounts</p>
         </div>
@@ -320,38 +318,38 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Macro Gauge Banner */}
-        <div className="bg-[#10141e] border border-[#1c2333] rounded p-3 space-y-2">
+        <div className="bg-slate-50 dark:bg-[#10141e] border border-slate-200 dark:border-[#1c2333] rounded p-3 space-y-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-mono gap-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-zinc-400 text-[11px]">MONTHLY SPENT:</span>
-              <strong className="text-zinc-100 font-bold tabular-nums">
-                {formatMasked(budgetSummary.totalSpent, 'IDR', isPrivacyMode)}
+              <span className="text-slate-500 dark:text-zinc-400 text-[11px]">MONTHLY SPENT:</span>
+              <strong className={`text-slate-900 dark:text-zinc-100 font-bold tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+                {formatIdr(budgetSummary.totalSpent)}
               </strong>
-              <span className="text-zinc-600">/</span>
-              <span className="text-zinc-400 tabular-nums">
-                {formatMasked(budgetSummary.totalBudgeted, 'IDR', isPrivacyMode)}
+              <span className="text-slate-300 dark:text-zinc-600">/</span>
+              <span className={`text-slate-500 dark:text-zinc-400 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+                {formatIdr(budgetSummary.totalBudgeted)}
               </span>
             </div>
 
             <div className="flex items-center gap-2 text-[11px]">
               <span
                 className={`font-bold tabular-nums ${
-                  budgetSummary.isOverBudget ? 'text-rose-400' : 'text-emerald-400'
-                }`}
+                  budgetSummary.isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
+                } ${isPrivacyMode ? 'privacy-blur' : ''}`}
               >
                 {budgetSummary.isOverBudget
                   ? `Over Budget by ${formatIdr(budgetSummary.totalSpent - budgetSummary.totalBudgeted)}`
                   : `${formatIdr(budgetSummary.totalRemaining)} remaining`}
               </span>
-              <span className="text-zinc-500">·</span>
-              <span className="text-zinc-300 font-bold">
+              <span className="text-slate-300 dark:text-zinc-500">·</span>
+              <span className="text-slate-700 dark:text-zinc-300 font-bold">
                 {budgetSummary.overallPercent.toFixed(1)}%
               </span>
             </div>
           </div>
 
           {/* Visual indicator progress bar */}
-          <div className="w-full h-2 rounded-full bg-[#151a26] overflow-hidden relative border border-[#222b3e]">
+          <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-[#151a26] overflow-hidden relative border border-slate-300/60 dark:border-[#222b3e]">
             <div
               style={{ width: `${Math.min(100, budgetSummary.overallPercent)}%` }}
               className={`h-full transition-all duration-300 ${
@@ -367,7 +365,7 @@ export const DashboardView: React.FC = () => {
 
         {/* Category Visual Indicators Grid */}
         {budgetSummary.items.length === 0 ? (
-          <div className="p-4 text-center text-xs font-mono text-zinc-500">
+          <div className="p-4 text-center text-xs font-mono text-slate-500 dark:text-zinc-500">
             No category spending limits configured yet. Click "+ SET LIMIT" to establish spending ceilings.
           </div>
         ) : (
@@ -378,7 +376,7 @@ export const DashboardView: React.FC = () => {
                 <div
                   key={item.category}
                   onClick={() => setActiveTab('budgeting')}
-                  className="p-2.5 rounded bg-[#10141e] border border-[#1d2332] hover:border-[#2a3449] transition-all cursor-pointer space-y-2 group"
+                  className="p-2.5 rounded bg-slate-50 dark:bg-[#10141e] border border-slate-200 dark:border-[#1d2332] hover:border-slate-300 dark:hover:border-[#2a3449] transition-all cursor-pointer space-y-2 group"
                 >
                   <div className="flex items-center justify-between gap-1.5">
                     <div className="flex items-center gap-2 min-w-0">
@@ -419,11 +417,11 @@ export const DashboardView: React.FC = () => {
                   </div>
 
                   <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
-                    <span className="tabular-nums">
-                      {formatMasked(item.actualSpent, 'IDR', isPrivacyMode)}
+                    <span className={`tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+                      {formatIdr(item.actualSpent)}
                     </span>
-                    <span className="text-zinc-500 tabular-nums">
-                      / {formatMasked(item.monthlyLimit, 'IDR', isPrivacyMode)}
+                    <span className={`text-zinc-500 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+                      / {formatIdr(item.monthlyLimit)}
                     </span>
                   </div>
                 </div>
@@ -446,7 +444,6 @@ export const DashboardView: React.FC = () => {
 
       {/* DUAL WORKSPACE: LIQUIDITY ACCOUNTS & RECENT LEDGER ENTRIES */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
-        {/* BANK & CASH ACCOUNTS */}
         {/* BANK & CASH ACCOUNTS */}
         <div className="p-4 sm:p-5 rounded-xl bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1b212e] space-y-3.5 shadow-sm">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#1b212e]">
@@ -502,16 +499,19 @@ export const DashboardView: React.FC = () => {
                 <div className="text-right">
                   {acc.type === 'credit_card' || acc.type === 'paylater' ? (
                     <div>
-                      <span className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                        {formatMasked(Math.max(0, (acc.creditLimit || 0) - acc.balance), 'IDR', isPrivacyMode)}
+                      <span className={`text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+                        {formatIdr(Math.max(0, (acc.creditLimit || 0) - acc.balance))}
                       </span>
                       <p className="text-[11px] text-slate-400 dark:text-zinc-500 tabular-nums">
-                        Sisa Limit (Terpakai: {formatMasked(acc.balance, 'IDR', isPrivacyMode)})
+                        Remaining Limit (Used:{' '}
+                        <span className={isPrivacyMode ? 'privacy-blur' : ''}>
+                          {formatIdr(acc.balance)}
+                        </span>)
                       </p>
                     </div>
                   ) : (
-                    <span className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                      {formatMasked(acc.balance, 'IDR', isPrivacyMode)}
+                    <span className={`text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+                      {formatIdr(acc.balance)}
                     </span>
                   )}
                 </div>
@@ -521,8 +521,8 @@ export const DashboardView: React.FC = () => {
 
           <div className="pt-2 flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400 border-t border-slate-100 dark:border-[#1b212e]">
             <span>Total Liquid Cash:</span>
-            <span className="font-semibold text-slate-900 dark:text-zinc-100 tabular-nums">
-              {formatMasked(liquidCashIdr, 'IDR', isPrivacyMode)}
+            <span className={`font-semibold text-slate-900 dark:text-zinc-100 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
+              {formatIdr(liquidCashIdr)}
             </span>
           </div>
         </div>
@@ -564,18 +564,18 @@ export const DashboardView: React.FC = () => {
                         setIsAddExpenseOpen(true);
                       }
                     }}
-                    className="flex items-center justify-between p-2 rounded bg-[#10141e] border border-[#1d2332] hover:border-[#2b354a] transition-all cursor-pointer"
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-[#10141e] border border-slate-200 dark:border-[#1d2332] hover:border-slate-300 dark:hover:border-[#2b354a] transition-all cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
-                        className={`w-7 h-7 rounded flex items-center justify-center shrink-0 ${
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                           tx.type === 'expense'
-                            ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
                             : tx.type === 'income'
-                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                             : tx.type === 'bank_to_investment'
-                            ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30'
-                            : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                            ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30'
+                            : 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30'
                         }`}
                       >
                         {tx.type === 'expense' && <Receipt className="w-3.5 h-3.5" />}
@@ -585,21 +585,21 @@ export const DashboardView: React.FC = () => {
                       </div>
 
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold text-zinc-200 truncate">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-zinc-200 truncate">
                           {tx.type === 'bank_to_investment'
                             ? `Funded ${targetInv?.name || 'Investment'}`
                             : tx.type === 'transfer'
                             ? `Transfer to ${destAcc?.name || 'Cash'}`
                             : tx.category || 'General'}
                         </p>
-                        <p className="text-[10px] font-mono text-zinc-500 flex items-center gap-1.5 flex-wrap truncate">
+                        <p className="text-[10px] font-mono text-slate-500 dark:text-zinc-400 flex items-center gap-1.5 flex-wrap truncate">
                           <span>{sourceAcc?.name || 'Bank'}</span>
                           <span>·</span>
                           <span>{formatDate(tx.date)}</span>
                           {tx.notes && (
                             <>
                               <span>·</span>
-                              <span className="italic text-zinc-400 truncate max-w-[150px]">
+                              <span className="italic text-slate-600 dark:text-zinc-400 truncate max-w-[150px]">
                                 "{tx.notes}"
                               </span>
                             </>
@@ -612,19 +612,19 @@ export const DashboardView: React.FC = () => {
                       <span
                         className={`text-xs font-mono tabular-nums font-bold ${
                           tx.type === 'expense'
-                            ? 'text-rose-400'
+                            ? 'text-rose-600 dark:text-rose-400'
                             : tx.type === 'income'
-                            ? 'text-emerald-400'
+                            ? 'text-emerald-600 dark:text-emerald-400'
                             : tx.type === 'bank_to_investment'
-                            ? 'text-indigo-400'
-                            : 'text-blue-400'
+                            ? 'text-indigo-600 dark:text-indigo-400'
+                            : 'text-blue-600 dark:text-blue-400'
                         }`}
                       >
                         {tx.type === 'expense' ? '-' : tx.type === 'income' ? '+' : ''}
                         {formatIdr(tx.amount)}
                       </span>
                       {tx.type === 'bank_to_investment' && tx.amountUsd && (
-                        <p className="text-[9px] text-zinc-500 font-mono tabular-nums">
+                        <p className="text-[9px] text-slate-500 dark:text-zinc-400 font-mono tabular-nums">
                           +{formatUsd(tx.amountUsd)}
                         </p>
                       )}

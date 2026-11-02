@@ -803,11 +803,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (targetAcc.type === 'credit_card' || targetAcc.type === 'paylater') {
         if (targetAcc.creditLimit !== undefined && targetAcc.balance + parsedAmount > targetAcc.creditLimit) {
           const avail = Math.max(0, targetAcc.creditLimit - targetAcc.balance);
-          throw new Error(`Limit kredit tidak mencukupi (${avail.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+          throw new Error(`Insufficient credit limit (${avail.toLocaleString('en-US')}). Spending cannot be submitted.`);
         }
       } else {
         if (parsedAmount > targetAcc.balance) {
-          throw new Error(`Saldo tidak mencukupi (${targetAcc.balance.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+          throw new Error(`Insufficient balance (${targetAcc.balance.toLocaleString('en-US')}). Spending cannot be submitted.`);
         }
       }
     }
@@ -958,7 +958,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
           if (revertedDebt + newAmount > newAcc.creditLimit) {
             const avail = Math.max(0, newAcc.creditLimit - revertedDebt);
-            throw new Error(`Limit kredit tidak mencukupi (${avail.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+            throw new Error(`Insufficient credit limit (${avail.toLocaleString('en-US')}). Spending cannot be submitted.`);
           }
         }
       } else {
@@ -967,7 +967,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           revertedBal += oldTx.amount;
         }
         if (newAmount > revertedBal) {
-          throw new Error(`Saldo tidak mencukupi (${revertedBal.toLocaleString('id-ID')}). Pengeluaran tidak dapat disubmit.`);
+          throw new Error(`Insufficient balance (${revertedBal.toLocaleString('en-US')}). Spending cannot be submitted.`);
         }
       }
     }

@@ -122,8 +122,8 @@ export const BudgetModal: React.FC = () => {
 
       showNotification({
         type: 'success',
-        title: editingBudget ? 'Batas Anggaran Diperbarui' : 'Batas Anggaran Disimpan',
-        message: `${targetCategory}: target bulanan ${formatIdr(parsedLimit)}`,
+        title: editingBudget ? 'Budget Limit Updated' : 'Budget Limit Saved',
+        message: `${targetCategory}: monthly target ${formatIdr(parsedLimit)}`,
         amount: parsedLimit,
         category: targetCategory,
       });
@@ -152,25 +152,25 @@ export const BudgetModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#0c0f17] border border-[#1d2436] rounded-xl max-w-md w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 text-zinc-100">
+      <div className="bg-white dark:bg-[#0c0f17] border border-slate-200 dark:border-[#1d2436] rounded-xl max-w-md w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 text-slate-900 dark:text-zinc-100 font-mono">
         {/* Modal Header */}
-        <div className="p-4 border-b border-[#1b2234] flex items-center justify-between bg-[#0f131e]">
+        <div className="p-4 border-b border-slate-200 dark:border-[#1b2234] flex items-center justify-between bg-slate-50 dark:bg-[#0f131e]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-8 h-8 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
               <Target className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-sm tracking-wide text-zinc-100 font-mono">
+              <h3 className="font-bold text-sm tracking-wide text-slate-900 dark:text-zinc-100 font-mono">
                 {editingBudget ? 'EDIT CATEGORY BUDGET' : 'SET CATEGORY BUDGET'}
               </h3>
-              <p className="text-[11px] font-mono text-zinc-400">
+              <p className="text-[11px] font-mono text-slate-500 dark:text-zinc-400">
                 Monthly spending ceiling & real-time tracker
               </p>
             </div>
           </div>
           <button
             onClick={handleClose}
-            className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="p-1 rounded text-slate-400 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>

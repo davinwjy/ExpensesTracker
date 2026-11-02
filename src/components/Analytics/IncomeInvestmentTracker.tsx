@@ -536,18 +536,18 @@ export const IncomeInvestmentTracker: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* SECTION WRAPPER */}
-      <div className="rounded bg-[#0d1017] border border-[#1b212e] p-3.5 sm:p-5 space-y-4 font-mono">
+      <div className="rounded-xl bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1b212e] p-3.5 sm:p-5 space-y-4 font-mono shadow-sm">
         {/* HEADER */}
-        <div className="pb-3 border-b border-[#1b212e]">
+        <div className="pb-3 border-b border-slate-200 dark:border-[#1b212e]">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded bg-[#141824] border border-[#212838] text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <LineChartIcon className="w-3.5 h-3.5" />
             </div>
-            <h3 className="text-sm sm:text-base font-bold text-zinc-100 uppercase tracking-wider">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-zinc-100 uppercase tracking-wider">
               INCOME, EXPENSES, INVESTMENTS & CASH BALANCES
             </h3>
           </div>
-          <p className="text-[10px] text-zinc-500 mt-0.5">
+          <p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-0.5">
             Multi-axis trend lines tracking monthly income, daily outflows, investment funding, and bank runways
           </p>
         </div>
@@ -560,10 +560,10 @@ export const IncomeInvestmentTracker: React.FC = () => {
               <span className="font-medium">Total Income {selectedYear}</span>
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
             </div>
-            <p className="text-sm sm:text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400 truncate">
+            <p className={`text-sm sm:text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400 truncate ${isPrivacyMode ? 'privacy-blur' : ''}`}>
               {formatMasked(ytdStats.totalIncome, 'IDR', isPrivacyMode)}
             </p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+            <p className={`text-[11px] text-slate-400 dark:text-slate-500 ${isPrivacyMode ? 'privacy-blur' : ''}`}>
               Avg: {formatMasked(ytdStats.totalIncome / 12, 'IDR', isPrivacyMode)}/mo
             </p>
           </div>
@@ -574,10 +574,10 @@ export const IncomeInvestmentTracker: React.FC = () => {
               <span className="font-medium">Total Expenses {selectedYear}</span>
               <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
             </div>
-            <p className="text-sm sm:text-lg font-bold font-mono text-rose-600 dark:text-rose-400 truncate">
+            <p className={`text-sm sm:text-lg font-bold font-mono text-rose-600 dark:text-rose-400 truncate ${isPrivacyMode ? 'privacy-blur' : ''}`}>
               {formatMasked(ytdStats.totalExpense, 'IDR', isPrivacyMode)}
             </p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+            <p className={`text-[11px] text-slate-400 dark:text-slate-500 ${isPrivacyMode ? 'privacy-blur' : ''}`}>
               Avg: {formatMasked(ytdStats.totalExpense / 12, 'IDR', isPrivacyMode)}/mo
             </p>
           </div>
@@ -588,10 +588,10 @@ export const IncomeInvestmentTracker: React.FC = () => {
               <span className="font-medium">Capital Invested {selectedYear}</span>
               <div className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
             </div>
-            <p className="text-sm sm:text-lg font-bold font-mono text-indigo-600 dark:text-indigo-400 truncate">
+            <p className={`text-sm sm:text-lg font-bold font-mono text-indigo-600 dark:text-indigo-400 truncate ${isPrivacyMode ? 'privacy-blur' : ''}`}>
               {formatMasked(ytdStats.totalInvestment, 'IDR', isPrivacyMode)}
             </p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+            <p className={`text-[11px] text-slate-400 dark:text-slate-500 ${isPrivacyMode ? 'privacy-blur' : ''}`}>
               Avg: {formatMasked(ytdStats.totalInvestment / 12, 'IDR', isPrivacyMode)}/mo
             </p>
           </div>
@@ -602,7 +602,7 @@ export const IncomeInvestmentTracker: React.FC = () => {
               <span className="font-medium">Total Account Amount</span>
               <div className="w-2.5 h-2.5 rounded-full bg-sky-500" />
             </div>
-            <p className="text-sm sm:text-lg font-bold font-mono text-sky-600 dark:text-sky-400 truncate">
+            <p className={`text-sm sm:text-lg font-bold font-mono text-sky-600 dark:text-sky-400 truncate ${isPrivacyMode ? 'privacy-blur' : ''}`}>
               {formatMasked(currentTotalAccountBalance, 'IDR', isPrivacyMode)}
             </p>
             <p className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1">

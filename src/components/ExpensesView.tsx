@@ -371,7 +371,7 @@ export const ExpensesView: React.FC = () => {
                 className={`px-2 py-0.5 rounded text-[11px] transition-colors shrink-0 cursor-pointer ${
                   datePreset === 'all' && selectedYear === 'all' && selectedMonth === 'all' && !selectedDate
                     ? 'bg-emerald-500 text-slate-950 font-bold'
-                    : 'bg-[#10141e] text-zinc-400 hover:text-zinc-200 border border-[#1d2332]'
+                    : 'bg-slate-100 dark:bg-[#10141e] text-slate-700 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 border border-slate-200 dark:border-[#1d2332]'
                 }`}
               >
                 ALL TIME
@@ -382,7 +382,7 @@ export const ExpensesView: React.FC = () => {
                 className={`px-2 py-0.5 rounded text-[11px] transition-colors shrink-0 cursor-pointer ${
                   datePreset === 'today' || (selectedDate && selectedDate === getTodayStr())
                     ? 'bg-emerald-500 text-slate-950 font-bold'
-                    : 'bg-[#10141e] text-zinc-400 hover:text-zinc-200 border border-[#1d2332]'
+                    : 'bg-slate-100 dark:bg-[#10141e] text-slate-700 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 border border-slate-200 dark:border-[#1d2332]'
                 }`}
               >
                 TODAY
@@ -393,7 +393,7 @@ export const ExpensesView: React.FC = () => {
                 className={`px-2 py-0.5 rounded text-[11px] transition-colors shrink-0 cursor-pointer ${
                   datePreset === 'this_month'
                     ? 'bg-emerald-500 text-slate-950 font-bold'
-                    : 'bg-[#10141e] text-zinc-400 hover:text-zinc-200 border border-[#1d2332]'
+                    : 'bg-slate-100 dark:bg-[#10141e] text-slate-700 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 border border-slate-200 dark:border-[#1d2332]'
                 }`}
               >
                 THIS MONTH
@@ -404,7 +404,7 @@ export const ExpensesView: React.FC = () => {
                 className={`px-2 py-0.5 rounded text-[11px] transition-colors shrink-0 cursor-pointer ${
                   datePreset === 'this_year'
                     ? 'bg-emerald-500 text-slate-950 font-bold'
-                    : 'bg-[#10141e] text-zinc-400 hover:text-zinc-200 border border-[#1d2332]'
+                    : 'bg-slate-100 dark:bg-[#10141e] text-slate-700 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 border border-slate-200 dark:border-[#1d2332]'
                 }`}
               >
                 THIS YEAR
@@ -416,7 +416,7 @@ export const ExpensesView: React.FC = () => {
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="text-[11px] text-rose-400 hover:text-rose-300 font-medium flex items-center gap-1 cursor-pointer"
+                className="text-[11px] text-rose-500 dark:text-rose-400 hover:underline font-medium flex items-center gap-1 cursor-pointer"
               >
                 <X className="w-3 h-3" />
                 <span>RESET FILTERS</span>
@@ -427,13 +427,13 @@ export const ExpensesView: React.FC = () => {
           {/* Granular Year, Month, and Exact Date Pickers */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
-              <label className="block text-[9px] text-zinc-500 uppercase tracking-wider mb-0.5">
+              <label className="block text-[9px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider mb-0.5">
                 FILTER BY YEAR
               </label>
               <select
                 value={selectedYear}
                 onChange={(e) => handleYearChange(e.target.value)}
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1 text-xs text-zinc-200 focus:outline-none cursor-pointer"
+                className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded-lg px-2.5 py-1 text-xs text-slate-800 dark:text-zinc-200 focus:outline-none cursor-pointer"
               >
                 <option value="all">ALL YEARS</option>
                 {availableYears.map((yr) => (
@@ -445,13 +445,13 @@ export const ExpensesView: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-[9px] text-zinc-500 uppercase tracking-wider mb-0.5">
+              <label className="block text-[9px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider mb-0.5">
                 FILTER BY MONTH
               </label>
               <select
                 value={selectedMonth}
                 onChange={(e) => handleMonthChange(e.target.value)}
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1 text-xs text-zinc-200 focus:outline-none cursor-pointer"
+                className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded-lg px-2.5 py-1 text-xs text-slate-800 dark:text-zinc-200 focus:outline-none cursor-pointer"
               >
                 <option value="all">ALL MONTHS</option>
                 {MONTH_OPTIONS.map((m) => (
@@ -464,7 +464,7 @@ export const ExpensesView: React.FC = () => {
 
             <div>
               <div className="flex items-center justify-between mb-0.5">
-                <label className="block text-[9px] text-zinc-500 uppercase tracking-wider">
+                <label className="block text-[9px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider">
                   SPECIFIC DATE
                 </label>
                 {selectedDate && (
@@ -474,7 +474,7 @@ export const ExpensesView: React.FC = () => {
                       setSelectedDate('');
                       setDatePreset('custom');
                     }}
-                    className="text-[9px] text-rose-400 hover:text-rose-300 cursor-pointer flex items-center gap-0.5"
+                    className="text-[9px] text-rose-500 dark:text-rose-400 hover:underline cursor-pointer flex items-center gap-0.5"
                   >
                     <X className="w-2.5 h-2.5" />
                     <span>Clear</span>
@@ -485,37 +485,37 @@ export const ExpensesView: React.FC = () => {
                 type="date"
                 value={selectedDate}
                 onChange={(e) => handleDateChange(e.target.value)}
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-2.5 py-1 text-xs text-zinc-200 focus:outline-none cursor-pointer"
+                className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded-lg px-2.5 py-1 text-xs text-slate-800 dark:text-zinc-200 focus:outline-none cursor-pointer"
               />
             </div>
           </div>
         </div>
 
         {/* Filtered Summary Figures */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-[#1b212e] text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-slate-100 dark:border-[#1b212e] text-xs">
           <div className="flex flex-wrap items-center gap-4">
             <div>
-              <span className="text-[10px] text-zinc-500 uppercase mr-1.5">EXPENSES:</span>
-              <span className="font-bold text-rose-400 tabular-nums">
+              <span className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase mr-1.5">EXPENSES:</span>
+              <span className={`font-bold text-rose-600 dark:text-rose-400 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
                 {formatIdr(totalFilteredExpense)}
               </span>
             </div>
 
             {totalFilteredIncome > 0 && (
               <div>
-                <span className="text-[10px] text-zinc-500 uppercase mr-1.5">INFLOWS:</span>
-                <span className="font-bold text-emerald-400 tabular-nums">
+                <span className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase mr-1.5">INFLOWS:</span>
+                <span className={`font-bold text-emerald-600 dark:text-emerald-400 tabular-nums ${isPrivacyMode ? 'privacy-blur' : ''}`}>
                   {formatIdr(totalFilteredIncome)}
                 </span>
               </div>
             )}
 
             <div>
-              <span className="text-[10px] text-zinc-500 uppercase mr-1.5">NET CASH FLOW:</span>
+              <span className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase mr-1.5">NET CASH FLOW:</span>
               <span
                 className={`font-bold tabular-nums ${
-                  netCashFlow >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                }`}
+                  netCashFlow >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                } ${isPrivacyMode ? 'privacy-blur' : ''}`}
               >
                 {netCashFlow >= 0 ? '+' : ''}
                 {formatIdr(netCashFlow)}
@@ -523,27 +523,27 @@ export const ExpensesView: React.FC = () => {
             </div>
           </div>
 
-          <div className="text-[10px] text-zinc-500">
-            SHOWING <strong className="text-zinc-200 tabular-nums">{filteredTransactions.length}</strong> OF{' '}
-            <strong className="text-zinc-200 tabular-nums">{transactions.length}</strong> ENTRIES
+          <div className="text-[10px] text-slate-500 dark:text-zinc-500">
+            SHOWING <strong className="text-slate-900 dark:text-zinc-200 tabular-nums">{filteredTransactions.length}</strong> OF{' '}
+            <strong className="text-slate-900 dark:text-zinc-200 tabular-nums">{transactions.length}</strong> ENTRIES
           </div>
         </div>
       </div>
 
       {/* HIGH-DENSITY TRANSACTIONS TABLE */}
-      <div className="overflow-x-auto rounded bg-[#0d1017] border border-[#1b212e]">
+      <div className="overflow-x-auto rounded-xl bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1b212e] shadow-sm">
         {filteredTransactions.length === 0 ? (
           <div className="p-10 text-center font-mono">
-            <Receipt className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
-            <p className="text-xs font-bold text-zinc-300">No transactions found</p>
-            <p className="text-[10px] text-zinc-500 mt-0.5">
+            <Receipt className="w-8 h-8 text-slate-400 dark:text-zinc-600 mx-auto mb-2" />
+            <p className="text-xs font-bold text-slate-800 dark:text-zinc-300">No transactions found</p>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-0.5">
               Adjust your search keywords, category, or date range filter.
             </p>
           </div>
         ) : (
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-[#1b212e] bg-[#090b10] text-[10px] font-mono uppercase tracking-wider text-zinc-500 select-none">
+              <tr className="border-b border-slate-200 dark:border-[#1b212e] bg-slate-50 dark:bg-[#090b10] text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-zinc-500 select-none">
                 <th className="py-2.5 px-3 font-semibold">Date</th>
                 <th className="py-2.5 px-3 font-semibold">Type</th>
                 <th className="py-2.5 px-3 font-semibold">Description / Category</th>
@@ -553,7 +553,7 @@ export const ExpensesView: React.FC = () => {
                 <th className="py-2.5 px-3 font-semibold text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#171b26] font-mono">
+            <tbody className="divide-y divide-slate-100 dark:divide-[#171b26] font-mono">
               {filteredTransactions.map((tx) => {
                 const sourceAcc = accounts.find((a) => a.id === tx.accountId);
                 const destAcc = accounts.find((a) => a.id === tx.toAccountId);
@@ -562,10 +562,10 @@ export const ExpensesView: React.FC = () => {
                 return (
                   <tr
                     key={tx.id}
-                    className="hover:bg-[#10141e] transition-colors group"
+                    className="hover:bg-slate-50 dark:hover:bg-[#10141e] transition-colors group"
                   >
                     {/* Date */}
-                    <td className="py-2 px-3 text-[11px] tabular-nums text-zinc-400 whitespace-nowrap">
+                    <td className="py-2 px-3 text-[11px] tabular-nums text-slate-500 dark:text-zinc-400 whitespace-nowrap">
                       {formatDate(tx.date)}
                     </td>
 
@@ -574,12 +574,12 @@ export const ExpensesView: React.FC = () => {
                       <span
                         className={`font-semibold ${
                           tx.type === 'expense'
-                            ? 'text-rose-400'
+                            ? 'text-rose-600 dark:text-rose-400'
                             : tx.type === 'income'
-                            ? 'text-emerald-400'
+                            ? 'text-emerald-600 dark:text-emerald-400'
                             : tx.type === 'bank_to_investment'
-                            ? 'text-indigo-400'
-                            : 'text-blue-400'
+                            ? 'text-indigo-600 dark:text-indigo-400'
+                            : 'text-blue-600 dark:text-blue-400'
                         }`}
                       >
                         {tx.type === 'bank_to_investment'
@@ -591,7 +591,7 @@ export const ExpensesView: React.FC = () => {
                     </td>
 
                     {/* Description / Category */}
-                    <td className="py-2 px-3 text-zinc-200 font-sans font-medium text-xs">
+                    <td className="py-2 px-3 text-slate-900 dark:text-zinc-200 font-sans font-medium text-xs">
                       {tx.type === 'bank_to_investment'
                         ? `Funded ${targetInv?.name || 'Investment'}`
                         : tx.type === 'transfer'
@@ -600,12 +600,12 @@ export const ExpensesView: React.FC = () => {
                     </td>
 
                     {/* Account */}
-                    <td className="py-2 px-3 text-zinc-400 text-[11px] whitespace-nowrap">
+                    <td className="py-2 px-3 text-slate-600 dark:text-zinc-400 text-[11px] whitespace-nowrap">
                       {sourceAcc?.name || 'Account'}
                     </td>
 
                     {/* Notes */}
-                    <td className="py-2 px-3 text-zinc-500 text-[11px] italic truncate max-w-xs">
+                    <td className="py-2 px-3 text-slate-500 dark:text-zinc-500 text-[11px] italic truncate max-w-xs">
                       {tx.notes ? `"${tx.notes}"` : '—'}
                     </td>
 
@@ -614,19 +614,19 @@ export const ExpensesView: React.FC = () => {
                       <span
                         className={`font-bold ${
                           tx.type === 'expense'
-                            ? 'text-rose-400'
+                            ? 'text-rose-600 dark:text-rose-400'
                             : tx.type === 'income'
-                            ? 'text-emerald-400'
+                            ? 'text-emerald-600 dark:text-emerald-400'
                             : tx.type === 'bank_to_investment'
-                            ? 'text-indigo-400'
-                            : 'text-blue-400'
+                            ? 'text-indigo-600 dark:text-indigo-400'
+                            : 'text-blue-600 dark:text-blue-400'
                         }`}
                       >
                         {tx.type === 'expense' ? '-' : tx.type === 'income' ? '+' : ''}
                         {formatIdr(tx.amount)}
                       </span>
                       {tx.type === 'bank_to_investment' && tx.amountUsd && (
-                        <div className="text-[10px] text-zinc-500 tabular-nums">
+                        <div className="text-[10px] text-slate-500 dark:text-zinc-500 tabular-nums">
                           +{formatUsd(tx.amountUsd)}
                         </div>
                       )}
@@ -641,7 +641,7 @@ export const ExpensesView: React.FC = () => {
                               setEditingTransaction(tx);
                               setIsAddExpenseOpen(true);
                             }}
-                            className="p-1 text-zinc-500 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
+                            className="p-1 text-slate-400 dark:text-zinc-500 hover:text-slate-900 dark:hover:text-white rounded hover:bg-slate-200 dark:hover:bg-[#161a25] transition-colors cursor-pointer"
                             title="Edit transaction"
                           >
                             <Edit2 className="w-3 h-3" />
@@ -658,7 +658,7 @@ export const ExpensesView: React.FC = () => {
                             </button>
                             <button
                               onClick={() => setDeletingId(null)}
-                              className="px-1 py-0.5 text-zinc-400 text-[10px] cursor-pointer"
+                              className="px-1 py-0.5 text-slate-500 dark:text-zinc-400 text-[10px] cursor-pointer"
                             >
                               No
                             </button>
@@ -666,7 +666,7 @@ export const ExpensesView: React.FC = () => {
                         ) : (
                           <button
                             onClick={() => setDeletingId(tx.id)}
-                            className="p-1 text-zinc-500 hover:text-rose-400 rounded hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            className="p-1 text-slate-400 dark:text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400 rounded hover:bg-rose-500/10 transition-colors cursor-pointer"
                             title="Delete transaction"
                           >
                             <Trash2 className="w-3 h-3" />

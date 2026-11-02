@@ -111,37 +111,37 @@ export const FirebaseSetupModal: React.FC<FirebaseSetupModalProps> = ({ isOpen, 
       <div onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" />
 
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-xl bg-[#0d1017] border-t sm:border border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono">
+      <div className="relative w-full max-w-xl bg-white dark:bg-[#0d1017] border-t sm:border border-slate-200 dark:border-[#1b212e] rounded-t sm:rounded shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[88vh] z-10 overflow-hidden animate-in slide-in-from-bottom-5 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 font-mono text-slate-900 dark:text-zinc-100">
         {/* Mobile Drag Indicator */}
-        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-[#080a0f]">
-          <div className="w-8 h-1 rounded-full bg-zinc-700" />
+        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0 bg-slate-100 dark:bg-[#080a0f]">
+          <div className="w-8 h-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-[#1b212e] bg-[#080a0f] shrink-0">
+        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-slate-200 dark:border-[#1b212e] bg-slate-50 dark:bg-[#080a0f] shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
-              <Flame className="w-3.5 h-3.5 fill-amber-500/30 text-amber-400" />
+            <div className="w-6 h-6 rounded bg-amber-500/10 border border-amber-500/30 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <Flame className="w-3.5 h-3.5 fill-amber-500/30 text-amber-500 dark:text-amber-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
+                <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-xs sm:text-sm tracking-wider uppercase">
                   CLOUD REPLICATION (FIREBASE)
                 </h3>
                 {currentConfig && (
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                     ONLINE
                   </span>
                 )}
               </div>
-              <p className="text-[10px] text-zinc-500">
+              <p className="text-[10px] text-slate-500 dark:text-zinc-500">
                 Bidirectional real-time replication between mobile & desktop
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-zinc-400 hover:text-white rounded hover:bg-[#161a25] transition-colors cursor-pointer"
+            className="p-1 text-slate-400 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded hover:bg-slate-200 dark:hover:bg-[#161a25] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -150,38 +150,38 @@ export const FirebaseSetupModal: React.FC<FirebaseSetupModalProps> = ({ isOpen, 
         {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 overscroll-contain">
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 dark:text-rose-400" />
               <span>{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
               <span>{success}</span>
             </div>
           )}
 
           {/* Current Status Card */}
           {currentConfig ? (
-            <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/30 space-y-3">
+            <div className="p-4 rounded-xl bg-emerald-500/10 dark:bg-emerald-950/30 border border-emerald-500/30 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-sm">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Cloud Sync Sedang Aktif!</span>
+                  <span>Cloud Sync Active!</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleDisconnect}
-                  className="flex items-center gap-1 text-[11px] text-rose-400 hover:text-rose-300 underline cursor-pointer"
+                  className="flex items-center gap-1 text-[11px] text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
                 >
                   <Trash2 className="w-3 h-3" />
                   <span>Disconnect</span>
                 </button>
               </div>
-              <p className="text-xs text-slate-300">
-                Terhubung ke project: <strong className="text-white font-mono">{currentConfig.projectId}</strong>. Setiap input pengeluaran di HP akan langsung muncul di PC secara real-time!
+              <p className="text-xs text-slate-700 dark:text-slate-300">
+                Connected to project: <strong className="text-slate-900 dark:text-white font-mono">{currentConfig.projectId}</strong>. Any transactions entered on mobile will instantly sync across all devices in real-time!
               </p>
 
               {user && (
@@ -193,11 +193,11 @@ export const FirebaseSetupModal: React.FC<FirebaseSetupModalProps> = ({ isOpen, 
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <CloudUpload className="w-4 h-4" />
-                    <span>{isMigrating ? 'Mengunggah...' : 'Upload Data Offline Lokal ke Cloud'}</span>
+                    <span>{isMigrating ? 'Uploading...' : 'Upload Local Offline Data to Cloud'}</span>
                   </button>
                   {migratedCount !== null && (
-                    <p className="text-[11px] text-emerald-300 mt-1">
-                      &check; {migratedCount} data berhasil disinkronkan ke database online.
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-300 mt-1">
+                      &check; {migratedCount} items successfully synchronized to cloud database.
                     </p>
                   )}
                 </div>
@@ -205,12 +205,12 @@ export const FirebaseSetupModal: React.FC<FirebaseSetupModalProps> = ({ isOpen, 
 
               {/* Seamless Mobile Connect Card */}
               <div className="pt-3 border-t border-emerald-500/20 space-y-2">
-                <div className="flex items-center gap-2 text-white font-semibold text-xs">
-                  <Smartphone className="w-4 h-4 text-emerald-400" />
-                  <span>Hubungkan HP ke Database Ini (Tanpa Perlu Paste Script di HP)</span>
+                <div className="flex items-center gap-2 text-slate-900 dark:text-white font-semibold text-xs">
+                  <Smartphone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Connect Mobile Device to Database (Instant Link)</span>
                 </div>
-                <p className="text-[11px] text-slate-300">
-                  Buka link khusus ini di HP Anda (atau scan QR). Firebase akan langsung otomatis aktif di browser HP tanpa perlu ketik/paste script lagi:
+                <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                  Open this direct link on your mobile browser (or scan QR code). Firebase cloud sync will automatically configure without manual script pasting:
                 </p>
 
                 <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -222,17 +222,17 @@ export const FirebaseSetupModal: React.FC<FirebaseSetupModalProps> = ({ isOpen, 
                       setCopiedShareLink(true);
                       setTimeout(() => setCopiedShareLink(false), 3000);
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs border border-slate-700 transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-medium text-xs border border-slate-300 dark:border-slate-700 transition-colors cursor-pointer"
                   >
                     {copiedShareLink ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        <span className="text-emerald-400">Tautan Berhasil Disalin!</span>
+                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-emerald-600 dark:text-emerald-400">Link Copied!</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Salin Link Buka di HP</span>
+                        <Copy className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                        <span>Copy Link to Mobile</span>
                       </>
                     )}
                   </button>
@@ -240,24 +240,24 @@ export const FirebaseSetupModal: React.FC<FirebaseSetupModalProps> = ({ isOpen, 
                   <button
                     type="button"
                     onClick={() => setShowQrCode(!showQrCode)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs border border-slate-300 dark:border-slate-700 transition-colors cursor-pointer"
                   >
-                    <QrCode className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{showQrCode ? 'Tutup QR Code' : 'Scan QR Code dengan Kamera HP'}</span>
+                    <QrCode className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                    <span>{showQrCode ? 'Hide QR Code' : 'Scan QR Code with Phone Camera'}</span>
                   </button>
                 </div>
 
                 {showQrCode && (
-                  <div className="p-3 bg-white rounded-xl flex flex-col items-center justify-center gap-2 w-fit mx-auto mt-2">
+                  <div className="p-3 bg-white rounded-xl flex flex-col items-center justify-center gap-2 w-fit mx-auto mt-2 shadow-md">
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
                         generateFirebaseShareUrl(currentConfig)
                       )}`}
-                      alt="Scan dengan HP untuk menghubungkan Firebase"
+                      alt="Scan with mobile camera to connect Firebase"
                       className="w-40 h-40"
                     />
                     <p className="text-[10px] text-slate-800 font-semibold text-center">
-                      Arahkan kamera HP ke QR ini untuk langsung aktif di HP
+                      Point your mobile camera at this QR code to connect instantly
                     </p>
                   </div>
                 )}
@@ -265,51 +265,51 @@ export const FirebaseSetupModal: React.FC<FirebaseSetupModalProps> = ({ isOpen, 
             </div>
           ) : (
             <>
-              {/* Step by Step Guide in Indonesian */}
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+              {/* Step by Step Guide in English */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                    <span>Panduan 3 Langkah Setup Firebase (100% Gratis)</span>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <span>3-Step Firebase Setup Guide (100% Free)</span>
                   </h4>
                   <a
                     href="https://console.firebase.google.com"
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 underline font-semibold"
+                    className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 hover:underline font-semibold"
                   >
-                    <span>Buka Firebase Console</span>
+                    <span>Open Firebase Console</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
 
-                <ol className="text-xs text-slate-300 space-y-2.5 list-decimal list-inside leading-relaxed">
+                <ol className="text-xs text-slate-700 dark:text-slate-300 space-y-2.5 list-decimal list-inside leading-relaxed">
                   <li>
-                    <strong>Buat Project Gratis</strong>: Buka{' '}
+                    <strong>Create Free Project</strong>: Go to{' '}
                     <a
                       href="https://console.firebase.google.com"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-amber-400 underline font-medium"
+                      className="text-amber-600 dark:text-amber-400 underline font-medium"
                     >
                       console.firebase.google.com
                     </a>
-                    , klik <em>"Add project"</em> dan beri nama apa saja (misal: <code>expenses-tracker</code>).
+                    , click <em>"Add project"</em> and enter a name (e.g. <code>expenses-tracker</code>).
                   </li>
                   <li>
-                    <strong>Aktifkan Fitur (2 Menit)</strong>:
-                    <ul className="list-disc list-inside pl-4 pt-1 space-y-1 text-slate-400 text-[11px]">
+                    <strong>Enable Features (2 Minutes)</strong>:
+                    <ul className="list-disc list-inside pl-4 pt-1 space-y-1 text-slate-600 dark:text-slate-400 text-[11px]">
                       <li>
-                        Di menu kiri, pilih <strong>Build &gt; Authentication</strong> &gt; klik <em>Get Started</em> &gt; aktifkan <strong>Email/Password</strong>.
+                        In left sidebar, select <strong>Build &gt; Authentication</strong> &gt; click <em>Get Started</em> &gt; enable <strong>Email/Password</strong>.
                       </li>
                       <li>
-                        Di menu kiri, pilih <strong>Build &gt; Firestore Database</strong> &gt; klik <em>Create database</em> &gt; pilih <em>Start in test mode</em> &gt; klik Create.
+                        In left sidebar, select <strong>Build &gt; Firestore Database</strong> &gt; click <em>Create database</em> &gt; choose <em>Start in test mode</em> &gt; click Create.
                       </li>
                     </ul>
                   </li>
                   <li>
-                    <strong>Dapatkan Config Web</strong>:
-                    <p className="pl-4 pt-0.5 text-slate-400 text-[11px]">
-                      Di halaman utama project, klik ikon Web (<code>&lt;/&gt;</code>) untuk daftarkan web app. Salin kode <code>firebaseConfig</code> yang muncul, lalu tempel di kotak bawah ini:
+                    <strong>Get Web Config</strong>:
+                    <p className="pl-4 pt-0.5 text-slate-600 dark:text-slate-400 text-[11px]">
+                      On project overview, click Web icon (<code>&lt;/&gt;</code>) to register web app. Copy the <code>firebaseConfig</code> object shown, then paste it below:
                     </p>
                   </li>
                 </ol>
@@ -318,19 +318,19 @@ export const FirebaseSetupModal: React.FC<FirebaseSetupModalProps> = ({ isOpen, 
               {/* Paste Form */}
               <form onSubmit={handleSave} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                     Paste Firebase Config
                   </label>
                   <textarea
                     value={inputConfig}
                     onChange={(e) => setInputConfig(e.target.value)}
-                    placeholder={`Contoh yang ditempel:\nconst firebaseConfig = {\n  apiKey: "AIzaSy...",\n  authDomain: "myproject.firebaseapp.com",\n  projectId: "myproject",\n  ...\n};`}
+                    placeholder={`Sample snippet:\nconst firebaseConfig = {\n  apiKey: "AIzaSy...",\n  authDomain: "myproject.firebaseapp.com",\n  projectId: "myproject",\n  ...\n};`}
                     rows={6}
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl p-3 text-xs text-slate-200 placeholder-slate-600 focus:outline-none font-mono leading-relaxed"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-amber-500 rounded-xl p-3 text-xs text-slate-900 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none font-mono leading-relaxed"
                     required
                   />
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    Format otomatis dikenali: baik berupa snippet JavaScript <code>const firebaseConfig = ...</code> maupun JSON mentah.
+                  <p className="text-[11px] text-slate-500 dark:text-slate-500 mt-1">
+                    Auto-parsed format: accepts standard JavaScript snippets <code>const firebaseConfig = ...</code> or raw JSON.
                   </p>
                 </div>
 
@@ -340,32 +340,32 @@ export const FirebaseSetupModal: React.FC<FirebaseSetupModalProps> = ({ isOpen, 
                   className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 hover:opacity-95 shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   <Flame className="w-4 h-4 fill-slate-950" />
-                  <span>{isSaving ? 'Menghubungkan...' : 'Simpan & Aktifkan Real-Time Sync'}</span>
+                  <span>{isSaving ? 'Connecting...' : 'Save & Enable Real-Time Sync'}</span>
                 </button>
               </form>
             </>
           )}
 
           {/* Security & Free Guarantee Note */}
-          <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-2.5 text-xs text-slate-400">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-400">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-white font-semibold text-[11px]">Gratis &amp; Aman 100%</p>
-              <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
-                Paket gratis Firebase (Spark Plan) mencakup hingga 50.000 baca dan 20.000 tulis per hari — jauh lebih dari cukup untuk pencatatan keuangan harian pribadi selamanya tanpa biaya sepeser pun.
+              <p className="text-slate-900 dark:text-white font-semibold text-[11px]">100% Free &amp; Secure</p>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
+                Firebase's free tier (Spark Plan) covers up to 50,000 reads and 20,000 writes per day — more than enough for lifetime personal financial tracking.
               </p>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 p-3 sm:p-4 bg-slate-950/90 backdrop-blur-md border-t border-slate-800 flex items-center justify-end">
+        <div className="shrink-0 p-3 sm:p-4 bg-slate-100 dark:bg-slate-950/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 flex items-center justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
-            Tutup
+            Close
           </button>
         </div>
       </div>

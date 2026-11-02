@@ -267,8 +267,8 @@ export const AdminView: React.FC = () => {
           </div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Restricted Administrator Area</h2>
           <p className="text-slate-600 dark:text-slate-400 text-sm max-w-md mx-auto mb-6">
-            Akses ke Admin Panel dibatasi khusus untuk Administrator terdaftar.
-            Hak akses admin diberikan kepada pengguna <span className="font-semibold text-emerald-600 dark:text-emerald-400">davinwijaya16@gmail.com</span>.
+            Access to the Admin Panel is restricted to authorized Administrators.
+            Primary admin privileges are assigned to <span className="font-semibold text-emerald-600 dark:text-emerald-400">davinwijaya16@gmail.com</span>.
           </p>
           <div className="p-3.5 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl mb-6 text-xs text-left space-y-1">
             <div className="flex items-center justify-between">
@@ -285,7 +285,7 @@ export const AdminView: React.FC = () => {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-medium text-xs border border-slate-300 dark:border-transparent transition-colors cursor-pointer shadow-sm"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Kembali ke Dashboard Utama</span>
+            <span>Return to Main Dashboard</span>
           </button>
         </div>
       </div>
@@ -333,9 +333,9 @@ export const AdminView: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xl">
-              Panel kontrol website WealthTrack untuk mengelola akun pengguna, hak akses admin (khusus{' '}
+              WealthTrack management console to control user accounts, admin access rights (primary{' '}
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">davinwijaya16@gmail.com</span>),
-              pengumuman sistem, dan log audit transaksi.
+              global announcements, and real-time transaction audit logs.
             </p>
           </div>
 
@@ -634,10 +634,10 @@ export const AdminView: React.FC = () => {
               <div>
                 <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-                  Beri Akses Admin ke Pengguna Baru
+                  Grant Admin Access to New User
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Masukkan email untuk memberikan privilege Admin secara instan.
+                  Enter an email address to grant instant Administrator privileges.
                 </p>
               </div>
             </div>
@@ -646,7 +646,7 @@ export const AdminView: React.FC = () => {
               <div className="relative flex-1">
                 <input
                   type="email"
-                  placeholder="Contoh: davinwijaya16@gmail.com"
+                  placeholder="e.g. davinwijaya16@gmail.com"
                   value={newAdminEmailInput}
                   onChange={(e) => setNewAdminEmailInput(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 font-mono"
@@ -657,14 +657,14 @@ export const AdminView: React.FC = () => {
                 className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-sm"
               >
                 <Plus className="w-4 h-4" />
-                <span>Beri Akses Admin</span>
+                <span>Grant Admin Access</span>
               </button>
             </form>
 
             {/* Current Admin Emails List */}
             <div className="pt-2">
               <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Daftar Administrator Aktif ({systemSettings?.adminEmails.length || 2}):
+                Active Administrators List ({systemSettings?.adminEmails.length || 2}):
               </span>
               <div className="flex flex-wrap gap-2 mt-2">
                 {(systemSettings?.adminEmails || ['davinwijaya16@gmail.com', 'davinwijaya1996@gmail.com']).map((email) => {
@@ -688,7 +688,7 @@ export const AdminView: React.FC = () => {
                           type="button"
                           onClick={() => handleRemoveAdminEmail(email)}
                           className="hover:text-rose-500 p-0.5 text-slate-400 transition-colors cursor-pointer"
-                          title="Hapus privilege admin"
+                          title="Remove admin privilege"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -704,9 +704,9 @@ export const AdminView: React.FC = () => {
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm">Semua Pengguna Terdaftar ({usersList.length})</h3>
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm">All Registered Users ({usersList.length})</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Lihat daftar pengguna, total akun, transaksi, dan kelola role mereka.
+                  View registered user accounts, managed ledgers, transaction counts, and role assignments.
                 </p>
               </div>
 
@@ -714,7 +714,7 @@ export const AdminView: React.FC = () => {
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Cari user (nama / email)..."
+                  placeholder="Search user (name / email)..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500"
@@ -740,7 +740,7 @@ export const AdminView: React.FC = () => {
                   {filteredUsers.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="py-8 text-center text-slate-500 text-xs">
-                        Tidak ada pengguna yang cocok dengan pencarian.
+                        No users match the current search query.
                       </td>
                     </tr>
                   ) : (
@@ -818,7 +818,7 @@ export const AdminView: React.FC = () => {
                                     ? 'Master admin cannot be deleted'
                                     : u.id === user?.id
                                     ? 'Cannot delete your own active account'
-                                    : 'Hapus pengguna ini'
+                                    : 'Delete user account'
                                 }
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -846,7 +846,7 @@ export const AdminView: React.FC = () => {
                 Global Transaction Audit Log ({transactionsList.length})
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Log real-time semua pengeluaran, pemasukan, dan transfer dari semua user di website.
+                Real-time transaction audit trail across all expenses, incomes, and transfers for all registered users.
               </p>
             </div>
 
@@ -856,7 +856,7 @@ export const AdminView: React.FC = () => {
                 onChange={(e) => setTxTypeFilter(e.target.value)}
                 className="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none"
               >
-                <option value="all">Semua Tipe</option>
+                <option value="all">All Types</option>
                 <option value="expense">Expense</option>
                 <option value="income">Income</option>
                 <option value="transfer">Transfer</option>
@@ -867,7 +867,7 @@ export const AdminView: React.FC = () => {
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Cari transaksi / user..."
+                  placeholder="Search transactions or users..."
                   value={txSearch}
                   onChange={(e) => setTxSearch(e.target.value)}
                   className="w-full pl-8 pr-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
@@ -893,7 +893,7 @@ export const AdminView: React.FC = () => {
                 {filteredTransactions.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-8 text-center text-slate-500 text-xs">
-                      Tidak ada transaksi yang cocok.
+                      No transactions match the selected filter.
                     </td>
                   </tr>
                 ) : (
@@ -957,7 +957,7 @@ export const AdminView: React.FC = () => {
                   Website Announcement Banner (Site-wide)
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Tampilkan banner pengumuman di bagian paling atas website untuk seluruh pengunjung/user.
+                  Display a top notification banner across all user sessions and views.
                 </p>
               </div>
 
@@ -989,13 +989,13 @@ export const AdminView: React.FC = () => {
             {/* Input Message */}
             <div className="space-y-2 pt-2">
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                Pesan Pengumuman:
+                Announcement Message:
               </label>
               <textarea
                 rows={2}
                 value={announcementMsg}
                 onChange={(e) => setAnnouncementMsg(e.target.value)}
-                placeholder="Contoh: Pemeliharaan sistem terjadwal pada Minggu pukul 02:00 WIB. Semua data tetap aman!"
+                placeholder="Example: Scheduled system maintenance on Sunday at 02:00 AM. Your data remains completely safe!"
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500"
               />
             </div>
@@ -1003,14 +1003,14 @@ export const AdminView: React.FC = () => {
             {/* Banner Type Selection */}
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                Tipe / Gaya Warna Banner:
+                Banner Style & Color Scheme:
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { id: 'info', label: 'Info (Biru)', bg: 'bg-blue-500/15 border-blue-500/40 text-blue-700 dark:text-blue-300' },
-                  { id: 'warning', label: 'Warning (Kuning)', bg: 'bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-300' },
-                  { id: 'success', label: 'Success (Hijau)', bg: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-700 dark:text-emerald-300' },
-                  { id: 'alert', label: 'Urgent Alert (Merah)', bg: 'bg-rose-500/15 border-rose-500/40 text-rose-700 dark:text-rose-300' },
+                  { id: 'info', label: 'Info (Blue)', bg: 'bg-blue-500/15 border-blue-500/40 text-blue-700 dark:text-blue-300' },
+                  { id: 'warning', label: 'Warning (Yellow)', bg: 'bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-300' },
+                  { id: 'success', label: 'Success (Green)', bg: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-700 dark:text-emerald-300' },
+                  { id: 'alert', label: 'Urgent Alert (Red)', bg: 'bg-rose-500/15 border-rose-500/40 text-rose-700 dark:text-rose-300' },
                 ].map((item) => (
                   <button
                     key={item.id}
@@ -1056,7 +1056,7 @@ export const AdminView: React.FC = () => {
               className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md shadow-emerald-500/20"
             >
               <Check className="w-4 h-4 stroke-[2.5]" />
-              <span>Simpan & Siarkan Pengumuman</span>
+              <span>Save & Publish Announcement</span>
             </button>
           </div>
 
@@ -1064,7 +1064,7 @@ export const AdminView: React.FC = () => {
           <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 shadow-sm space-y-4">
             <h3 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
               <Sliders className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-              Kebijakan Akses & Maintenance Mode
+              Access Policies & Maintenance Mode
             </h3>
 
             <div className="space-y-3">
@@ -1072,7 +1072,7 @@ export const AdminView: React.FC = () => {
                 <div>
                   <div className="text-xs font-semibold text-slate-900 dark:text-white">Allow Public User Registrations</div>
                   <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Bila dimatikan, hanya akun yang sudah terdaftar yang dapat login.
+                    When disabled, only existing registered accounts can log in.
                   </div>
                 </div>
                 <input
@@ -1087,7 +1087,7 @@ export const AdminView: React.FC = () => {
                 <div>
                   <div className="text-xs font-semibold text-slate-900 dark:text-white">Maintenance Mode Indicator</div>
                   <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Menampilkan indikator pemeliharaan sistem kepada user.
+                    Display a maintenance notice indicator to active users.
                   </div>
                 </div>
                 <input
@@ -1103,7 +1103,7 @@ export const AdminView: React.FC = () => {
               onClick={handleSaveAnnouncement}
               className="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold text-xs border border-slate-300 dark:border-slate-700 shadow-sm transition-colors cursor-pointer"
             >
-              Simpan Kebijakan Sistem
+              Save System Policies
             </button>
           </div>
         </div>
@@ -1118,13 +1118,13 @@ export const AdminView: React.FC = () => {
             </div>
 
             <div className="text-center space-y-1">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">Konfirmasi Hapus Pengguna</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Confirm User Deletion</h3>
               <p className="text-xs text-slate-600 dark:text-slate-400">
-                Apakah Anda yakin ingin menghapus user{' '}
+                Are you sure you want to permanently delete user{' '}
                 <span className="font-semibold text-rose-600 dark:text-rose-400">{userToDelete.email}</span>?
               </p>
               <p className="text-[11px] text-slate-500 pt-1">
-                Semua akun bank, transaksi, dan aset investasi pengguna ini akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.
+                All bank accounts, transactions, and investment holdings associated with this user will be permanently removed. This action cannot be undone.
               </p>
             </div>
 
@@ -1134,14 +1134,14 @@ export const AdminView: React.FC = () => {
                 onClick={() => setUserToDelete(null)}
                 className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold text-xs border border-slate-300 dark:border-slate-700 transition-colors cursor-pointer"
               >
-                Batal
+                Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeleteUser}
                 className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition-colors cursor-pointer shadow-md"
               >
-                Hapus Permanen
+                Delete Permanently
               </button>
             </div>
           </div>
