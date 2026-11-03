@@ -253,20 +253,20 @@ export const InvestmentModal: React.FC = () => {
           {/* Category Selector */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                ASSET CLASSIFICATION <span className="text-rose-400">*</span>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400">
+                ASSET CLASSIFICATION <span className="text-rose-500">*</span>
               </label>
               <button
                 type="button"
                 onClick={() => setIsHoldingTypesModalOpen(true)}
-                className="text-[9px] font-mono text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer transition-colors"
+                className="text-[9px] font-mono text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1 cursor-pointer transition-colors"
                 title="Manage or add custom holding types"
               >
                 <Layers className="w-2.5 h-2.5" />
                 <span>Master Holdings</span>
               </button>
             </div>
-            <div className="flex flex-wrap gap-1 p-1 bg-[#080a0f] rounded border border-[#1d2332] text-xs">
+            <div className="flex flex-wrap gap-1 p-1 bg-slate-100 dark:bg-[#080a0f] rounded border border-slate-200 dark:border-[#1d2332] text-xs">
               {categoriesList.map((cat) => (
                 <button
                   key={cat.id}
@@ -274,8 +274,8 @@ export const InvestmentModal: React.FC = () => {
                   onClick={() => handleCategoryChange(cat.id)}
                   className={`py-1 px-2 rounded text-center whitespace-nowrap transition-all cursor-pointer flex-1 min-w-[75px] ${
                     category === cat.id
-                      ? 'bg-[#1b212e] text-emerald-400 border border-[#2a3449] font-bold'
-                      : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+                      ? 'bg-white dark:bg-[#1b212e] text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-[#2a3449] shadow-xs font-bold'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 border border-transparent'
                   }`}
                 >
                   <span className="block text-[11px] font-mono">{cat.id}</span>
@@ -284,12 +284,12 @@ export const InvestmentModal: React.FC = () => {
               ))}
             </div>
             <div className="flex items-center justify-between mt-1 text-[10px] font-mono">
-              <span className="text-zinc-500">
-                CATEGORY: <strong className="text-emerald-400">{selectedCategoryMeta.id}</strong> • {selectedCategoryMeta.example}
+              <span className="text-slate-500 dark:text-zinc-500">
+                CATEGORY: <strong className="text-emerald-600 dark:text-emerald-400">{selectedCategoryMeta.id}</strong> • {selectedCategoryMeta.example}
               </span>
               <div className="flex items-center gap-1.5">
-                <span className="text-zinc-500 uppercase tracking-wider text-[9px]">DENOMINATION:</span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${isUsd ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'}`}>
+                <span className="text-slate-500 dark:text-zinc-500 uppercase tracking-wider text-[9px]">DENOMINATION:</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${isUsd ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'}`}>
                   {isUsd ? 'USD ($)' : 'IDR (Rp)'}
                 </span>
               </div>
@@ -298,15 +298,15 @@ export const InvestmentModal: React.FC = () => {
 
           {/* Custom Broker Exchange Rate (Only shown when currency is USD) */}
           {isUsd && (
-            <div className="p-2.5 rounded bg-[#0d1017] border border-indigo-500/30 space-y-1.5 animate-in fade-in">
+            <div className="p-2.5 rounded bg-indigo-50/60 dark:bg-[#0d1017] border border-indigo-200 dark:border-indigo-500/30 space-y-1.5 animate-in fade-in">
               <div className="flex items-center justify-between">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-indigo-300">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-indigo-800 dark:text-indigo-300">
                   BROKER / APP EXCHANGE RATE (IDR per USD)
                 </label>
-                <span className="text-[9px] font-mono text-zinc-500">CUSTOM RATE</span>
+                <span className="text-[9px] font-mono text-slate-500 dark:text-zinc-500">CUSTOM RATE</span>
               </div>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-500">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-zinc-500">
                   Rp
                 </span>
                 <input
@@ -315,26 +315,26 @@ export const InvestmentModal: React.FC = () => {
                   value={customExchangeRate}
                   onChange={(e) => setCustomExchangeRate(e.target.value)}
                   placeholder={usdIdrRate.toString()}
-                  className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-indigo-500 rounded pl-8 pr-3 py-2 text-xs font-bold text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
+                  className="w-full bg-white dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-indigo-500 rounded pl-8 pr-3 py-2 text-xs font-bold text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
                 />
               </div>
-              <p className="text-[10px] text-zinc-500">
-                Current system spot rate: <strong className="text-zinc-300 font-mono tabular-nums">{formatIdr(usdIdrRate)}</strong>. Fill this in if your broker uses a specific deposit/buying exchange rate (e.g. Rp 16,250).
+              <p className="text-[10px] text-slate-500 dark:text-zinc-500">
+                Current system spot rate: <strong className="text-slate-700 dark:text-zinc-300 font-mono tabular-nums">{formatIdr(usdIdrRate)}</strong>. Fill this in if your broker uses a specific deposit/buying exchange rate (e.g. Rp 16,250).
               </p>
             </div>
           )}
 
           {/* Asset Name / Ticker */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-              ASSET TICKER / IDENTIFIER <span className="text-rose-400">*</span>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
+              ASSET TICKER / IDENTIFIER <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={selectedCategoryMeta.example}
-              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none"
+              className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none"
               required
               autoFocus
             />
@@ -343,11 +343,11 @@ export const InvestmentModal: React.FC = () => {
           {/* Amount Invested & Current Value */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                PRINCIPAL COST ({isUsd ? 'USD' : 'IDR'}) <span className="text-rose-400">*</span>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
+                PRINCIPAL COST ({isUsd ? 'USD' : 'IDR'}) <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-500">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-zinc-500">
                   {isUsd ? '$' : 'Rp'}
                 </span>
                 <input
@@ -356,18 +356,18 @@ export const InvestmentModal: React.FC = () => {
                   value={amountInvested}
                   onChange={(e) => setAmountInvested(e.target.value)}
                   placeholder={isUsd ? '100.00' : '1,000,000'}
-                  className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded pl-8 pr-3 py-2 text-xs font-bold text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
+                  className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded pl-8 pr-3 py-2 text-xs font-bold text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
                 MARKET VALUATION ({isUsd ? 'USD' : 'IDR'})
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-500">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-zinc-500">
                   {isUsd ? '$' : 'Rp'}
                 </span>
                 <input
@@ -376,7 +376,7 @@ export const InvestmentModal: React.FC = () => {
                   value={currentValue}
                   onChange={(e) => setCurrentValue(e.target.value)}
                   placeholder={amountInvested || (isUsd ? '100.00' : '1,000,000')}
-                  className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded pl-8 pr-3 py-2 text-xs font-bold text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
+                  className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded pl-8 pr-3 py-2 text-xs font-bold text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
                 />
               </div>
             </div>
@@ -384,18 +384,18 @@ export const InvestmentModal: React.FC = () => {
 
           {/* Live PnL Preview */}
           {invNumber > 0 && (
-            <div className="p-2.5 bg-[#080a0f] rounded border border-[#1d2332] flex flex-wrap items-center justify-between text-xs gap-2">
+            <div className="p-2.5 bg-slate-50 dark:bg-[#080a0f] rounded border border-slate-200 dark:border-[#1d2332] flex flex-wrap items-center justify-between text-xs gap-2">
               <div>
-                <span className="text-zinc-500">UNREALIZED PnL: </span>
-                <span className={`font-bold font-mono tabular-nums ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                <span className="text-slate-500 dark:text-zinc-500">UNREALIZED PnL: </span>
+                <span className={`font-bold font-mono tabular-nums ${pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                   {pnl >= 0 ? '+' : ''}
                   {isUsd ? formatUsd(pnl) : formatIdr(pnl)} ({pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}%)
                 </span>
               </div>
               {isUsd && (
-                <div className="text-zinc-500 text-[10px]">
-                  IDR VALUATION: <strong className="text-zinc-200 font-mono tabular-nums">{formatIdr(curNumber * effectiveRate)}</strong>
-                  {customExchangeRate ? <span className="text-indigo-400 ml-1">(Broker Rate: Rp {Number(customExchangeRate).toLocaleString('en-US')})</span> : null}
+                <div className="text-slate-500 dark:text-zinc-500 text-[10px]">
+                  IDR VALUATION: <strong className="text-slate-900 dark:text-zinc-200 font-mono tabular-nums">{formatIdr(curNumber * effectiveRate)}</strong>
+                  {customExchangeRate ? <span className="text-indigo-600 dark:text-indigo-400 ml-1">(Broker Rate: Rp {Number(customExchangeRate).toLocaleString('en-US')})</span> : null}
                 </div>
               )}
             </div>
@@ -404,7 +404,7 @@ export const InvestmentModal: React.FC = () => {
           {/* Units & Platform */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
                 QUANTITY / UNITS (OPTIONAL)
               </label>
               <input
@@ -413,11 +413,11 @@ export const InvestmentModal: React.FC = () => {
                 value={units}
                 onChange={(e) => setUnits(e.target.value)}
                 placeholder={category === 'Bitcoin' ? 'e.g. 0.015 BTC' : 'e.g. 10 shares'}
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono"
+                className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none font-mono"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
                 PLATFORM / BROKER (OPTIONAL)
               </label>
               <input
@@ -425,14 +425,14 @@ export const InvestmentModal: React.FC = () => {
                 value={platform}
                 onChange={(e) => setPlatform(e.target.value)}
                 placeholder="e.g. GoTrade, Bibit, Ajaib..."
-                className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none"
+                className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none"
               />
             </div>
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
               POSITION NOTES (OPTIONAL)
             </label>
             <input
@@ -440,13 +440,13 @@ export const InvestmentModal: React.FC = () => {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. DCA recurring, thesis..."
-              className="w-full bg-[#080a0f] border border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none"
+              className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] focus:border-emerald-500 rounded px-3 py-2 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none"
             />
           </div>
         </form>
 
         {/* Command Strip Footer */}
-        <div className="shrink-0 p-3 bg-[#080a0f] border-t border-[#1b212e] flex items-center justify-between gap-2">
+        <div className="shrink-0 p-3 bg-slate-50 dark:bg-[#080a0f] border-t border-slate-200 dark:border-[#1b212e] flex items-center justify-between gap-2">
           {editingInvestment ? (
             confirmDelete ? (
               <div className="flex items-center gap-1.5">
@@ -461,7 +461,7 @@ export const InvestmentModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setConfirmDelete(false)}
-                  className="px-2 py-1.5 text-xs text-zinc-400 hover:text-white"
+                  className="px-2 py-1.5 text-xs text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
                 >
                   CANCEL
                 </button>
@@ -470,7 +470,7 @@ export const InvestmentModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>DELETE</span>
@@ -482,7 +482,7 @@ export const InvestmentModal: React.FC = () => {
             <button
               type="button"
               onClick={handleClose}
-              className="px-3 py-1.5 rounded text-xs font-semibold text-zinc-400 hover:text-white hover:bg-[#161a25] transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-[#161a25] transition-colors cursor-pointer"
             >
               DISCARD
             </button>
@@ -490,7 +490,7 @@ export const InvestmentModal: React.FC = () => {
               type="submit"
               form="investment-modal-form"
               disabled={isSubmitting}
-              className="flex items-center gap-1 px-3.5 py-1.5 rounded text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1 px-3.5 py-1.5 rounded text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-slate-950 cursor-pointer disabled:opacity-50"
             >
               <Check className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>{isSubmitting ? 'SAVING...' : 'UPDATE POSITION'}</span>

@@ -750,6 +750,7 @@ export const localDb = {
     creditCardAccountId: string;
     sourceAccountId: string;
     amountIdr: number;
+    adminFee?: number;
     date?: string;
     notes?: string;
   }): { success: boolean; transaction: Transaction } {
@@ -762,9 +763,11 @@ export const localDb = {
     if (!ccAcc) throw new Error('Credit card account not found');
 
     const amount = Math.abs(Number(data.amountIdr));
+    const adminFee = Math.abs(Number(data.adminFee || 0));
+    const totalDeduction = amount + adminFee;
     const txDate = data.date || new Date().toISOString().split('T')[0];
 
-    sourceAcc.balance -= amount;
+    sourceAcc.balance -= totalDeduction;
     ccAcc.balance = Math.max(0, ccAcc.balance - amount);
     sourceAcc.updatedAt = new Date().toISOString();
     ccAcc.updatedAt = new Date().toISOString();
@@ -778,11 +781,27 @@ export const localDb = {
       toAccountId: data.creditCardAccountId,
       category: `Credit Card Payment (${ccAcc.name})`,
       date: txDate,
-      notes: data.notes || `Paid credit card bill for ${ccAcc.name} from ${sourceAcc.name}`,
+      notes: data.notes || `Paid credit card bill for ${ccAcc.name} from ${sourceAcc.name}${adminFee > 0 ? ` (Admin Fee: Rp ${adminFee.toLocaleString()})` : ''}`,
       createdAt: new Date().toISOString(),
     };
 
     store.transactions.push(tx);
+
+    if (adminFee > 0) {
+      const feeTx: Transaction = {
+        id: 'tx_fee_' + Date.now(),
+        userId,
+        type: 'expense',
+        amount: adminFee,
+        accountId: data.sourceAccountId,
+        category: 'Admin / Settlement Fee',
+        date: txDate,
+        notes: `Admin settlement fee for ${ccAcc.name} bill payment`,
+        createdAt: new Date().toISOString(),
+      };
+      store.transactions.push(feeTx);
+    }
+
     saveStore(store);
     return { success: true, transaction: tx };
   },

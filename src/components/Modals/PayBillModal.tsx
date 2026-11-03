@@ -20,6 +20,7 @@ export const PayBillModal: React.FC = () => {
   const [creditCardAccountId, setCreditCardAccountId] = useState<string>('');
   const [sourceAccountId, setSourceAccountId] = useState<string>('');
   const [amountIdr, setAmountIdr] = useState<string>('');
+  const [adminFee, setAdminFee] = useState<string>('');
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -40,6 +41,7 @@ export const PayBillModal: React.FC = () => {
         setSourceAccountId(fundingAccounts[0].id);
       }
 
+      setAdminFee('');
       setDate(new Date().toISOString().split('T')[0]);
       setNotes('');
       setError('');
@@ -65,6 +67,7 @@ export const PayBillModal: React.FC = () => {
     if (fundingAccounts.length > 0) {
       setSourceAccountId(fundingAccounts[0].id);
     }
+    setAdminFee('');
     setDate(new Date().toISOString().split('T')[0]);
     setNotes('');
     setError('');
@@ -83,6 +86,9 @@ export const PayBillModal: React.FC = () => {
     setError('');
 
     const parsedAmount = Number(amountIdr);
+    const parsedFee = adminFee ? Number(adminFee) || 0 : 0;
+    const totalDeduction = parsedAmount + parsedFee;
+
     if (!parsedAmount || parsedAmount <= 0) {
       setError('Please enter a valid payment amount greater than 0');
       setIsSubmitting(false);
@@ -102,8 +108,8 @@ export const PayBillModal: React.FC = () => {
     }
 
     const sourceAcc = accounts.find((a) => a.id === sourceAccountId);
-    if (sourceAcc && sourceAcc.balance < parsedAmount) {
-      setError(`Insufficient balance in ${sourceAcc.name} (Available: ${formatIdr(sourceAcc.balance)})`);
+    if (sourceAcc && sourceAcc.balance < totalDeduction) {
+      setError(`Insufficient balance in ${sourceAcc.name} to cover bill + fee (Required: ${formatIdr(totalDeduction)}, Available: ${formatIdr(sourceAcc.balance)})`);
       setIsSubmitting(false);
       return;
     }
@@ -113,6 +119,7 @@ export const PayBillModal: React.FC = () => {
         creditCardAccountId,
         sourceAccountId,
         amountIdr: parsedAmount,
+        adminFee: parsedFee > 0 ? parsedFee : undefined,
         date,
         notes: notes.trim() || undefined,
       });
@@ -122,8 +129,8 @@ export const PayBillModal: React.FC = () => {
         type: 'success',
         txType: 'bill_pay',
         title: 'Bill Payment Successful',
-        message: targetCard ? `Bill for ${targetCard.name} has been settled` : undefined,
-        amount: parsedAmount,
+        message: targetCard ? `Bill for ${targetCard.name} has been settled${parsedFee > 0 ? ` with Rp ${parsedFee.toLocaleString()} fee` : ''}` : undefined,
+        amount: totalDeduction,
         category: 'Credit Card Bill',
         accountName: targetCard?.name || 'Credit Card',
         date,
@@ -284,6 +291,35 @@ export const PayBillModal: React.FC = () => {
                 >
                   Pay Full Debt ({formatIdr(selectedCard.balance)})
                 </button>
+              </div>
+            )}
+          </div>
+
+          {/* Admin / Settlement Fee */}
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-1">
+              ADMIN / SETTLEMENT FEE (IDR, OPTIONAL)
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-zinc-500">
+                Rp
+              </span>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={adminFee}
+                onChange={(e) => setAdminFee(e.target.value)}
+                placeholder="0"
+                className="w-full bg-slate-50 dark:bg-[#080a0f] border border-slate-300 dark:border-[#1d2332] focus:border-amber-500 rounded pl-9 pr-3 py-2 text-xs font-bold text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none font-mono tabular-nums"
+              />
+            </div>
+            {adminFee && !isNaN(Number(adminFee)) && Number(adminFee) > 0 && (
+              <div className="mt-1 flex items-center justify-between px-1 text-[11px] font-mono">
+                <span className="text-slate-500 dark:text-zinc-500">TOTAL DEDUCTION (BILL + FEE):</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                  {formatIdr((Number(amountIdr) || 0) + Number(adminFee))}
+                </span>
               </div>
             )}
           </div>

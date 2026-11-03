@@ -188,11 +188,11 @@ export const HoldingTypesModal: React.FC = () => {
           )}
 
           {/* Form: Add or Edit Holding Type */}
-          <form onSubmit={handleSubmit} className="p-3.5 rounded bg-[#080a0f] border border-[#1d2332] space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-[#1a1f2c]">
-              <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-                {editingId ? <Edit2 className="w-3 h-3 text-amber-400" /> : <Plus className="w-3 h-3 text-indigo-400" />}
-                <span className={editingId ? 'text-amber-400' : 'text-indigo-400'}>
+          <form onSubmit={handleSubmit} className="p-3.5 rounded bg-slate-50 dark:bg-[#080a0f] border border-slate-200 dark:border-[#1d2332] space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-[#1a1f2c]">
+              <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                {editingId ? <Edit2 className="w-3 h-3 text-amber-500 dark:text-amber-400" /> : <Plus className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />}
+                <span className={editingId ? 'text-amber-600 dark:text-amber-400' : 'text-indigo-600 dark:text-indigo-400'}>
                   {editingId ? `EDIT HOLDING TYPE: ${label || editingId}` : 'ADD NEW HOLDING TYPE'}
                 </span>
               </span>
@@ -200,7 +200,7 @@ export const HoldingTypesModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="text-[10px] text-zinc-400 hover:text-zinc-200 flex items-center gap-1 cursor-pointer"
+                  className="text-[10px] text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 flex items-center gap-1 cursor-pointer"
                 >
                   <RotateCcw className="w-2.5 h-2.5" />
                   <span>Cancel Edit</span>
@@ -210,23 +210,23 @@ export const HoldingTypesModal: React.FC = () => {
 
             {/* Name / Label */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                HOLDING TYPE NAME <span className="text-rose-400">*</span>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
+                HOLDING TYPE NAME <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="e.g. Gold / Metals, SBN Bonds, P2P Lending, Real Estate..."
-                className="w-full bg-[#0d1017] border border-[#1d2332] focus:border-indigo-500 rounded px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono"
+                className="w-full bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1d2332] focus:border-indigo-500 rounded px-3 py-1.5 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none font-mono"
                 required
               />
             </div>
 
             {/* Base Currency Choice */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                BASE DENOMINATION (CURRENCY) <span className="text-rose-400">*</span>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
+                BASE DENOMINATION (CURRENCY) <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
@@ -234,8 +234,8 @@ export const HoldingTypesModal: React.FC = () => {
                   onClick={() => setDefaultCurrency('IDR')}
                   className={`py-1.5 px-3 rounded text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                     defaultCurrency === 'IDR'
-                      ? 'bg-[#1b212e] text-emerald-400 border border-emerald-500/50 shadow-sm'
-                      : 'bg-[#0d1017] text-zinc-400 hover:text-zinc-200 border border-[#1a1f2c]'
+                      ? 'bg-emerald-50 dark:bg-[#1b212e] text-emerald-700 dark:text-emerald-400 border border-emerald-500/50 shadow-xs'
+                      : 'bg-white dark:bg-[#0d1017] text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 border border-slate-200 dark:border-[#1a1f2c]'
                   }`}
                 >
                   <span>Rp IDR (Indonesian Rupiah)</span>
@@ -245,21 +245,21 @@ export const HoldingTypesModal: React.FC = () => {
                   onClick={() => setDefaultCurrency('USD')}
                   className={`py-1.5 px-3 rounded text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                     defaultCurrency === 'USD'
-                      ? 'bg-[#1b212e] text-indigo-400 border border-indigo-500/50 shadow-sm'
-                      : 'bg-[#0d1017] text-zinc-400 hover:text-zinc-200 border border-[#1a1f2c]'
+                      ? 'bg-indigo-50 dark:bg-[#1b212e] text-indigo-700 dark:text-indigo-400 border border-indigo-500/50 shadow-xs'
+                      : 'bg-white dark:bg-[#0d1017] text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 border border-slate-200 dark:border-[#1a1f2c]'
                   }`}
                 >
                   <span>$ USD (US Dollar)</span>
                 </button>
               </div>
-              <p className="text-[10px] text-zinc-500 mt-1">
+              <p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1">
                 Positions in this holding class are natively recorded in {defaultCurrency}.
               </p>
             </div>
 
             {/* Example / Ticker Notes */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
                 EXAMPLE ASSETS / PLATFORMS (OPTIONAL)
               </label>
               <input
@@ -267,13 +267,13 @@ export const HoldingTypesModal: React.FC = () => {
                 value={example}
                 onChange={(e) => setExample(e.target.value)}
                 placeholder="e.g. Antam, Pluang Gold, ORI024, Sucor, Gotrade..."
-                className="w-full bg-[#0d1017] border border-[#1d2332] focus:border-indigo-500 rounded px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none font-mono"
+                className="w-full bg-white dark:bg-[#0d1017] border border-slate-200 dark:border-[#1d2332] focus:border-indigo-500 rounded px-3 py-1.5 text-xs text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none font-mono"
               />
             </div>
 
             {/* Color Accent */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
                 BADGE ACCENT COLOR
               </label>
               <div className="flex flex-wrap gap-1">
@@ -283,7 +283,7 @@ export const HoldingTypesModal: React.FC = () => {
                     type="button"
                     onClick={() => setBadgeColor(c.id)}
                     className={`px-2 py-1 rounded text-[10px] font-bold border transition-all cursor-pointer ${c.class} ${
-                      badgeColor === c.id ? `${c.border} ring-1 ring-white/30` : 'border-transparent opacity-60 hover:opacity-100'
+                      badgeColor === c.id ? `${c.border} ring-1 ring-slate-400 dark:ring-white/30` : 'border-transparent opacity-60 hover:opacity-100'
                     }`}
                   >
                     {c.label}
@@ -297,7 +297,7 @@ export const HoldingTypesModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="px-3 py-1.5 rounded text-xs font-semibold text-zinc-400 hover:text-zinc-200 bg-[#141923] border border-[#202737] transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 bg-slate-200 hover:bg-slate-300 dark:bg-[#141923] dark:hover:bg-[#1a2030] border border-slate-300 dark:border-[#202737] transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -326,13 +326,13 @@ export const HoldingTypesModal: React.FC = () => {
           {/* List of Existing Holding Types */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400">
                 REGISTERED HOLDING TYPES ({holdingTypes.length})
               </span>
-              <span className="text-[9px] text-zinc-500 font-mono">IDR & USD</span>
+              <span className="text-[9px] text-slate-500 dark:text-zinc-500 font-mono">IDR & USD</span>
             </div>
 
-            <div className="divide-y divide-[#171b26] rounded border border-[#1d2332] bg-[#080a0f] overflow-hidden">
+            <div className="divide-y divide-slate-200 dark:divide-[#171b26] rounded border border-slate-200 dark:border-[#1d2332] bg-slate-50 dark:bg-[#080a0f] overflow-hidden">
               {holdingTypes.map((ht) => {
                 const isUsd = ht.defaultCurrency === 'USD';
                 const taggedCount = investments.filter((i) => i.category === ht.id).length;
@@ -342,33 +342,33 @@ export const HoldingTypesModal: React.FC = () => {
                   <div
                     key={ht.id}
                     className={`p-3 flex items-center justify-between gap-2 transition-colors ${
-                      isBeingEdited ? 'bg-[#151a26] border-l-2 border-l-amber-400' : 'hover:bg-[#0d1017]'
+                      isBeingEdited ? 'bg-amber-500/10 dark:bg-[#151a26] border-l-2 border-l-amber-500' : 'hover:bg-slate-100 dark:hover:bg-[#0d1017]'
                     }`}
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-zinc-100">{ht.label}</span>
+                        <span className="font-bold text-xs text-slate-900 dark:text-zinc-100">{ht.label}</span>
                         <span
                           className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold ${
                             isUsd
-                              ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30'
-                              : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                              ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30'
+                              : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                           }`}
                         >
                           {ht.defaultCurrency}
                         </span>
                         {ht.isSystem && (
-                          <span className="text-[8px] px-1 py-0.2 rounded bg-zinc-800 text-zinc-400 flex items-center gap-0.5">
+                          <span className="text-[8px] px-1 py-0.2 rounded bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 flex items-center gap-0.5">
                             <ShieldCheck className="w-2.5 h-2.5" />
                             <span>DEFAULT</span>
                           </span>
                         )}
                       </div>
                       {ht.example && (
-                        <p className="text-[10px] text-zinc-500 mt-0.5 truncate">{ht.example}</p>
+                        <p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-0.5 truncate">{ht.example}</p>
                       )}
-                      <p className="text-[9px] text-zinc-600 mt-0.5 flex items-center gap-1 font-mono">
-                        <TrendingUp className="w-2.5 h-2.5 text-zinc-500" />
+                      <p className="text-[9px] text-slate-500 dark:text-zinc-600 mt-0.5 flex items-center gap-1 font-mono">
+                        <TrendingUp className="w-2.5 h-2.5 text-slate-400 dark:text-zinc-500" />
                         <span>{taggedCount} active asset{taggedCount !== 1 ? 's' : ''} in portfolio</span>
                       </p>
                     </div>
@@ -381,8 +381,8 @@ export const HoldingTypesModal: React.FC = () => {
                         title="Edit holding type"
                         className={`p-1.5 rounded transition-colors cursor-pointer ${
                           isBeingEdited
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'text-zinc-400 hover:text-zinc-100 hover:bg-[#182030]'
+                            ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                            : 'text-slate-400 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-slate-200 dark:hover:bg-[#182030]'
                         }`}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -403,7 +403,7 @@ export const HoldingTypesModal: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => setDeletingId(null)}
-                                className="px-1.5 py-1 text-zinc-400 hover:text-white text-[10px] cursor-pointer"
+                                className="px-1.5 py-1 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white text-[10px] cursor-pointer"
                               >
                                 CANCEL
                               </button>
@@ -420,8 +420,8 @@ export const HoldingTypesModal: React.FC = () => {
                               disabled={taggedCount > 0}
                               className={`p-1.5 rounded transition-colors ${
                                 taggedCount > 0
-                                  ? 'text-zinc-700 cursor-not-allowed opacity-40'
-                                  : 'text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer'
+                                  ? 'text-slate-300 dark:text-zinc-700 cursor-not-allowed opacity-40'
+                                  : 'text-slate-400 hover:text-rose-600 dark:text-zinc-500 dark:hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer'
                               }`}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -438,11 +438,11 @@ export const HoldingTypesModal: React.FC = () => {
         </div>
 
         {/* Command Strip Footer */}
-        <div className="shrink-0 p-3 bg-[#080a0f] border-t border-[#1b212e] flex items-center justify-end">
+        <div className="shrink-0 p-3 bg-slate-50 dark:bg-[#080a0f] border-t border-slate-200 dark:border-[#1b212e] flex items-center justify-end">
           <button
             type="button"
             onClick={handleClose}
-            className="px-3.5 py-1.5 rounded text-xs font-semibold text-zinc-300 hover:text-white bg-[#131722] hover:bg-[#1a2030] border border-[#21293a] transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 rounded text-xs font-semibold text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white bg-slate-200 hover:bg-slate-300 dark:bg-[#131722] dark:hover:bg-[#1a2030] border border-slate-300 dark:border-[#21293a] transition-colors cursor-pointer"
           >
             CLOSE
           </button>

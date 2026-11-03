@@ -79,6 +79,7 @@ interface FinanceContextType {
     creditCardAccountId: string;
     sourceAccountId: string;
     amountIdr: number;
+    adminFee?: number;
     date?: string;
     notes?: string;
   }) => Promise<void>;
@@ -892,6 +893,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     creditCardAccountId: string;
     sourceAccountId: string;
     amountIdr: number;
+    adminFee?: number;
     date?: string;
     notes?: string;
   }) => {
@@ -901,12 +903,15 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!sourceAcc || !ccAcc) throw new Error('Accounts not found');
 
       const amount = Math.abs(Number(data.amountIdr));
+      const adminFee = Math.abs(Number(data.adminFee || 0));
+      const totalDeduction = amount + adminFee;
       const now = new Date().toISOString();
       const txId = 'tx_cc_' + Date.now();
+      const txDate = data.date || now.split('T')[0];
 
       await firestoreService.saveAccount({
         ...sourceAcc,
-        balance: sourceAcc.balance - amount,
+        balance: sourceAcc.balance - totalDeduction,
         updatedAt: now,
       });
       await firestoreService.saveAccount({
@@ -923,11 +928,26 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         accountId: data.sourceAccountId,
         toAccountId: data.creditCardAccountId,
         category: `Credit Card Payment (${ccAcc.name})`,
-        date: data.date || now.split('T')[0],
-        notes: data.notes || `Paid credit card bill for ${ccAcc.name} from ${sourceAcc.name}`,
+        date: txDate,
+        notes: data.notes || `Paid credit card bill for ${ccAcc.name} from ${sourceAcc.name}${adminFee > 0 ? ` (Admin Fee: Rp ${adminFee.toLocaleString()})` : ''}`,
         createdAt: now,
       };
       await firestoreService.saveTransaction(tx);
+
+      if (adminFee > 0) {
+        const feeTx: Transaction = {
+          id: 'tx_fee_' + Date.now(),
+          userId: user.id,
+          type: 'expense',
+          amount: adminFee,
+          accountId: data.sourceAccountId,
+          category: 'Admin / Settlement Fee',
+          date: txDate,
+          notes: `Admin settlement fee for ${ccAcc.name} bill payment`,
+          createdAt: now,
+        };
+        await firestoreService.saveTransaction(feeTx);
+      }
       return;
     }
 
